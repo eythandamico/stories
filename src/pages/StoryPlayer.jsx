@@ -8,6 +8,7 @@ import { hapticLight, hapticMedium, hapticSuccess, hapticError } from '../lib/ha
 import { soundClick, soundPositive, soundNeutral, soundConnection, soundTick, soundTimerWarn, soundTimerExpired, soundEndingDiscovered, startHeartbeat, stopHeartbeat } from '../lib/sounds.js'
 import Icon from '../lib/icon.jsx'
 import { HeartIcon } from '../components/heart-icon.jsx'
+import { posterUrl } from '../lib/config.js'
 import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
 
 const MAX_CONNECTION = 5
@@ -270,6 +271,7 @@ export default function StoryPlayer() {
         ref={videoRef}
         key={currentNodeId}
         src={node.video}
+        poster={posterUrl(node.video)}
         aria-label={node.title}
         className="w-full h-full object-cover animate-crossfade"
         onTimeUpdate={handleTimeUpdate}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { feed } from '../data/feed.js'
+import { posterUrl } from '../lib/config.js'
 import Icon from '../lib/icon.jsx'
 
 const categories = [
@@ -104,6 +105,7 @@ export default function Explore() {
                         <video
                           ref={(el) => { videoRefs.current[key] = el }}
                           src={item.preview}
+                          poster={posterUrl(item.preview)}
                           className="w-full h-full object-cover"
                           muted
                           loop

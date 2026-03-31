@@ -9,3 +9,12 @@ export function videoUrl(path) {
   }
   return path
 }
+
+// Helper to get poster image for a video
+export function posterUrl(videoPath) {
+  const filename = videoPath.split('/').pop().replace('.mp4', '.jpg')
+  if (VIDEO_BASE) {
+    return `${VIDEO_BASE}/posters/${filename}`
+  }
+  return `/posters/${filename}`
+}

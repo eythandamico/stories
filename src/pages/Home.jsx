@@ -8,6 +8,7 @@ import { StreakModal } from '../components/streak-modal.jsx'
 import { Onboarding, shouldShowOnboarding } from '../components/onboarding.jsx'
 import { useGameState } from '../lib/use-game-state.js'
 import { hapticLight, hapticError } from '../lib/haptics.js'
+import { posterUrl } from '../lib/config.js'
 import PrismaticBurst from '../components/prismatic-burst.jsx'
 import Icon from '../lib/icon.jsx'
 import { HeartIcon } from '../components/heart-icon.jsx'
@@ -47,12 +48,13 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
           <video
             ref={videoRef}
             src={item.preview}
+            poster={posterUrl(item.preview)}
             className="w-full h-full object-cover transition-opacity duration-500"
             aria-label={`${item.title} preview`}
             loop
             muted
             playsInline
-            preload={isActive ? 'auto' : 'metadata'}
+            preload={isActive ? 'auto' : 'none'}
             onLoadedData={(e) => { e.target.style.opacity = 1 }}
             style={{ opacity: 0 }}
           />
