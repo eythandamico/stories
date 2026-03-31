@@ -12,6 +12,9 @@ dist
 
 # Large video files
 public/videos/*.mp4
+
+# Wrangler local state
+.wrangler/
 dist-ssr
 *.local
 
