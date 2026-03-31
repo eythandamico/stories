@@ -391,14 +391,11 @@ export default function StoryPlayer() {
           aria-hidden="true"
         />
 
-        <div className="relative px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-20"
+        <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-16"
           style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.7) 30%)' }}
         >
-          <p className="text-white/50 text-[14px] font-medium tracking-widest uppercase mb-2">
-            {node.ending ? 'Ending' : `Scene ${currentScene}`}
-          </p>
-          <h1 className="text-white font-semibold text-[26px] leading-tight tracking-[-0.01em] mb-2">{node.title}</h1>
-          <p className="text-white/60 text-[16px] leading-relaxed mb-5">{node.description}</p>
+          <h1 className="text-white font-semibold text-[22px] leading-tight tracking-[-0.01em] mb-1">{node.title}</h1>
+          <p className="text-white/60 text-[14px] leading-relaxed mb-3 line-clamp-2">{node.description}</p>
 
           {node.ending ? (
             <div className="animate-fade-up">
@@ -426,7 +423,7 @@ export default function StoryPlayer() {
             </div>
           ) : showChoices ? (
             <div>
-              <p className="text-white/50 text-[14px] font-medium tracking-widest uppercase mb-3">
+              <p className="text-white/50 text-[12px] font-medium tracking-widest uppercase mb-2">
                 {node.timed ? 'Decide quickly' : 'What do you do?'}
               </p>
               <Stack gap="sm">
@@ -440,7 +437,7 @@ export default function StoryPlayer() {
                       type="button"
                       onClick={() => chosenIndex === null && handleChoice(choice, i)}
                       disabled={chosenIndex !== null}
-                      className={`animate-fade-up w-full text-left p-4 rounded-2xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center gap-3 relative overflow-hidden ${
+                      className={`animate-fade-up w-full text-left px-3.5 py-3 rounded-xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center gap-2.5 relative overflow-hidden ${
                         isChosen
                           ? 'bg-white/[0.18]'
                           : isOther
@@ -461,12 +458,12 @@ export default function StoryPlayer() {
                         }}
                       />
 
-                      <span className={`relative w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-[16px] font-semibold transition-[opacity,transform,background-color] duration-300 ${
+                      <span className={`relative w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[14px] font-semibold transition-[opacity,transform,background-color] duration-300 ${
                         isChosen ? 'bg-white text-black' : 'bg-white/10 text-white/50 group-hover:bg-white group-hover:text-black'
                       }`}>
-                        {isChosen ? <Icon name="check" size={16} /> : String.fromCharCode(65 + i)}
+                        {isChosen ? <Icon name="check" size={14} /> : String.fromCharCode(65 + i)}
                       </span>
-                      <span className="relative text-white font-medium text-[16px] flex-1 leading-snug">{choice.label}</span>
+                      <span className="relative text-white font-medium text-[15px] flex-1 leading-snug">{choice.label}</span>
 
                       {/* Percentage — counts up from 0 */}
                       <span
@@ -499,7 +496,7 @@ export default function StoryPlayer() {
 
               {/* Perk action buttons — always visible */}
               {chosenIndex === null && (
-                <div className="flex items-stretch gap-2 mt-4 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+                <div className="flex items-center justify-center gap-2 mt-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
                   {[
                     { type: 'freeze', icon: 'clock', color: '#38bdf8', label: 'Freeze', count: perks.freeze, active: freezeActive, handler: handleFreeze, disabled: freezeActive || !node.timed },
                     { type: 'hint', icon: 'sparkle', color: '#a78bfa', label: 'Hint', count: perks.hint, active: hintActive, handler: handleHint, disabled: hintActive },
@@ -508,31 +505,16 @@ export default function StoryPlayer() {
                     <button
                       key={p.type}
                       type="button"
-                      onClick={() => {
-                        if (p.count > 0) {
-                          p.handler()
-                        } else {
-                          setShowBuyPerks(true)
-                        }
-                      }}
+                      onClick={() => p.count > 0 ? p.handler() : setShowBuyPerks(true)}
                       disabled={p.disabled}
-                      className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 rounded-2xl cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed ${
                         p.active ? 'bg-white/[0.15]' : 'bg-white/[0.08] hover:bg-white/[0.12]'
                       }`}
                     >
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ background: `${p.color}15` }}
-                      >
-                        {p.active ? (
-                          <Icon name="check" size={20} style={{ color: p.color }} />
-                        ) : (
-                          <Icon name={p.icon} size={20} style={{ color: p.color }} />
-                        )}
-                      </div>
-                      <span className="text-[12px] font-medium text-white/50">{p.active ? 'Active' : p.label}</span>
-                      <span className="text-[12px] font-semibold tabular-nums" style={{ color: p.count > 0 ? p.color : 'rgba(255,255,255,0.3)' }}>
-                        {p.count > 0 ? p.count : 'Buy'}
+                      <Icon name={p.active ? 'check' : p.icon} size={14} style={{ color: p.color }} />
+                      <span className="text-[13px] font-medium text-white/60">{p.active ? 'Active' : p.label}</span>
+                      <span className="text-[13px] font-semibold tabular-nums" style={{ color: p.count > 0 ? p.color : 'rgba(255,255,255,0.3)' }}>
+                        {p.count > 0 ? p.count : '0'}
                       </span>
                     </button>
                   ))}
