@@ -1,10 +1,12 @@
+import { videoUrl } from '../lib/config.js'
+
 export const feed = [
   {
     id: 'romantic-adventure',
     title: 'The Missed Train',
     description: 'A chance encounter at a rainy station. Every choice shapes what comes next.',
     genre: 'Romance',
-    preview: '/videos/scene01.mp4',
+    preview: videoUrl('/videos/scene01.mp4'),
     route: '/play',
     trending: true,
   },
@@ -13,7 +15,7 @@ export const feed = [
     title: 'The Last Signal',
     description: 'A deep space crew receives a message that shouldn\'t exist. Trust no one.',
     genre: 'Sci-Fi',
-    preview: '/videos/preview-last-signal.mp4',
+    preview: videoUrl('/videos/preview-last-signal.mp4'),
     route: null,
   },
   {
@@ -21,7 +23,7 @@ export const feed = [
     title: 'Room 413',
     description: 'Check in. Don\'t check out. A hotel with secrets buried in the walls.',
     genre: 'Horror',
-    preview: '/videos/preview-room-413.mp4',
+    preview: videoUrl('/videos/preview-room-413.mp4'),
     route: null,
   },
   {
@@ -29,7 +31,7 @@ export const feed = [
     title: 'Still Life',
     description: 'A painter becomes obsessed with a portrait that seems to change overnight.',
     genre: 'Drama',
-    preview: '/videos/preview-portrait.mp4',
+    preview: videoUrl('/videos/preview-portrait.mp4'),
     route: null,
   },
   {
@@ -37,7 +39,7 @@ export const feed = [
     title: 'Capri Nights',
     description: 'A summer on the Italian coast. A woman. A secret. A choice you can\'t take back.',
     genre: 'Romance',
-    preview: '/videos/preview-capri.mp4',
+    preview: videoUrl('/videos/preview-capri.mp4'),
     route: null,
   },
   {
@@ -45,7 +47,7 @@ export const feed = [
     title: 'Winter Ballet',
     description: 'A dancer\'s final performance. The spotlight fades. The music doesn\'t.',
     genre: 'Drama',
-    preview: '/videos/feed-01.mp4',
+    preview: videoUrl('/videos/feed-01.mp4'),
     route: null,
   },
   {
@@ -53,7 +55,7 @@ export const feed = [
     title: 'Neon Nights',
     description: 'The club is alive. The beat drops. But someone here knows your secret.',
     genre: 'Thriller',
-    preview: '/videos/feed-02.mp4',
+    preview: videoUrl('/videos/feed-02.mp4'),
     route: null,
   },
   {
@@ -61,7 +63,7 @@ export const feed = [
     title: 'Seoul Spring',
     description: 'She smiles like she knows something you don\'t. Maybe she does.',
     genre: 'Romance',
-    preview: '/videos/feed-03.mp4',
+    preview: videoUrl('/videos/feed-03.mp4'),
     route: null,
     trending: true,
   },
@@ -70,7 +72,7 @@ export const feed = [
     title: 'After Dark',
     description: 'The cameras see everything. But tonight, you wish they didn\'t.',
     genre: 'Horror',
-    preview: '/videos/feed-04.mp4',
+    preview: videoUrl('/videos/feed-04.mp4'),
     route: null,
   },
   {
@@ -78,7 +80,7 @@ export const feed = [
     title: 'The Descent',
     description: 'Every step down takes you further from the surface. And closer to the truth.',
     genre: 'Thriller',
-    preview: '/videos/feed-05.mp4',
+    preview: videoUrl('/videos/feed-05.mp4'),
     route: null,
     trending: true,
   },
@@ -87,7 +89,7 @@ export const feed = [
     title: 'Northern Light',
     description: 'A quiet life in the north. Until a stranger arrives at the cabin door.',
     genre: 'Drama',
-    preview: '/videos/feed-06.mp4',
+    preview: videoUrl('/videos/feed-06.mp4'),
     route: null,
   },
   {
@@ -95,7 +97,7 @@ export const feed = [
     title: 'Midnight Drive',
     description: 'The road stretches on forever. The rearview mirror shows a different past.',
     genre: 'Sci-Fi',
-    preview: '/videos/feed-07.mp4',
+    preview: videoUrl('/videos/feed-07.mp4'),
     route: null,
   },
   {
@@ -103,7 +105,7 @@ export const feed = [
     title: 'Pixel Quest',
     description: 'She\'s not like the other NPCs. She remembers yesterday.',
     genre: 'Sci-Fi',
-    preview: '/videos/feed-08.mp4',
+    preview: videoUrl('/videos/feed-08.mp4'),
     route: null,
   },
   {
@@ -111,7 +113,7 @@ export const feed = [
     title: 'Haute Monde',
     description: 'Behind the velvet curtain, fashion hides its darkest obsession.',
     genre: 'Drama',
-    preview: '/videos/feed-09.mp4',
+    preview: videoUrl('/videos/feed-09.mp4'),
     route: null,
     trending: true,
   },
@@ -120,7 +122,7 @@ export const feed = [
     title: 'Golden Hour',
     description: 'The light is perfect. The moment is fleeting. The choice is permanent.',
     genre: 'Romance',
-    preview: '/videos/feed-10.mp4',
+    preview: videoUrl('/videos/feed-10.mp4'),
     route: null,
   },
   {
@@ -128,7 +130,7 @@ export const feed = [
     title: 'Dungeon Scroll',
     description: 'An 8-bit adventure where death is just the beginning of the story.',
     genre: 'Fantasy',
-    preview: '/videos/feed-11.mp4',
+    preview: videoUrl('/videos/feed-11.mp4'),
     route: null,
   },
   {
@@ -136,7 +138,7 @@ export const feed = [
     title: 'Ghost Screen',
     description: 'The screen flickers. A message appears. It\'s addressed to you.',
     genre: 'Horror',
-    preview: '/videos/feed-12.mp4',
+    preview: videoUrl('/videos/feed-12.mp4'),
     route: null,
   },
   {
@@ -144,7 +146,7 @@ export const feed = [
     title: 'Pink Velvet',
     description: 'Fame comes with a price. He\'s about to find out how much.',
     genre: 'Drama',
-    preview: '/videos/feed-13.mp4',
+    preview: videoUrl('/videos/feed-13.mp4'),
     route: null,
   },
   {
@@ -152,7 +154,7 @@ export const feed = [
     title: 'Crossing Point',
     description: 'She waits at the same crossing every day. Today, someone waits with her.',
     genre: 'Romance',
-    preview: '/videos/feed-14.mp4',
+    preview: videoUrl('/videos/feed-14.mp4'),
     route: null,
   },
   {
@@ -160,7 +162,7 @@ export const feed = [
     title: 'Glass Empire',
     description: 'At the top, everyone is watching. One wrong move shatters everything.',
     genre: 'Thriller',
-    preview: '/videos/feed-15.mp4',
+    preview: videoUrl('/videos/feed-15.mp4'),
     route: null,
   },
   {
@@ -168,7 +170,7 @@ export const feed = [
     title: 'Parallel Lives',
     description: 'Three lives. One moment. What if you could live them all?',
     genre: 'Sci-Fi',
-    preview: '/videos/feed-16.mp4',
+    preview: videoUrl('/videos/feed-16.mp4'),
     route: null,
   },
 ]

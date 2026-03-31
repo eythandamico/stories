@@ -1,15 +1,17 @@
+import { videoUrl } from '../lib/config.js'
+
 export const story = {
   id: 'romantic-adventure',
   title: 'The Missed Train',
   description: 'A chance encounter at a rainy station. Every choice shapes what comes next.',
-  cover: '/videos/scene01.mp4',
+  cover: videoUrl('/videos/scene01.mp4'),
   duration: '~5 min',
   endings: 2,
   startNodeId: 'scene01',
   nodes: {
     scene01: {
       id: 'scene01',
-      video: '/videos/scene01.mp4',
+      video: videoUrl('/videos/scene01.mp4'),
       title: 'The Encounter',
       description: 'Leo misses his train and steps under a small shelter. Maya is already there, shaking rain from her coat. They glance at each other, then quickly away. The storm traps them together.',
       choices: [
@@ -19,7 +21,7 @@ export const story = {
     },
     scene02: {
       id: 'scene02',
-      video: '/videos/scene02.mp4',
+      video: videoUrl('/videos/scene02.mp4'),
       title: 'First Words',
       description: 'Leo comments on the rain; Maya smiles, amused. They exchange names, awkward but curious. The city hums around them, softened by water. The next train is announced, still minutes away.',
       timed: true,
@@ -31,7 +33,7 @@ export const story = {
     },
     scene03: {
       id: 'scene03',
-      video: '/videos/scene03.mp4',
+      video: videoUrl('/videos/scene03.mp4'),
       title: 'Silent Connection',
       description: 'They stand in silence as rain echoes on metal. Maya reads; Leo watches reflections in puddles. Their eyes meet again, longer this time. Something almost begins... but hesitates.',
       choices: [
@@ -41,7 +43,7 @@ export const story = {
     },
     scene04: {
       id: 'scene04',
-      video: '/videos/scene04.mp4',
+      video: videoUrl('/videos/scene04.mp4'),
       title: 'Opening Up',
       description: 'Maya shares she just moved here, starting over. Leo admits he stayed, even when he could\'ve left. The rain softens, and so does the distance between them. Time feels slower than it should.',
       timed: true,
@@ -53,7 +55,7 @@ export const story = {
     },
     scene05: {
       id: 'scene05',
-      video: '/videos/scene05.mp4',
+      video: videoUrl('/videos/scene05.mp4'),
       title: 'The Joke',
       description: 'Leo makes a terrible joke about missed trains. Maya laughs anyway, brighter than the moment deserves. Headlights appear in the distance. The train is arriving. They both feel it: a choice is coming.',
       timed: true,
@@ -65,7 +67,7 @@ export const story = {
     },
     scene06: {
       id: 'scene06',
-      video: '/videos/scene06.mp4',
+      video: videoUrl('/videos/scene06.mp4'),
       title: 'Missed Chance',
       description: 'They board the same train, but sit apart. City lights streak across the windows between them. Neither speaks; both notice the other leaving. They step off into different nights.',
       choices: [
@@ -75,7 +77,7 @@ export const story = {
     },
     scene07: {
       id: 'scene07',
-      video: '/videos/scene07.mp4',
+      video: videoUrl('/videos/scene07.mp4'),
       title: 'Vulnerability',
       description: 'Leo shares a story he never tells anyone. Maya listens, then gently touches his hand. "I\'m glad you missed that train," she says. The world feels quieter, more precise.',
       timed: true,
@@ -87,7 +89,7 @@ export const story = {
     },
     scene08: {
       id: 'scene08',
-      video: '/videos/scene08.mp4',
+      video: videoUrl('/videos/scene08.mp4'),
       title: 'Shared Ride',
       description: 'They sit together as the train moves through the city. Conversation fades into a comfortable silence. Their shoulders almost touch, then do. Neither pulls away.',
       timed: true,
@@ -99,7 +101,7 @@ export const story = {
     },
     scene09: {
       id: 'scene09',
-      video: '/videos/scene09.mp4',
+      video: videoUrl('/videos/scene09.mp4'),
       title: 'Coffee Shop',
       description: 'They let the train go and walk to a nearby café. Warm light replaces the cold rain outside. Hours pass in easy conversation and laughter. The night stretches, just for them.',
       choices: [
@@ -109,7 +111,7 @@ export const story = {
     },
     scene10: {
       id: 'scene10',
-      video: '/videos/scene10.mp4',
+      video: videoUrl('/videos/scene10.mp4'),
       title: 'Second Chance',
       description: 'Leo returns to the station days later, unsure why. The weather is clear now, almost ordinary. Maya appears, as if the story waited for her too. This time, neither hesitates.',
       choices: [
@@ -118,7 +120,7 @@ export const story = {
     },
     scene11: {
       id: 'scene11',
-      video: '/videos/scene11.mp4',
+      video: videoUrl('/videos/scene11.mp4'),
       title: 'What If',
       description: 'They continue their lives in separate directions. Occasionally, something reminds them of that night. A laugh, a station, the sound of rain. Some stories remain unfinished.',
       ending: true,
@@ -127,7 +129,7 @@ export const story = {
     },
     scene12: {
       id: 'scene12',
-      video: '/videos/scene12.mp4',
+      video: videoUrl('/videos/scene12.mp4'),
       title: 'Beginning',
       description: 'They choose to continue, beyond that night. Numbers exchanged, plans made, something real forming. The missed train becomes part of their story. This time, they don\'t let it slip away.',
       ending: true,
