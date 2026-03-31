@@ -1,0 +1,168 @@
+:root, [data-theme="light"] {
+  /* Background */
+  --inv-bg: #FBFAF9;
+  --inv-bg-alt: #F2F0ED;
+  --inv-surface: #FFFFFF;
+
+  /* Accent */
+  --inv-accent: oklch(0.629 0.187 252);
+  --inv-accent-soft: oklch(0.95 0.03 252);
+
+  /* Text */
+  --inv-heading: #171717;
+  --inv-body: #494440;
+  --inv-muted: #767270;
+
+  /* Border & Input */
+  --inv-border: #E8E8E8;
+  --inv-input: #f7f7f7;
+
+  /* Navigation */
+  --inv-nav: #FFFFFF;
+  --inv-nav-text: #767270;
+  --inv-nav-text-active: #171717;
+  --inv-nav-divider: rgba(0,0,0,0.08);
+  --inv-nav-hover-bg: #F5F3F0;
+
+  /* Menus (dropdowns) */
+  --inv-menu-bg: #FFFFFF;
+  --inv-menu-text: #b5b3b1;
+  --inv-menu-text-active: #171717;
+  --inv-menu-divider: rgba(0,0,0,0.08);
+  --inv-menu-hover-bg: #F5F3F0;
+
+  /* Shadows */
+  --inv-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --inv-shadow-sm: 0 0 0 1px rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06), 0 2px 4px 0 rgba(0,0,0,0.04);
+  --inv-shadow-sm-hover: 0 0 0 1px rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.08), 0 2px 4px 0 rgba(0,0,0,0.06);
+  --inv-nav-shadow: 0 10px 15px -3px rgba(0,0,0,0.12), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --inv-menu-shadow: 0 20px 25px -5px rgba(0,0,0,0.12), 0 8px 10px -6px rgba(0,0,0,0.08);
+  --inv-outline: rgba(0,0,0,0.08);
+
+  /* Shape */
+  --inv-radius: 12px;
+
+  /* Typography */
+  --inv-font-display: ui-sans-serif, system-ui, sans-serif;
+  --inv-font-body: ui-sans-serif, system-ui, sans-serif;
+
+  /* Type Scale */
+  --inv-text-xs: 11px;
+  --inv-text-sm: 13px;
+  --inv-text-base: 15px;
+  --inv-text-lg: 18px;
+  --inv-text-xl: 24px;
+
+  /* Spacing */
+  --inv-space-xs: 4px;
+  --inv-space-sm: 8px;
+  --inv-space-md: 16px;
+  --inv-space-lg: 24px;
+  --inv-space-xl: 40px;
+}
+
+[data-theme="dark"] {
+  --inv-bg: #121212;
+  --inv-bg-alt: #2a2a2a;
+  --inv-surface: #1e1e1e;
+  --inv-accent: oklch(0.629 0.187 252);
+  --inv-accent-soft: oklch(0.25 0.05 252);
+  --inv-heading: #f0f0f0;
+  --inv-body: #c5c2bf;
+  --inv-muted: #8a8582;
+  --inv-border: #363636;
+  --inv-input: #343434;
+  --inv-nav: #1e1e1e;
+  --inv-nav-text: #a3a3a3;
+  --inv-nav-text-active: #ffffff;
+  --inv-nav-divider: rgba(255,255,255,0.1);
+  --inv-nav-hover-bg: rgba(255,255,255,0.1);
+  --inv-menu-bg: #1e1e1e;
+  --inv-menu-text: #a3a3a3;
+  --inv-menu-text-active: #ffffff;
+  --inv-menu-divider: rgba(255,255,255,0.1);
+  --inv-menu-hover-bg: rgba(255,255,255,0.1);
+  --inv-shadow: 0 10px 15px -3px rgba(0,0,0,0.25), 0 4px 6px -4px rgba(0,0,0,0.2);
+  --inv-shadow-sm: 0 0 0 1px rgba(255,255,255,0.08), 0 1px 2px -1px rgba(0,0,0,0.3), 0 2px 4px 0 rgba(0,0,0,0.2);
+  --inv-shadow-sm-hover: 0 0 0 1px rgba(255,255,255,0.12), 0 1px 2px -1px rgba(0,0,0,0.4), 0 2px 4px 0 rgba(0,0,0,0.3);
+  --inv-nav-shadow: 0 10px 15px -3px rgba(0,0,0,0.3), 0 4px 6px -4px rgba(0,0,0,0.2);
+  --inv-menu-shadow: 0 20px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.2);
+  --inv-outline: rgba(255,255,255,0.15);
+}
+
+.inv-display {
+  font-family: var(--inv-font-display);
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--inv-heading);
+}
+
+.inv-title {
+  font-family: var(--inv-font-display);
+  font-size: var(--inv-text-xl);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--inv-heading);
+}
+
+.inv-heading {
+  font-family: var(--inv-font-body);
+  font-size: var(--inv-text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--inv-heading);
+}
+
+.inv-subheading {
+  font-family: var(--inv-font-body);
+  font-size: var(--inv-text-base);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--inv-heading);
+}
+
+.inv-body {
+  font-family: var(--inv-font-body);
+  font-size: var(--inv-text-base);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--inv-body);
+}
+
+.inv-body-sm {
+  font-family: var(--inv-font-body);
+  font-size: var(--inv-text-sm);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--inv-body);
+}
+
+.inv-caption {
+  font-family: var(--inv-font-body);
+  font-size: var(--inv-text-xs);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--inv-muted);
+}
+
+.inv-label {
+  font-family: var(--inv-font-body);
+  font-size: var(--inv-text-sm);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--inv-heading);
+}
+
+.inv-overline {
+  font-family: var(--inv-font-body);
+  font-size: var(--inv-text-xs);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--inv-muted);
+}
