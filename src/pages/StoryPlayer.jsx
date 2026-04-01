@@ -322,9 +322,9 @@ export default function StoryPlayer() {
       {/* Connection burst — heart + number */}
       {showConnectionBurst && (
         <div className="absolute inset-0 z-[46] pointer-events-none">
-          <div style={{ position: 'absolute', top: '25%', left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex flex-col items-center animate-burst">
-            <HeartIcon size={90} className="mb-3" />
-            <span className="text-white text-[40px] font-semibold" style={{ textShadow: '0 0 40px rgba(236,72,153,0.6), 0 0 80px rgba(249,115,22,0.3)' }}>+{connection * 5}</span>
+          <div style={{ position: 'absolute', top: '25%', left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex items-center justify-center gap-3 animate-burst">
+            <HeartIcon size={40} />
+            <span className="text-white text-[28px] font-semibold" style={{ textShadow: '0 0 30px rgba(236,72,153,0.5)' }}>+{connection * 5}</span>
           </div>
         </div>
       )}
