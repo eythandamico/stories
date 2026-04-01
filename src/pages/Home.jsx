@@ -63,21 +63,6 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
         <div className="absolute inset-0 bg-black" />
       )}
 
-      {/* Prismatic burst on trending — only when active and shader ready */}
-      {item.trending && isActive && shaderReady && (
-        <div
-          className="absolute inset-0 z-[7] pointer-events-none transition-opacity duration-1000"
-          style={{ opacity: shaderVisible ? 0.8 : 0, mixBlendMode: 'lighten' }}
-        >
-          <PrismaticBurst
-            intensity={2}
-            speed={0.4}
-            animationType="rotate3d"
-            mixBlendMode="normal"
-            offset={{ x: 0, y: -(window.innerHeight * 0.55) }}
-          />
-        </div>
-      )}
 
       {/* Bottom blur + gradient — only render when active */}
       {isActive && (

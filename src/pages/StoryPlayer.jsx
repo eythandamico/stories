@@ -26,14 +26,6 @@ export default function StoryPlayer() {
   const [perkFlash, setPerkFlash] = useState(null)
   const [choicesExiting, setChoicesExiting] = useState(false)
   const [showConnectionBurst, setShowConnectionBurst] = useState(false)
-  const [burstParams, setBurstParams] = useState({
-    size: 300,
-    blur: 8,
-    opacity: 0.35,
-    heartSize: 90,
-    textSize: 40,
-    top: 25,
-  })
   const [currentNodeId, setCurrentNodeId] = useState(story.startNodeId)
   const [showChoices, setShowChoices] = useState(false)
   const [chosenIndex, setChosenIndex] = useState(null)
@@ -204,8 +196,7 @@ export default function StoryPlayer() {
         soundConnection()
         clearTimeout(connectionTimer.current)
         connectionTimer.current = setTimeout(() => setShowConnectionBar(false), 2000)
-        // DEV: burst stays on — remove this comment and uncomment below to re-enable timeout
-        // setTimeout(() => setShowConnectionBurst(false), 1500)
+        setTimeout(() => setShowConnectionBurst(false), 1500)
       } else {
         soundNeutral()
       }
@@ -328,75 +319,16 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
-      {/* Connection burst — rays same level as video */}
-      {showConnectionBurst && (
-        <div
-          className="absolute inset-0 z-[7] pointer-events-none"
-          style={{ opacity: 0.8, mixBlendMode: 'lighten' }}
-        >
-          <PrismaticBurst
-            intensity={2}
-            speed={0.4}
-            animationType="rotate3d"
-            mixBlendMode="normal"
-            offset={{ x: 0, y: -(window.innerHeight * 0.55) }}
-          />
-        </div>
-      )}
-
-      {/* Connection burst heart + number */}
+      {/* Connection burst — heart + number */}
       {showConnectionBurst && (
         <div className="absolute inset-0 z-[46] pointer-events-none">
-          <div style={{ position: 'absolute', top: `${burstParams.top}%`, left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex flex-col items-center animate-burst">
-            <HeartIcon size={burstParams.heartSize} className="mb-3" />
-            <span className="text-white font-semibold" style={{ fontSize: burstParams.textSize, textShadow: '0 0 40px rgba(236,72,153,0.6), 0 0 80px rgba(249,115,22,0.3)' }}>+{connection * 5}</span>
+          <div style={{ position: 'absolute', top: '25%', left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex flex-col items-center animate-burst">
+            <HeartIcon size={90} className="mb-3" />
+            <span className="text-white text-[40px] font-semibold" style={{ textShadow: '0 0 40px rgba(236,72,153,0.6), 0 0 80px rgba(249,115,22,0.3)' }}>+{connection * 5}</span>
           </div>
         </div>
       )}
 
-      {/* DEV: burst controls */}
-      <div className="fixed bottom-20 right-3 z-[60] flex flex-col gap-1.5 pointer-events-auto">
-        <button
-          type="button"
-          onClick={() => setShowConnectionBurst(prev => !prev)}
-          className="w-10 h-10 rounded-full bg-pink-500/30 backdrop-blur-md flex items-center justify-center cursor-pointer active:scale-90"
-        >
-          <HeartIcon size={20} />
-        </button>
-        {showConnectionBurst && (
-          <div className="bg-black/80 backdrop-blur-md rounded-xl p-3 text-[12px] text-white/70 w-48" onClick={e => e.stopPropagation()}>
-            {[
-              { label: 'Intensity', key: 'size', min: 100, max: 600, step: 20 },
-              { label: 'Opacity', key: 'opacity', min: 0.05, max: 1, step: 0.05 },
-              { label: 'Heart', key: 'heartSize', min: 40, max: 150, step: 5 },
-              { label: 'Text', key: 'textSize', min: 20, max: 60, step: 2 },
-              { label: 'Top %', key: 'top', min: 10, max: 50, step: 1 },
-            ].map(({ label, key, min, max, step }) => (
-              <div key={key} className="flex items-center gap-2 mb-1.5">
-                <span className="w-12 shrink-0">{label}</span>
-                <input
-                  type="range" min={min} max={max} step={step}
-                  value={burstParams[key]}
-                  onChange={e => setBurstParams(p => ({ ...p, [key]: parseFloat(e.target.value) }))}
-                  className="flex-1 h-1 accent-pink-400"
-                />
-                <span className="w-8 text-right tabular-nums">{burstParams[key]}</span>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                const json = JSON.stringify(burstParams)
-                navigator.clipboard?.writeText(json)
-                alert(json)
-              }}
-              className="w-full mt-2 py-1.5 rounded-lg bg-pink-500/20 text-pink-400 text-[12px] font-medium cursor-pointer active:scale-95"
-            >
-              Copy Params
-            </button>
-          </div>
-        )}
-      </div>
 
       {/* Perk flash effect */}
       {perkFlash && (
