@@ -535,9 +535,8 @@ export default function StoryPlayer() {
                 })}
               </Stack>
 
-              {/* Perk action buttons — always visible */}
-              {chosenIndex === null && (
-                <div className="flex items-stretch gap-2 mt-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+              {/* Perk action buttons */}
+              <div className="flex items-stretch gap-2 mt-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
                   {[
                     { type: 'freeze', icon: 'clock', color: '#38bdf8', label: 'Freeze', count: perks.freeze, active: freezeActive, handler: handleFreeze, disabled: freezeActive || !node.timed },
                     { type: 'hint', icon: 'sparkle', color: '#a78bfa', label: 'Hint', count: perks.hint, active: hintActive, handler: handleHint, disabled: hintActive },
@@ -546,8 +545,8 @@ export default function StoryPlayer() {
                     <button
                       key={p.type}
                       type="button"
-                      onClick={() => p.count > 0 ? p.handler() : setShowBuyPerks(true)}
-                      disabled={p.disabled}
+                      onClick={() => chosenIndex === null && (p.count > 0 ? p.handler() : setShowBuyPerks(true))}
+                      disabled={p.disabled || chosenIndex !== null}
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-full cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{ background: p.active ? `${p.color}25` : `${p.color}12` }}
                     >
@@ -559,8 +558,15 @@ export default function StoryPlayer() {
                     </button>
                   ))}
                 </div>
-              )}
 
+                {/* Progress bar below perks */}
+                <div className="mt-3">
+                  <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full rounded-full"
+                      style={{ width: `${progress}%`, background: 'linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.85))' }}
+                    />
+                  </div>
+                </div>
             </div>
           ) : null}
         </div>
