@@ -486,7 +486,7 @@ export default function StoryPlayer() {
                       type="button"
                       onClick={() => chosenIndex === null && handleChoice(choice, i)}
                       disabled={chosenIndex !== null}
-                      className={`animate-fade-up w-full text-center px-4 py-5 rounded-2xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center justify-center gap-2.5 relative overflow-hidden ${
+                      className={`animate-fade-up w-full px-4 py-5 rounded-2xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center relative overflow-hidden ${
                         isChosen
                           ? 'bg-white/[0.18]'
                           : isOther
@@ -508,15 +508,15 @@ export default function StoryPlayer() {
                       />
 
                       {isChosen && (
-                        <span className="relative w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+                        <span className="relative w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0 mr-2.5">
                           <Icon name="check" size={14} className="text-black" />
                         </span>
                       )}
-                      <span className="relative text-white font-medium text-[15px] leading-snug">{choice.label}</span>
+                      <span className="relative text-white font-medium text-[15px] leading-snug flex-1 text-center">{choice.label}</span>
 
-                      {/* Percentage — counts up from 0 */}
+                      {/* Percentage — far right */}
                       <span
-                        className={`relative text-[16px] font-semibold tabular-nums ${isChosen ? 'text-white' : 'text-white/60'}`}
+                        className={`relative text-[16px] font-semibold tabular-nums ml-2.5 shrink-0 ${isChosen ? 'text-white' : 'text-white/60'}`}
                         style={{
                           opacity: showPercentages ? 1 : 0,
                           transform: showPercentages ? 'translateX(0)' : 'translateX(8px)',
