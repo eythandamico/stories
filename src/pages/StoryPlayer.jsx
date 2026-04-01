@@ -338,10 +338,9 @@ export default function StoryPlayer() {
               top: `${burstParams.top}%`, left: '50%',
               transform: 'translate(-50%, -50%)',
               width: burstParams.size, height: burstParams.size,
-              borderRadius: '50%',
-              overflow: 'hidden',
               opacity: burstParams.opacity,
-              mixBlendMode: 'lighten',
+              maskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
+              WebkitMaskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
             }}
           >
             <PrismaticBurst
@@ -349,7 +348,7 @@ export default function StoryPlayer() {
               speed={0.6}
               animationType="rotate3d"
               colors={['#ec4899', '#f97316', '#f472b6', '#fb923c', '#ec4899']}
-              mixBlendMode="normal"
+              mixBlendMode="lighten"
             />
           </div>
           {/* Heart + number */}
