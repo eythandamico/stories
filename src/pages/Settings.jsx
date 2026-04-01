@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../lib/use-auth.jsx'
+import { logout } from '../lib/firebase.js'
 import { Stack } from '../components/stack.jsx'
 import { Surface } from '../components/surface.jsx'
 import { Row } from '../components/row.jsx'
@@ -62,6 +64,12 @@ function ThemeToggle() {
 
 export default function Settings() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+
+  const handleSignOut = async () => {
+    await logout()
+    navigate('/auth')
+  }
 
   return (
     <main className="min-h-[100dvh] bg-[var(--inv-bg)] pb-28 animate-page-enter">
@@ -88,14 +96,14 @@ export default function Settings() {
             <Surface padding="none" elevation="sm" className="overflow-hidden">
               <div className="px-4 py-4 flex items-center gap-3">
                 <img
-                  src="/profile.jpg"
+                  src={user?.photoURL || '/profile.jpg'}
                   alt="Profile picture"
                   className="w-14 h-14 rounded-xl object-cover"
                   style={{ boxShadow: 'var(--inv-shadow-sm)' }}
                 />
                 <div className="flex-1">
-                  <p className="inv-heading">Leo</p>
-                  <p className="inv-caption">leo@example.com</p>
+                  <p className="inv-heading">{user?.displayName || 'User'}</p>
+                  <p className="inv-caption">{user?.email || ''}</p>
                 </div>
               </div>
             </Surface>
@@ -133,7 +141,7 @@ export default function Settings() {
 
           {/* Danger zone */}
           <Surface padding="none" elevation="sm" className="overflow-hidden">
-            <SettingsItem icon="logout" label="Sign Out" danger />
+            <SettingsItem icon="logout" label="Sign Out" danger onClick={handleSignOut} />
           </Surface>
 
           <p className="inv-caption text-center pb-4">Version 1.0.0</p>
