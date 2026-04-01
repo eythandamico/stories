@@ -563,7 +563,7 @@ export default function StoryPlayer() {
                 </div>
 
                 {/* Progress bar below perks */}
-                <div className="mt-3">
+                <div className="mt-8">
                   <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden">
                     <div className="h-full rounded-full"
                       style={{ width: `${progress}%`, background: 'linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.85))' }}
