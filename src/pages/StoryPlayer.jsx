@@ -331,18 +331,17 @@ export default function StoryPlayer() {
       {/* Connection burst — WebGL rays behind heart */}
       {showConnectionBurst && (
         <div className="fixed inset-0 z-[45] pointer-events-none">
-          {/* Full-screen PrismaticBurst — same approach as home feed */}
+          {/* PrismaticBurst — exact same as home feed */}
           <div
-            className="absolute inset-0"
-            style={{ opacity: burstParams.opacity, mixBlendMode: 'lighten' }}
+            className="absolute inset-0 z-[7] pointer-events-none"
+            style={{ opacity: 0.8, mixBlendMode: 'lighten' }}
           >
             <PrismaticBurst
-              intensity={burstParams.size / 100}
-              speed={0.6}
+              intensity={2}
+              speed={0.4}
               animationType="rotate3d"
-              colors={['#ec4899', '#f97316', '#f472b6', '#fb923c', '#ec4899']}
               mixBlendMode="normal"
-              offset={{ x: 0, y: window.innerHeight * (0.5 - burstParams.top / 100) }}
+              offset={{ x: 0, y: -(window.innerHeight * 0.55) }}
             />
           </div>
           {/* Heart + number */}
