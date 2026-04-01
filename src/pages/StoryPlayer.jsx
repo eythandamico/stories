@@ -322,9 +322,25 @@ export default function StoryPlayer() {
       {/* Connection burst — heart + number */}
       {showConnectionBurst && (
         <div className="absolute inset-0 z-[46] pointer-events-none">
-          <div style={{ position: 'absolute', top: '25%', left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex items-center justify-center gap-3 animate-burst">
-            <HeartIcon size={40} />
-            <span className="text-white text-[28px] font-semibold" style={{ textShadow: '0 0 30px rgba(236,72,153,0.5)' }}>+{connection * 5}</span>
+          {/* Mini heart confetti */}
+          {Array.from({ length: 8 }).map((_, j) => (
+            <div
+              key={j}
+              className="absolute"
+              style={{
+                top: '25%', left: '50%',
+                animation: `heart-confetti-${j % 4} 1.2s ease-out ${j * 0.05}s forwards`,
+              }}
+            >
+              <HeartIcon size={14 + (j % 3) * 4} />
+            </div>
+          ))}
+          {/* Badge */}
+          <div style={{ position: 'absolute', top: '25%', left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex items-center justify-center animate-burst">
+            <div className="flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-black/40 backdrop-blur-xl">
+              <HeartIcon size={36} />
+              <span className="text-white text-[26px] font-semibold">+{connection * 5}</span>
+            </div>
           </div>
         </div>
       )}
