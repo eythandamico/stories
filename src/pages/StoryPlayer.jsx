@@ -418,7 +418,7 @@ export default function StoryPlayer() {
 
       {/* Bottom content */}
       <div
-        className={`fixed inset-0 z-10 flex flex-col justify-end transition-[opacity,transform] duration-500 ease-out ${
+        className={`fixed inset-0 z-10 flex flex-col justify-center transition-[opacity,transform] duration-500 ease-out ${
           showComplete ? 'opacity-0 pointer-events-none' : showChoices ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -432,7 +432,7 @@ export default function StoryPlayer() {
           aria-hidden="true"
         />
 
-        <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)]">
+        <div className="relative px-5">
 
           {(showChoices) && (
             <>
