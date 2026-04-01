@@ -299,24 +299,6 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
-      {/* Floating timer badge */}
-      {timerActive && showChoices && (
-        <div
-          className="absolute right-5 top-1/3 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-xl animate-fade-up"
-          style={{
-            background: timeLeft <= 3 ? 'rgba(239,68,68,0.2)' : timeLeft <= 5 ? 'rgba(249,115,22,0.2)' : 'rgba(255,255,255,0.1)',
-          }}
-        >
-          <Icon name="clock" size={14} style={{ color: timeLeft <= 3 ? '#ef4444' : timeLeft <= 5 ? '#f97316' : 'rgba(255,255,255,0.5)' }} />
-          <span
-            className="text-[16px] font-semibold tabular-nums"
-            style={{ color: timeLeft <= 3 ? '#ef4444' : timeLeft <= 5 ? '#f97316' : 'rgba(255,255,255,0.7)' }}
-          >
-            {timeLeft}
-          </span>
-        </div>
-      )}
-
       {/* Perk flash effect */}
       {perkFlash && (
         <div
@@ -394,19 +376,23 @@ export default function StoryPlayer() {
           <Icon name={history.length > 0 ? 'arrow-left' : 'close'} size={18} className="text-white/80" />
         </button>
 
-        {/* Perk counts */}
-        <div className="flex items-center gap-1.5">
-          {[
-            { type: 'freeze', icon: 'clock', color: '#38bdf8', count: perks.freeze },
-            { type: 'hint', icon: 'sparkle', color: '#a78bfa', count: perks.hint },
-            { type: 'rewind', icon: 'rotate-ccw', color: '#34d399', count: perks.rewind },
-          ].map((p) => (
-            <div key={p.type} className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 backdrop-blur-md">
-              <Icon name={p.icon} size={14} style={{ color: p.color }} />
-              <span className="text-white/70 text-[14px] font-semibold tabular-nums">{p.count}</span>
-            </div>
-          ))}
-        </div>
+        {/* Timer in top right */}
+        {timerActive && showChoices && (
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-xl"
+            style={{
+              background: timeLeft <= 3 ? 'rgba(239,68,68,0.25)' : timeLeft <= 5 ? 'rgba(249,115,22,0.2)' : 'rgba(255,255,255,0.1)',
+            }}
+          >
+            <Icon name="clock" size={14} style={{ color: timeLeft <= 3 ? '#ef4444' : timeLeft <= 5 ? '#f97316' : 'rgba(255,255,255,0.6)' }} />
+            <span
+              className="text-[16px] font-semibold tabular-nums"
+              style={{ color: timeLeft <= 3 ? '#ef4444' : timeLeft <= 5 ? '#f97316' : 'rgba(255,255,255,0.7)' }}
+            >
+              {timeLeft}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Play button */}
@@ -421,7 +407,7 @@ export default function StoryPlayer() {
       {/* Bottom content */}
       <div
         className={`absolute bottom-0 left-0 right-0 z-10 transition-[opacity,transform] duration-500 ease-out ${
-          showComplete ? 'opacity-0 translate-y-4 pointer-events-none' : (showChoices || showControls) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          showComplete ? 'opacity-0 translate-y-4 pointer-events-none' : showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -564,17 +550,23 @@ export default function StoryPlayer() {
               )}
 
             </div>
-          ) : (
-            <div>
-              <div className="w-full h-[3px] rounded-full bg-white/10 cursor-pointer overflow-hidden" onClick={handleSeek}>
-                <div className="h-full rounded-full transition-[width] duration-150 ease-linear"
-                  style={{ width: `${progress}%`, background: 'linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.85))' }}
-                />
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
+
+      {/* Progress bar — always visible during playback */}
+      {!showChoices && !showComplete && (
+        <div
+          className="absolute bottom-0 left-0 right-0 z-10 px-5 pb-[max(env(safe-area-inset-bottom),12px)]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="w-full h-[3px] rounded-full bg-white/10 cursor-pointer overflow-hidden" onClick={handleSeek}>
+            <div className="h-full rounded-full transition-[width] duration-150 ease-linear"
+              style={{ width: `${progress}%`, background: 'linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.85))' }}
+            />
+          </div>
+        </div>
+      )}
 
       <StoryComplete
         isOpen={showComplete}
