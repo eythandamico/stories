@@ -319,24 +319,24 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
-      {/* Connection burst — upper area with prismatic rays */}
+      {/* Connection burst — upper area with radial glow */}
       {showConnectionBurst && (
         <div className="fixed inset-0 z-[45] pointer-events-none" key={connection}>
-          {/* Prismatic rays behind heart */}
-          <div className="absolute inset-0" style={{ opacity: 0.6, mixBlendMode: 'screen' }}>
-            <PrismaticBurst
-              intensity={4}
-              speed={0.8}
-              animationType="rotate3d"
-              colors={['#ec4899', '#f97316', '#f472b6', '#fb923c', '#ec4899']}
-              mixBlendMode="normal"
-              offset={{ x: 0, y: window.innerHeight * 0.15 }}
-            />
-          </div>
+          {/* Pink-orange radial glow rays */}
+          <div
+            className="absolute animate-burst"
+            style={{
+              top: '15%', left: '50%', transform: 'translateX(-50%)',
+              width: '140vw', height: '140vw',
+              background: 'conic-gradient(from 0deg, rgba(236,72,153,0.3), rgba(249,115,22,0.2), transparent 15%, transparent 20%, rgba(244,114,182,0.25), rgba(251,146,60,0.15), transparent 35%, transparent 40%, rgba(236,72,153,0.3), rgba(249,115,22,0.2), transparent 55%, transparent 60%, rgba(244,114,182,0.2), transparent 75%, transparent 80%, rgba(236,72,153,0.25), transparent 95%)',
+              filter: 'blur(20px)',
+              mixBlendMode: 'screen',
+            }}
+          />
           {/* Heart + number */}
           <div className="absolute top-[25%] left-0 right-0 flex flex-col items-center animate-burst">
             <HeartIcon size={90} className="mb-3" />
-            <span className="text-white text-[40px] font-semibold" style={{ textShadow: '0 0 30px rgba(236,72,153,0.5)' }}>+{connection * 5}</span>
+            <span className="text-white text-[40px] font-semibold" style={{ textShadow: '0 0 40px rgba(236,72,153,0.6), 0 0 80px rgba(249,115,22,0.3)' }}>+{connection * 5}</span>
           </div>
         </div>
       )}
