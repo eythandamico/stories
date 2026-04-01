@@ -319,12 +319,24 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
-      {/* Connection burst — centered */}
+      {/* Connection burst — upper area with prismatic rays */}
       {showConnectionBurst && (
-        <div className="fixed inset-0 z-[45] flex items-center justify-center pointer-events-none" key={connection}>
-          <div className="flex flex-col items-center animate-burst">
-            <HeartIcon size={80} className="mb-3" />
-            <span className="text-white text-[36px] font-semibold">+{connection * 5}</span>
+        <div className="fixed inset-0 z-[45] pointer-events-none" key={connection}>
+          {/* Prismatic rays behind heart */}
+          <div className="absolute inset-0" style={{ opacity: 0.6, mixBlendMode: 'screen' }}>
+            <PrismaticBurst
+              intensity={4}
+              speed={0.8}
+              animationType="rotate3d"
+              colors={['#ec4899', '#f97316', '#f472b6', '#fb923c', '#ec4899']}
+              mixBlendMode="normal"
+              offset={{ x: 0, y: window.innerHeight * 0.15 }}
+            />
+          </div>
+          {/* Heart + number */}
+          <div className="absolute top-[25%] left-0 right-0 flex flex-col items-center animate-burst">
+            <HeartIcon size={90} className="mb-3" />
+            <span className="text-white text-[40px] font-semibold" style={{ textShadow: '0 0 30px rgba(236,72,153,0.5)' }}>+{connection * 5}</span>
           </div>
         </div>
       )}
