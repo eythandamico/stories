@@ -394,14 +394,14 @@ export default function StoryPlayer() {
         <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-16"
           style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.7) 30%)' }}
         >
-          {(showChoices || node.ending) && (
+          {(showChoices) && (
             <>
               <h1 className="text-white font-semibold text-[22px] leading-tight tracking-[-0.01em] mb-1">{node.title}</h1>
               <p className="text-white/60 text-[14px] leading-relaxed mb-3 line-clamp-2">{node.description}</p>
             </>
           )}
 
-          {node.ending ? (
+          {node.ending && showChoices ? (
             <div className="animate-fade-up">
               <div className="p-5 rounded-2xl bg-white/[0.10] backdrop-blur-md  mb-4">
                 <p className="text-white font-semibold text-[20px] mb-1">{node.endingTitle}</p>
