@@ -205,6 +205,20 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
               </div>
             </div>
           </div>
+        {/* Start button */}
+        {item.route && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onPlay(item) }}
+            className="mt-6 w-full h-[52px] rounded-2xl bg-white text-black font-semibold text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
+            style={{
+              opacity: isActive ? 1 : 0,
+              transitionDelay: isActive ? '0.6s' : '0s',
+            }}
+          >
+            <Icon name="play" size={18} className="ml-0.5" /> Start Story
+          </button>
+        )}
         </div>
       </div>
     </div>
