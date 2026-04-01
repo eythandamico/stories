@@ -539,7 +539,7 @@ export default function StoryPlayer() {
               </Stack>
 
               {/* Perk action buttons */}
-              <div className="flex items-stretch gap-2 mt-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+              <div className="flex items-stretch gap-2 mt-5 animate-fade-up" style={{ animationDelay: '0.2s' }}>
                   {[
                     node.timed && { type: 'freeze', icon: 'clock', color: '#38bdf8', label: 'Freeze', count: perks.freeze, active: freezeActive, handler: handleFreeze, disabled: freezeActive },
                     { type: 'hint', icon: 'sparkle', color: '#a78bfa', label: 'Hint', count: perks.hint, active: hintActive, handler: handleHint, disabled: hintActive },
