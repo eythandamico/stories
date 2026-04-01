@@ -21,8 +21,10 @@ const firebaseConfig = {
   appId: '',
 }
 
-const app = initializeApp(firebaseConfig)
-const auth = getAuth(app)
+export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey)
+
+const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null
+const auth = app ? getAuth(app) : null
 
 const googleProvider = new GoogleAuthProvider()
 const appleProvider = new OAuthProvider('apple.com')
@@ -50,6 +52,7 @@ export async function logout() {
 }
 
 export function onAuthChange(callback) {
+  if (!auth) return () => {}
   return onAuthStateChanged(auth, callback)
 }
 
