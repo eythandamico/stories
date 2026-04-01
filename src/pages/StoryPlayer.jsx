@@ -481,7 +481,7 @@ export default function StoryPlayer() {
                       type="button"
                       onClick={() => chosenIndex === null && handleChoice(choice, i)}
                       disabled={chosenIndex !== null}
-                      className={`animate-fade-up w-full text-left px-3.5 py-3 rounded-xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center gap-2.5 relative overflow-hidden ${
+                      className={`animate-fade-up w-full text-center px-3.5 py-3 rounded-xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center justify-center gap-2.5 relative overflow-hidden ${
                         isChosen
                           ? 'bg-white/[0.18]'
                           : isOther
@@ -502,12 +502,12 @@ export default function StoryPlayer() {
                         }}
                       />
 
-                      <span className={`relative w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[14px] font-semibold transition-[opacity,transform,background-color] duration-300 ${
-                        isChosen ? 'bg-white text-black' : 'bg-white/10 text-white/50 group-hover:bg-white group-hover:text-black'
-                      }`}>
-                        {isChosen ? <Icon name="check" size={14} /> : String.fromCharCode(65 + i)}
-                      </span>
-                      <span className="relative text-white font-medium text-[15px] flex-1 leading-snug">{choice.label}</span>
+                      {isChosen && (
+                        <span className="relative w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+                          <Icon name="check" size={14} className="text-black" />
+                        </span>
+                      )}
+                      <span className="relative text-white font-medium text-[15px] leading-snug">{choice.label}</span>
 
                       {/* Percentage — counts up from 0 */}
                       <span
@@ -520,19 +520,6 @@ export default function StoryPlayer() {
                       >
                         {showPercentages ? `${choice.communityPct}%` : ''}
                       </span>
-                      {/* Chevron — fades out when percentages show */}
-                      <Icon
-                        name="chevron-right"
-                        size={16}
-                        className="relative text-white/20 group-hover:translate-x-1 group-hover:text-white/50"
-                        style={{
-                          position: showPercentages ? 'absolute' : 'relative',
-                          right: showPercentages ? 16 : undefined,
-                          opacity: showPercentages ? 0 : 1,
-                          transform: showPercentages ? 'translateX(8px)' : 'translateX(0)',
-                          transition: 'opacity 0.2s ease-in, transform 0.2s ease-in',
-                        }}
-                      />
                     </button>
                   )
                 })}
