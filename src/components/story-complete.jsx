@@ -3,7 +3,7 @@ import { HeartIcon } from './heart-icon.jsx'
 
 export function StoryComplete({
   isOpen, endingTitle, endingDescription, connectionPct,
-  isNewEnding, endingsFound, totalEndings, onReplay, onHome,
+  isNewEnding, endingsFound, totalEndings, onReplay, onHome, onBuyNext, onBuySeries,
 }) {
   if (!isOpen) return null
 
@@ -75,21 +75,45 @@ export function StoryComplete({
           </div>
         )}
 
-        {/* Buttons */}
-        <div className="animate-fade-up" style={{ animationDelay: '0.3s' }}>
+        {/* Buy options */}
+        <div className="animate-fade-up mb-4" style={{ animationDelay: '0.3s' }}>
+          <p className="text-white/30 text-[12px] font-medium tracking-widest uppercase text-center mb-3">Continue the story</p>
+          <div className="flex gap-2.5">
+            <button
+              type="button"
+              onClick={onBuyNext}
+              className="flex-1 h-[52px] rounded-2xl bg-white text-black font-semibold text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex flex-col items-center justify-center"
+            >
+              <span>Next Chapter</span>
+              <span className="text-[12px] font-medium text-black/50">$1.99</span>
+            </button>
+            <button
+              type="button"
+              onClick={onBuySeries}
+              className="flex-1 h-[52px] rounded-2xl cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex flex-col items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.3), rgba(168,85,247,0.3))', color: 'white' }}
+            >
+              <span className="font-semibold text-[15px]">Full Series</span>
+              <span className="text-[12px] font-medium text-white/60">$4.99</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Other buttons */}
+        <div className="animate-fade-up" style={{ animationDelay: '0.35s' }}>
           <button
             type="button"
             onClick={onReplay}
-            className="w-full h-[50px] rounded-2xl bg-white text-black font-semibold text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2 mb-2.5"
+            className="w-full h-[48px] rounded-2xl bg-white/10 text-white/70 font-medium text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] hover:bg-white/15 flex items-center justify-center gap-2 mb-2.5"
           >
-            <Icon name="rotate-ccw" size={18} /> Play Again
+            <Icon name="rotate-ccw" size={16} /> Play Again
           </button>
           <button
             type="button"
             onClick={onHome}
-            className="w-full h-[48px] rounded-2xl bg-white/10 text-white/70 font-medium text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] hover:bg-white/15 flex items-center justify-center gap-2"
+            className="w-full h-[44px] rounded-2xl text-white/40 font-medium text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
           >
-            <Icon name="home" size={18} /> Home
+            Home
           </button>
         </div>
       </div>

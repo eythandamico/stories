@@ -281,6 +281,33 @@ export default function StoryPlayer() {
     handleGoBack()
   }
 
+  // Hold to skip
+  const [skipping, setSkipping] = useState(false)
+  const skipInterval = useRef(null)
+  const holdTimeout = useRef(null)
+
+  const handlePointerDown = () => {
+    if (showChoices) return
+    holdTimeout.current = setTimeout(() => {
+      setSkipping(true)
+      hapticLight()
+      skipInterval.current = setInterval(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = Math.min(
+            videoRef.current.currentTime + 0.5,
+            videoRef.current.duration
+          )
+        }
+      }, 50)
+    }, 300)
+  }
+
+  const handlePointerUp = () => {
+    clearTimeout(holdTimeout.current)
+    clearInterval(skipInterval.current)
+    setSkipping(false)
+  }
+
   if (!node) return null
 
   const currentScene = history.length + 1
@@ -290,12 +317,25 @@ export default function StoryPlayer() {
   return (
     <main
       className="fixed inset-0 bg-black flex items-center justify-center"
-      onClick={() => { setShowControls(true); togglePlay() }}
+      onClick={() => { if (!skipping) { setShowControls(true); togglePlay() } }}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
       onKeyDown={(e) => { if (e.key === ' ' || e.key === 'k') { e.preventDefault(); togglePlay() } }}
       tabIndex={0}
       aria-label={`Playing: ${node.title}`}
     >
       <div className="absolute inset-0 video-shimmer" aria-hidden="true" />
+
+      {/* Skip indicator */}
+      {skipping && (
+        <div className="absolute top-[calc(env(safe-area-inset-top,20px)+70px)] left-0 right-0 z-[50] flex justify-center pointer-events-none">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 backdrop-blur-md animate-fade-up">
+            <Icon name="skip-forward" size={16} className="text-white/70" />
+            <span className="text-white/70 text-[14px] font-medium">Skipping...</span>
+          </div>
+        </div>
+      )}
 
       <video
         ref={videoRef}
@@ -603,6 +643,8 @@ export default function StoryPlayer() {
         totalEndings={allEndings.length}
         onReplay={handleRestart}
         onHome={() => navigate('/')}
+        onBuyNext={() => { /* TODO: payment flow */ }}
+        onBuySeries={() => { /* TODO: payment flow */ }}
       />
       <BuyHeartsModal
         isOpen={showBuyPerks}
