@@ -8,43 +8,58 @@ export function StoryComplete({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[55] flex items-start justify-center pt-[15vh] px-6">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onHome} />
+    <div className="fixed inset-0 z-[55] flex flex-col justify-end" onClick={(e) => e.stopPropagation()}>
+      {/* Progressive blur overlay */}
       <div
-        className="relative max-w-sm w-full rounded-2xl bg-[var(--inv-surface)] p-6 animate-scale-in"
-        style={{ boxShadow: 'var(--inv-shadow)' }}
-      >
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          maskImage: 'linear-gradient(to top, black 40%, transparent 80%)',
+          WebkitMaskImage: 'linear-gradient(to top, black 40%, transparent 80%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(transparent 20%, rgba(0,0,0,0.8))' }}
+      />
+
+      {/* Content */}
+      <div className="relative px-6 pb-[max(env(safe-area-inset-bottom),32px)]">
         {/* New ending badge */}
         {isNewEnding && (
           <div className="flex items-center justify-center gap-2 mb-4 animate-fade-up">
-            <Icon name="sparkle" size={16} className="text-pink-400" />
-            <span className="text-pink-400 text-[16px] font-semibold">New Ending Discovered!</span>
-            <Icon name="sparkle" size={16} className="text-pink-400" />
+            <Icon name="sparkle" size={14} className="text-pink-400" />
+            <span className="text-pink-400 text-[15px] font-semibold tracking-wide">New Ending Discovered</span>
+            <Icon name="sparkle" size={14} className="text-pink-400" />
           </div>
         )}
 
-        {/* Ending info */}
-        <h2 className="text-[24px] font-semibold text-[var(--inv-heading)] mb-2 text-center">{endingTitle}</h2>
-        <p className="text-[16px] text-[var(--inv-muted)] text-center mb-5">{endingDescription}</p>
+        {/* Title */}
+        <h2 className="text-white font-semibold text-[28px] leading-tight tracking-[-0.02em] text-center mb-2 animate-fade-up" style={{ animationDelay: '0.05s' }}>
+          {endingTitle}
+        </h2>
+        <p className="text-white/50 text-[15px] leading-relaxed text-center mb-6 max-w-[85%] mx-auto animate-fade-up" style={{ animationDelay: '0.1s' }}>
+          {endingDescription}
+        </p>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="rounded-xl bg-[var(--inv-bg-alt)] p-3 text-center">
-            <HeartIcon size={28} />
-            <p className="text-[20px] font-semibold text-[var(--inv-heading)] tabular-nums">{Math.round(connectionPct)}%</p>
-            <p className="text-[16px] text-[var(--inv-muted)]">Connection</p>
+        {/* Stats row */}
+        <div className="flex items-center justify-center gap-6 mb-5 animate-fade-up" style={{ animationDelay: '0.15s' }}>
+          <div className="flex items-center gap-2">
+            <HeartIcon size={22} />
+            <span className="text-white text-[20px] font-semibold tabular-nums">{Math.round(connectionPct)}%</span>
           </div>
-          <div className="rounded-xl bg-[var(--inv-bg-alt)] p-3 text-center">
-            <Icon name="trophy" size={20} className="text-yellow-500 mx-auto mb-1" />
-            <p className="text-[20px] font-semibold text-[var(--inv-heading)] tabular-nums">{endingsFound}/{totalEndings}</p>
-            <p className="text-[16px] text-[var(--inv-muted)]">Endings</p>
+          <div className="w-px h-5 bg-white/15" />
+          <div className="flex items-center gap-2">
+            <Icon name="trophy" size={18} className="text-yellow-500" />
+            <span className="text-white text-[20px] font-semibold tabular-nums">{endingsFound}/{totalEndings}</span>
           </div>
         </div>
 
         {/* Endings progress */}
-        <div className="w-full h-2 rounded-full bg-[var(--inv-bg-alt)] overflow-hidden mb-5">
+        <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mb-6 animate-fade-up" style={{ animationDelay: '0.2s' }}>
           <div
-            className="h-full rounded-full transition-all duration-700"
+            className="h-full rounded-full transition-[width] duration-1000 ease-out"
             style={{
               width: `${(endingsFound / totalEndings) * 100}%`,
               background: 'linear-gradient(90deg, #ec4899, #f472b6)',
@@ -52,28 +67,31 @@ export function StoryComplete({
           />
         </div>
 
+        {/* Heart earned */}
         {isNewEnding && (
-          <div className="flex items-center justify-center gap-2 mb-4 px-3 py-2 rounded-xl bg-pink-500/10">
-            <HeartIcon size={20} />
-            <span className="text-pink-400 text-[16px] font-medium">+1 Heart earned!</span>
+          <div className="flex items-center justify-center gap-2 mb-5 animate-fade-up" style={{ animationDelay: '0.25s' }}>
+            <HeartIcon size={18} />
+            <span className="text-pink-400 text-[15px] font-medium">+1 Heart earned</span>
           </div>
         )}
 
-        {/* Actions */}
-        <button
-          type="button"
-          onClick={onReplay}
-          className="w-full h-[48px] rounded-2xl bg-[var(--inv-heading)] text-[var(--inv-bg)] font-semibold text-[16px] cursor-pointer transition-all duration-200 active:scale-[0.97] flex items-center justify-center gap-2 mb-3"
-        >
-          <Icon name="rotate-ccw" size={18} /> Play Again
-        </button>
-        <button
-          type="button"
-          onClick={onHome}
-          className="w-full h-[48px] rounded-2xl bg-[var(--inv-bg-alt)] text-[var(--inv-heading)] font-medium text-[16px] cursor-pointer transition-all duration-200 active:scale-[0.97] hover:opacity-80 flex items-center justify-center gap-2"
-        >
-          <Icon name="home" size={18} /> Home
-        </button>
+        {/* Buttons */}
+        <div className="animate-fade-up" style={{ animationDelay: '0.3s' }}>
+          <button
+            type="button"
+            onClick={onReplay}
+            className="w-full h-[50px] rounded-2xl bg-white text-black font-semibold text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2 mb-2.5"
+          >
+            <Icon name="rotate-ccw" size={18} /> Play Again
+          </button>
+          <button
+            type="button"
+            onClick={onHome}
+            className="w-full h-[48px] rounded-2xl bg-white/10 text-white/70 font-medium text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] hover:bg-white/15 flex items-center justify-center gap-2"
+          >
+            <Icon name="home" size={18} /> Home
+          </button>
+        </div>
       </div>
     </div>
   )
