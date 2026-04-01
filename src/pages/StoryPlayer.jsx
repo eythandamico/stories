@@ -424,13 +424,16 @@ export default function StoryPlayer() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute inset-0 pointer-events-none"
-          style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', maskImage: 'linear-gradient(to top, black 30%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to top, black 30%, transparent 100%)' }}
+          style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', maskImage: 'linear-gradient(to top, black 40%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to top, black 40%, transparent 80%)' }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(transparent 20%, rgba(0,0,0,0.8))' }}
           aria-hidden="true"
         />
 
-        <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-16"
-          style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.7) 30%)' }}
-        >
+        <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-16">
+
           {(showChoices) && (
             <>
               <h1 className="text-white font-semibold text-[22px] leading-tight tracking-[-0.01em] mb-1">{node.title}</h1>
