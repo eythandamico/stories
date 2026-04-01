@@ -299,6 +299,24 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
+      {/* Floating timer badge */}
+      {timerActive && showChoices && (
+        <div
+          className="absolute right-5 top-1/3 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-xl animate-fade-up"
+          style={{
+            background: timeLeft <= 3 ? 'rgba(239,68,68,0.2)' : timeLeft <= 5 ? 'rgba(249,115,22,0.2)' : 'rgba(255,255,255,0.1)',
+          }}
+        >
+          <Icon name="clock" size={14} style={{ color: timeLeft <= 3 ? '#ef4444' : timeLeft <= 5 ? '#f97316' : 'rgba(255,255,255,0.5)' }} />
+          <span
+            className="text-[16px] font-semibold tabular-nums"
+            style={{ color: timeLeft <= 3 ? '#ef4444' : timeLeft <= 5 ? '#f97316' : 'rgba(255,255,255,0.7)' }}
+          >
+            {timeLeft}
+          </span>
+        </div>
+      )}
+
       {/* Perk flash effect */}
       {perkFlash && (
         <div
@@ -545,43 +563,6 @@ export default function StoryPlayer() {
                 </div>
               )}
 
-              {/* Timer bar — below choices */}
-              {timerActive && (
-                <div className="mt-4 animate-fade-up">
-                  <div className="rounded-2xl bg-white/[0.10] backdrop-blur-md  px-4 py-3">
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="flex items-center gap-2">
-                        <Icon name="clock" size={14} className={timeLeft <= 3 ? 'text-red-400' : 'text-white/40'} />
-                        <span className={`text-[16px] font-semibold tabular-nums ${timeLeft <= 3 ? 'text-red-400' : 'text-white/60'}`}>
-                          {timeLeft}s
-                        </span>
-                      </div>
-                      {!timerExtended && hearts > 0 && (
-                        <button
-                          type="button"
-                          onClick={handleExtendTimer}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-500/20 text-pink-400 text-[14px] font-medium cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-95 hover:bg-pink-500/30"
-                        >
-                          <HeartIcon size={18} />
-                          <span>+10s</span>
-                        </button>
-                      )}
-                      {timerExtended && (
-                        <span className="text-pink-400/50 text-[14px]">Extended</span>
-                      )}
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-[height,background-color] duration-1000 ease-linear"
-                        style={{
-                          width: `${timerPct}%`,
-                          background: timeLeft <= 3 ? '#ef4444' : timeLeft <= 5 ? '#f97316' : 'rgba(255,255,255,0.6)',
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div>
