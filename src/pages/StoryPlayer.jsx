@@ -118,10 +118,23 @@ export default function StoryPlayer() {
     }
   }
 
-  const handleTimeUpdate = () => {
-    if (!videoRef.current) return
-    setProgress((videoRef.current.currentTime / videoRef.current.duration) * 100)
-  }
+  // Smooth 60fps progress tracking via rAF
+  const progressRaf = useRef(null)
+  const updateProgress = useCallback(() => {
+    if (videoRef.current && videoRef.current.duration) {
+      setProgress((videoRef.current.currentTime / videoRef.current.duration) * 100)
+    }
+    progressRaf.current = requestAnimationFrame(updateProgress)
+  }, [])
+
+  useEffect(() => {
+    if (isPlaying && !showChoices) {
+      progressRaf.current = requestAnimationFrame(updateProgress)
+    } else {
+      cancelAnimationFrame(progressRaf.current)
+    }
+    return () => cancelAnimationFrame(progressRaf.current)
+  }, [isPlaying, showChoices, updateProgress])
 
   const handleSeek = (e) => {
     if (!videoRef.current) return
@@ -283,7 +296,6 @@ export default function StoryPlayer() {
         poster={posterUrl(node.video)}
         aria-label={node.title}
         className="w-full h-full object-cover animate-crossfade"
-        onTimeUpdate={handleTimeUpdate}
         onEnded={handleVideoEnd}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
@@ -561,7 +573,7 @@ export default function StoryPlayer() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="w-full h-[3px] rounded-full bg-white/10 cursor-pointer overflow-hidden" onClick={handleSeek}>
-            <div className="h-full rounded-full transition-[width] duration-150 ease-linear"
+            <div className="h-full rounded-full"
               style={{ width: `${progress}%`, background: 'linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.85))' }}
             />
           </div>
