@@ -26,6 +26,14 @@ export default function StoryPlayer() {
   const [perkFlash, setPerkFlash] = useState(null)
   const [choicesExiting, setChoicesExiting] = useState(false)
   const [showConnectionBurst, setShowConnectionBurst] = useState(false)
+  const [burstParams, setBurstParams] = useState({
+    size: 300,
+    blur: 8,
+    opacity: 0.35,
+    heartSize: 90,
+    textSize: 40,
+    top: 25,
+  })
   const [currentNodeId, setCurrentNodeId] = useState(story.startNodeId)
   const [showChoices, setShowChoices] = useState(false)
   const [chosenIndex, setChosenIndex] = useState(null)
@@ -196,7 +204,8 @@ export default function StoryPlayer() {
         soundConnection()
         clearTimeout(connectionTimer.current)
         connectionTimer.current = setTimeout(() => setShowConnectionBar(false), 2000)
-        setTimeout(() => setShowConnectionBurst(false), 1500)
+        // DEV: burst stays on — remove this comment and uncomment below to re-enable timeout
+        // setTimeout(() => setShowConnectionBurst(false), 1500)
       } else {
         soundNeutral()
       }
@@ -321,37 +330,71 @@ export default function StoryPlayer() {
 
       {/* Connection burst — upper area with radial glow */}
       {showConnectionBurst && (
-        <div className="fixed inset-0 z-[45] pointer-events-none" key={connection}>
-          {/* Pink-orange radial glow rays — compact */}
+        <div className="fixed inset-0 z-[45] pointer-events-none">
+          {/* Pink-orange radial glow rays */}
           <div
-            className="absolute"
             style={{
-              top: '15%', left: '50%', transform: 'translate(-50%, -20%)',
-              width: 300, height: 300,
-              background: 'conic-gradient(from 0deg, rgba(236,72,153,0.35), rgba(249,115,22,0.25), transparent 12%, transparent 18%, rgba(244,114,182,0.3), rgba(251,146,60,0.2), transparent 30%, transparent 36%, rgba(236,72,153,0.35), rgba(249,115,22,0.25), transparent 48%, transparent 54%, rgba(244,114,182,0.25), transparent 66%, transparent 72%, rgba(236,72,153,0.3), transparent 84%, transparent 90%, rgba(249,115,22,0.2), transparent)',
-              filter: 'blur(8px)',
+              position: 'absolute',
+              top: `${burstParams.top}%`, left: '50%', transform: 'translate(-50%, -50%)',
+              width: burstParams.size, height: burstParams.size,
+              background: `conic-gradient(from 0deg, rgba(236,72,153,${burstParams.opacity}), rgba(249,115,22,${burstParams.opacity * 0.7}), transparent 12%, transparent 18%, rgba(244,114,182,${burstParams.opacity * 0.85}), rgba(251,146,60,${burstParams.opacity * 0.6}), transparent 30%, transparent 36%, rgba(236,72,153,${burstParams.opacity}), rgba(249,115,22,${burstParams.opacity * 0.7}), transparent 48%, transparent 54%, rgba(244,114,182,${burstParams.opacity * 0.7}), transparent 66%, transparent 72%, rgba(236,72,153,${burstParams.opacity * 0.85}), transparent 84%, transparent 90%, rgba(249,115,22,${burstParams.opacity * 0.6}), transparent)`,
+              filter: `blur(${burstParams.blur}px)`,
               mixBlendMode: 'screen',
               borderRadius: '50%',
-              animation: 'burst-in-out 1.5s cubic-bezier(0.16, 1, 0.3, 1) both',
             }}
           />
           {/* Heart + number */}
-          <div className="absolute top-[25%] left-0 right-0 flex flex-col items-center animate-burst">
-            <HeartIcon size={90} className="mb-3" />
-            <span className="text-white text-[40px] font-semibold" style={{ textShadow: '0 0 40px rgba(236,72,153,0.6), 0 0 80px rgba(249,115,22,0.3)' }}>+{connection * 5}</span>
+          <div style={{ position: 'absolute', top: `${burstParams.top}%`, left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex flex-col items-center">
+            <HeartIcon size={burstParams.heartSize} className="mb-3" />
+            <span className="text-white font-semibold" style={{ fontSize: burstParams.textSize, textShadow: '0 0 40px rgba(236,72,153,0.6), 0 0 80px rgba(249,115,22,0.3)' }}>+{connection * 5}</span>
           </div>
         </div>
       )}
 
-      {/* DEV: toggle connection burst */}
-      <button
-        type="button"
-        onClick={() => setShowConnectionBurst(prev => !prev)}
-        className="fixed bottom-20 right-4 z-[60] w-10 h-10 rounded-full bg-pink-500/30 backdrop-blur-md flex items-center justify-center cursor-pointer active:scale-90"
-        aria-label="Dev: toggle burst"
-      >
-        <HeartIcon size={20} />
-      </button>
+      {/* DEV: burst controls */}
+      <div className="fixed bottom-20 right-3 z-[60] flex flex-col gap-1.5 pointer-events-auto">
+        <button
+          type="button"
+          onClick={() => setShowConnectionBurst(prev => !prev)}
+          className="w-10 h-10 rounded-full bg-pink-500/30 backdrop-blur-md flex items-center justify-center cursor-pointer active:scale-90"
+        >
+          <HeartIcon size={20} />
+        </button>
+        {showConnectionBurst && (
+          <div className="bg-black/80 backdrop-blur-md rounded-xl p-3 text-[12px] text-white/70 w-48" onClick={e => e.stopPropagation()}>
+            {[
+              { label: 'Size', key: 'size', min: 100, max: 800, step: 20 },
+              { label: 'Blur', key: 'blur', min: 0, max: 40, step: 2 },
+              { label: 'Opacity', key: 'opacity', min: 0.05, max: 1, step: 0.05 },
+              { label: 'Heart', key: 'heartSize', min: 40, max: 150, step: 5 },
+              { label: 'Text', key: 'textSize', min: 20, max: 60, step: 2 },
+              { label: 'Top %', key: 'top', min: 10, max: 50, step: 1 },
+            ].map(({ label, key, min, max, step }) => (
+              <div key={key} className="flex items-center gap-2 mb-1.5">
+                <span className="w-12 shrink-0">{label}</span>
+                <input
+                  type="range" min={min} max={max} step={step}
+                  value={burstParams[key]}
+                  onChange={e => setBurstParams(p => ({ ...p, [key]: parseFloat(e.target.value) }))}
+                  className="flex-1 h-1 accent-pink-400"
+                />
+                <span className="w-8 text-right tabular-nums">{burstParams[key]}</span>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                const json = JSON.stringify(burstParams)
+                navigator.clipboard?.writeText(json)
+                alert(json)
+              }}
+              className="w-full mt-2 py-1.5 rounded-lg bg-pink-500/20 text-pink-400 text-[12px] font-medium cursor-pointer active:scale-95"
+            >
+              Copy Params
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Perk flash effect */}
       {perkFlash && (
