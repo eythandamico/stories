@@ -553,9 +553,9 @@ export default function StoryPlayer() {
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 h-[52px] rounded-xl cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{ background: p.active ? `${p.color}25` : `${p.color}12` }}
                     >
-                      <Icon name={p.active ? 'check' : p.icon} size={14} style={{ color: p.color }} />
-                      <span className="text-[13px] font-medium" style={{ color: p.color }}>{p.active ? 'Active' : p.label}</span>
-                      <span className="text-[13px] font-semibold tabular-nums" style={{ color: p.count > 0 ? p.color : 'rgba(255,255,255,0.3)' }}>
+                      <Icon name={p.active ? 'check' : p.icon} size={16} style={{ color: p.color }} />
+                      <span className="text-[15px] font-medium" style={{ color: p.color }}>{p.active ? 'Active' : p.label}</span>
+                      <span className="text-[15px] font-semibold tabular-nums" style={{ color: p.count > 0 ? p.color : 'rgba(255,255,255,0.3)' }}>
                         {p.count > 0 ? p.count : '0'}
                       </span>
                     </button>
