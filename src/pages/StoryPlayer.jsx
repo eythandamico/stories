@@ -202,13 +202,13 @@ export default function StoryPlayer() {
     // Fade out, then transition
     setTimeout(() => {
       setChoicesExiting(true)
-    }, 1000)
+    }, 2500)
     setTimeout(() => {
       setHistory((prev) => [...prev, currentNodeId])
       setShowChoices(false)
       setChoicesExiting(false)
       setCurrentNodeId(choice.nextNodeId)
-    }, 1600)
+    }, 3100)
   }
 
   const handleChoice = (choice, index) => {
@@ -512,7 +512,7 @@ export default function StoryPlayer() {
                           <Icon name="check" size={14} className="text-black" />
                         </span>
                       )}
-                      <span className="relative text-white font-medium text-[15px] leading-snug flex-1 text-center">{choice.label}</span>
+                      <span className="relative text-white font-medium text-[16px] leading-snug flex-1 text-center">{choice.label}</span>
 
                       {/* Percentage — far right */}
                       <span
