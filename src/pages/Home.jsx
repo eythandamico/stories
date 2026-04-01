@@ -171,7 +171,7 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
             }}
           >
             <span className="font-semibold text-[16px]">Start</span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <div className="flex" style={{ paddingLeft: 8 }}>
                 {[
                   `https://i.pravatar.cc/80?img=${(i * 7 + 1) % 70}`,
@@ -191,8 +191,19 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
                     <img src={src} alt="" className="w-full h-full rounded-full object-cover" loading="lazy" />
                   </div>
                 ))}
+                <div
+                  className="rounded-full bg-white/15 flex items-center justify-center border-2 border-white/30"
+                  style={{
+                    height: 28,
+                    paddingLeft: 8, paddingRight: 8,
+                    marginLeft: -10,
+                    zIndex: 4,
+                    position: 'relative',
+                  }}
+                >
+                  <span className="text-white text-[11px] font-semibold">+{[17, 24, 9, 31, 12][i % 5]}k</span>
+                </div>
               </div>
-              <span className="text-white text-[13px] font-semibold px-2 py-0.5 rounded-full bg-white/15">+{[17, 24, 9, 31, 12][i % 5]}k</span>
             </div>
           </button>
         )}
