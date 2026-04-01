@@ -394,8 +394,12 @@ export default function StoryPlayer() {
         <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-16"
           style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.7) 30%)' }}
         >
-          <h1 className="text-white font-semibold text-[22px] leading-tight tracking-[-0.01em] mb-1">{node.title}</h1>
-          <p className="text-white/60 text-[14px] leading-relaxed mb-3 line-clamp-2">{node.description}</p>
+          {(showChoices || node.ending) && (
+            <>
+              <h1 className="text-white font-semibold text-[22px] leading-tight tracking-[-0.01em] mb-1">{node.title}</h1>
+              <p className="text-white/60 text-[14px] leading-relaxed mb-3 line-clamp-2">{node.description}</p>
+            </>
+          )}
 
           {node.ending ? (
             <div className="animate-fade-up">
