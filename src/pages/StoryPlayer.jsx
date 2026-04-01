@@ -328,21 +328,30 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
-      {/* Connection burst — upper area with radial glow */}
+      {/* Connection burst — WebGL rays behind heart */}
       {showConnectionBurst && (
         <div className="fixed inset-0 z-[45] pointer-events-none">
-          {/* Pink-orange radial glow rays */}
+          {/* Contained PrismaticBurst */}
           <div
             style={{
               position: 'absolute',
-              top: `${burstParams.top}%`, left: '50%', transform: 'translate(-50%, -50%)',
+              top: `${burstParams.top}%`, left: '50%',
+              transform: 'translate(-50%, -50%)',
               width: burstParams.size, height: burstParams.size,
-              background: `conic-gradient(from 0deg, rgba(236,72,153,${burstParams.opacity}), rgba(249,115,22,${burstParams.opacity * 0.7}), transparent 12%, transparent 18%, rgba(244,114,182,${burstParams.opacity * 0.85}), rgba(251,146,60,${burstParams.opacity * 0.6}), transparent 30%, transparent 36%, rgba(236,72,153,${burstParams.opacity}), rgba(249,115,22,${burstParams.opacity * 0.7}), transparent 48%, transparent 54%, rgba(244,114,182,${burstParams.opacity * 0.7}), transparent 66%, transparent 72%, rgba(236,72,153,${burstParams.opacity * 0.85}), transparent 84%, transparent 90%, rgba(249,115,22,${burstParams.opacity * 0.6}), transparent)`,
-              filter: `blur(${burstParams.blur}px)`,
-              mixBlendMode: 'screen',
               borderRadius: '50%',
+              overflow: 'hidden',
+              opacity: burstParams.opacity,
+              mixBlendMode: 'lighten',
             }}
-          />
+          >
+            <PrismaticBurst
+              intensity={4}
+              speed={0.6}
+              animationType="rotate3d"
+              colors={['#ec4899', '#f97316', '#f472b6', '#fb923c', '#ec4899']}
+              mixBlendMode="normal"
+            />
+          </div>
           {/* Heart + number */}
           <div style={{ position: 'absolute', top: `${burstParams.top}%`, left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex flex-col items-center">
             <HeartIcon size={burstParams.heartSize} className="mb-3" />
