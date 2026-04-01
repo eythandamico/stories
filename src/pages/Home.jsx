@@ -192,7 +192,7 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
                   </div>
                 ))}
               </div>
-              <span className="text-white/70 text-[14px] font-semibold">{[17, 24, 9, 31, 12][i % 5]}k</span>
+              <span className="text-white text-[13px] font-semibold px-2 py-0.5 rounded-full bg-white/15">+{[17, 24, 9, 31, 12][i % 5]}k</span>
             </div>
           </button>
         )}
