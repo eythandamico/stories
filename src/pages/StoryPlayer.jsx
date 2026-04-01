@@ -496,7 +496,7 @@ export default function StoryPlayer() {
 
               {/* Perk action buttons — always visible */}
               {chosenIndex === null && (
-                <div className="flex items-center justify-center gap-2 mt-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+                <div className="flex items-stretch gap-2 mt-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
                   {[
                     { type: 'freeze', icon: 'clock', color: '#38bdf8', label: 'Freeze', count: perks.freeze, active: freezeActive, handler: handleFreeze, disabled: freezeActive || !node.timed },
                     { type: 'hint', icon: 'sparkle', color: '#a78bfa', label: 'Hint', count: perks.hint, active: hintActive, handler: handleHint, disabled: hintActive },
@@ -507,9 +507,8 @@ export default function StoryPlayer() {
                       type="button"
                       onClick={() => p.count > 0 ? p.handler() : setShowBuyPerks(true)}
                       disabled={p.disabled}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed ${
-                        p.active ? 'bg-white/[0.15]' : 'bg-white/[0.08] hover:bg-white/[0.12]'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{ background: p.active ? `${p.color}25` : `${p.color}12` }}
                     >
                       <Icon name={p.active ? 'check' : p.icon} size={14} style={{ color: p.color }} />
                       <span className="text-[13px] font-medium text-white/60">{p.active ? 'Active' : p.label}</span>
