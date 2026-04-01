@@ -159,67 +159,46 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
           {item.description}
         </p>
 
-        {/* Social proof */}
-        <div
-          className="flex items-center justify-center mt-5 transition-opacity duration-500"
-          style={{
-            opacity: isActive ? 1 : 0,
-            transitionDelay: isActive ? '0.5s' : '0s',
-          }}
-        >
-          <div className="flex items-center">
-            <div className="flex" style={{ paddingLeft: 10 }}>
-              {[
-                `https://i.pravatar.cc/80?img=${(i * 7 + 1) % 70}`,
-                `https://i.pravatar.cc/80?img=${(i * 7 + 14) % 70}`,
-                `https://i.pravatar.cc/80?img=${(i * 7 + 29) % 70}`,
-                `https://i.pravatar.cc/80?img=${(i * 7 + 43) % 70}`,
-              ].map((src, j) => (
-                <div
-                  key={j}
-                  className="rounded-full"
-                  style={{
-                    width: 32, height: 32,
-                    marginLeft: j === 0 ? 0 : -10,
-                    zIndex: j,
-                    position: 'relative',
-                    padding: 2,
-                    background: 'transparent',
-                    clipPath: 'circle(50%)',
-                  }}
-                >
-                  <img src={src} alt="" className="w-full h-full rounded-full object-cover" loading="lazy" />
-                </div>
-              ))}
-              <div
-                className="rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center"
-                style={{
-                  width: 44, height: 32,
-                  marginLeft: -10,
-                  zIndex: 5,
-                  position: 'relative',
-                  clipPath: 'inset(0 round 999px)',
-                }}
-              >
-                <span className="text-white/70 text-[11px] font-semibold">+{[17, 24, 9, 31, 12][i % 5]}k</span>
-              </div>
-            </div>
-          </div>
-        {/* Start button */}
+        {/* Start button with social proof */}
         {item.route && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onPlay(item) }}
-            className="mt-6 w-full h-[52px] rounded-2xl bg-white text-black font-semibold text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
+            className="mt-6 w-full h-[56px] rounded-2xl bg-white text-black cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-between px-5"
             style={{
               opacity: isActive ? 1 : 0,
-              transitionDelay: isActive ? '0.6s' : '0s',
+              transitionDelay: isActive ? '0.5s' : '0s',
             }}
           >
-            <Icon name="play" size={18} className="ml-0.5" /> Start Story
+            <div className="flex items-center gap-2">
+              <Icon name="play" size={18} className="ml-0.5" />
+              <span className="font-semibold text-[16px]">Start</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex" style={{ paddingLeft: 8 }}>
+                {[
+                  `https://i.pravatar.cc/80?img=${(i * 7 + 1) % 70}`,
+                  `https://i.pravatar.cc/80?img=${(i * 7 + 14) % 70}`,
+                  `https://i.pravatar.cc/80?img=${(i * 7 + 29) % 70}`,
+                ].map((src, j) => (
+                  <div
+                    key={j}
+                    className="rounded-full border-2 border-white"
+                    style={{
+                      width: 28, height: 28,
+                      marginLeft: j === 0 ? 0 : -10,
+                      zIndex: j,
+                      position: 'relative',
+                    }}
+                  >
+                    <img src={src} alt="" className="w-full h-full rounded-full object-cover" loading="lazy" />
+                  </div>
+                ))}
+              </div>
+              <span className="text-black/50 text-[14px] font-medium">{[17, 24, 9, 31, 12][i % 5]}k</span>
+            </div>
           </button>
         )}
-        </div>
       </div>
     </div>
   )
