@@ -128,13 +128,13 @@ export default function StoryPlayer() {
   }, [])
 
   useEffect(() => {
-    if (isPlaying && !showChoices) {
+    if (isPlaying) {
       progressRaf.current = requestAnimationFrame(updateProgress)
     } else {
       cancelAnimationFrame(progressRaf.current)
     }
     return () => cancelAnimationFrame(progressRaf.current)
-  }, [isPlaying, showChoices, updateProgress])
+  }, [isPlaying, updateProgress])
 
   const handleSeek = (e) => {
     if (!videoRef.current) return
