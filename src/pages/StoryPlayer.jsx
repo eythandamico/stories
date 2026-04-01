@@ -418,8 +418,8 @@ export default function StoryPlayer() {
 
       {/* Bottom content */}
       <div
-        className={`absolute bottom-0 left-0 right-0 z-10 transition-[opacity,transform] duration-500 ease-out ${
-          showComplete ? 'opacity-0 translate-y-4 pointer-events-none' : showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+        className={`fixed inset-0 z-10 flex flex-col justify-end transition-[opacity,transform] duration-500 ease-out ${
+          showComplete ? 'opacity-0 pointer-events-none' : showChoices ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -432,7 +432,7 @@ export default function StoryPlayer() {
           aria-hidden="true"
         />
 
-        <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] pt-16">
+        <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)]">
 
           {(showChoices) && (
             <>
