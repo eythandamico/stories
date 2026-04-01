@@ -164,16 +164,13 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onPlay(item) }}
-            className="mt-6 w-full h-[56px] rounded-2xl bg-white text-black cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-between px-5"
+            className="mt-6 w-full h-[52px] rounded-2xl bg-white/15 backdrop-blur-md text-white cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-3"
             style={{
               opacity: isActive ? 1 : 0,
               transitionDelay: isActive ? '0.5s' : '0s',
             }}
           >
-            <div className="flex items-center gap-2">
-              <Icon name="play" size={18} className="ml-0.5" />
-              <span className="font-semibold text-[16px]">Start</span>
-            </div>
+            <span className="font-semibold text-[16px]">Start</span>
             <div className="flex items-center gap-2">
               <div className="flex" style={{ paddingLeft: 8 }}>
                 {[
@@ -183,7 +180,7 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
                 ].map((src, j) => (
                   <div
                     key={j}
-                    className="rounded-full border-2 border-white"
+                    className="rounded-full border-2 border-white/30"
                     style={{
                       width: 28, height: 28,
                       marginLeft: j === 0 ? 0 : -10,
@@ -195,7 +192,7 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
                   </div>
                 ))}
               </div>
-              <span className="text-black/50 text-[14px] font-medium">{[17, 24, 9, 31, 12][i % 5]}k</span>
+              <span className="text-white/70 text-[14px] font-semibold">{[17, 24, 9, 31, 12][i % 5]}k</span>
             </div>
           </button>
         )}
