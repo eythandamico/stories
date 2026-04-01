@@ -23,6 +23,7 @@ export default function StoryPlayer() {
   const [hintActive, setHintActive] = useState(false)
   const [freezeActive, setFreezeActive] = useState(false)
   const [showBuyPerks, setShowBuyPerks] = useState(false)
+  const [perkFlash, setPerkFlash] = useState(null)
   const [currentNodeId, setCurrentNodeId] = useState(story.startNodeId)
   const [showChoices, setShowChoices] = useState(false)
   const [chosenIndex, setChosenIndex] = useState(null)
@@ -229,25 +230,33 @@ export default function StoryPlayer() {
     setCurrentNodeId(prev)
   }
 
+  const triggerPerkFlash = (color) => {
+    setPerkFlash(color)
+    setTimeout(() => setPerkFlash(null), 600)
+  }
+
   const handleFreeze = () => {
     if (!usePerk('freeze')) return
-    hapticLight()
+    hapticMedium()
     soundClick()
     setFreezeActive(true)
     stopHeartbeat()
+    triggerPerkFlash('#38bdf8')
   }
 
   const handleHint = () => {
     if (!usePerk('hint')) return
-    hapticLight()
+    hapticMedium()
     soundClick()
     setHintActive(true)
+    triggerPerkFlash('#a78bfa')
   }
 
   const handleRewind = () => {
     if (history.length === 0 || !usePerk('rewind')) return
-    hapticLight()
+    hapticMedium()
     soundClick()
+    triggerPerkFlash('#34d399')
     handleGoBack()
   }
 
@@ -289,6 +298,18 @@ export default function StoryPlayer() {
         style={{ background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.35) 100%)' }}
         aria-hidden="true"
       />
+
+      {/* Perk flash effect */}
+      {perkFlash && (
+        <div
+          key={Date.now()}
+          className="absolute inset-0 z-[30] pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at center, ${perkFlash}30 0%, transparent 70%)`,
+            animation: 'perk-flash 0.6s ease-out forwards',
+          }}
+        />
+      )}
 
       {/* Connection bar blur + glow */}
       <div
