@@ -322,22 +322,41 @@ export default function StoryPlayer() {
       {/* Connection burst — heart + number */}
       {showConnectionBurst && (
         <div className="absolute inset-0 z-[46] pointer-events-none">
-          {/* Mini heart confetti */}
-          {Array.from({ length: 8 }).map((_, j) => (
-            <div
-              key={j}
-              className="absolute"
-              style={{
-                top: '25%', left: '50%',
-                animation: `heart-confetti-${j % 4} 1.2s ease-out ${j * 0.05}s forwards`,
-              }}
-            >
-              <HeartIcon size={14 + (j % 3) * 4} />
-            </div>
-          ))}
+          {/* Pink radial glow behind badge */}
+          <div
+            className="absolute animate-burst"
+            style={{
+              top: '25%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: 280, height: 280,
+              background: 'radial-gradient(circle, rgba(236,72,153,0.25) 0%, rgba(249,115,22,0.12) 40%, transparent 70%)',
+              filter: 'blur(30px)',
+            }}
+          />
+          {/* Heart confetti with gravity */}
+          {Array.from({ length: 16 }).map((_, j) => {
+            const angle = (j / 16) * 360
+            const dist = 60 + Math.random() * 80
+            const x = Math.cos(angle * Math.PI / 180) * dist
+            const size = 12 + (j % 4) * 5
+            return (
+              <div
+                key={j}
+                className="absolute"
+                style={{
+                  top: '25%', left: '50%',
+                  opacity: 0,
+                  animation: `heart-gravity 1.4s cubic-bezier(0.2, 0, 0.2, 1) ${j * 0.03}s forwards`,
+                  '--hx': `${x}px`,
+                  '--hr': `${(Math.random() - 0.5) * 60}deg`,
+                }}
+              >
+                <HeartIcon size={size} />
+              </div>
+            )
+          })}
           {/* Badge */}
           <div style={{ position: 'absolute', top: '25%', left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex items-center justify-center animate-burst">
-            <div className="flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-black/40 backdrop-blur-xl">
+            <div className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.3), rgba(249,115,22,0.2))', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}>
               <HeartIcon size={36} />
               <span className="text-white text-[26px] font-semibold">+{connection * 5}</span>
             </div>

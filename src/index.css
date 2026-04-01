@@ -166,26 +166,24 @@ p {
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* ── Heart confetti ── */
-@keyframes heart-confetti-0 {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(0); }
-  30% { opacity: 1; transform: translate(-80px, -90px) scale(1) rotate(-20deg); }
-  100% { opacity: 0; transform: translate(-100px, -140px) scale(0.6) rotate(-40deg); }
-}
-@keyframes heart-confetti-1 {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(0); }
-  30% { opacity: 1; transform: translate(70px, -100px) scale(1) rotate(15deg); }
-  100% { opacity: 0; transform: translate(110px, -150px) scale(0.5) rotate(30deg); }
-}
-@keyframes heart-confetti-2 {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(0); }
-  30% { opacity: 1; transform: translate(-50px, -60px) scale(1) rotate(25deg); }
-  100% { opacity: 0; transform: translate(-70px, -120px) scale(0.7) rotate(50deg); }
-}
-@keyframes heart-confetti-3 {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(0); }
-  30% { opacity: 1; transform: translate(90px, -70px) scale(1) rotate(-10deg); }
-  100% { opacity: 0; transform: translate(120px, -130px) scale(0.5) rotate(-25deg); }
+/* ── Heart confetti with gravity ── */
+@keyframes heart-gravity {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--hx)), calc(-50% - 80px)) scale(1.2) rotate(var(--hr));
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(calc(-50% + var(--hx) * 1.2), calc(-50% - 40px)) scale(1) rotate(calc(var(--hr) * 1.5));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--hx) * 1.4), calc(-50% + 120px)) scale(0.6) rotate(calc(var(--hr) * 2));
+  }
 }
 
 /* ── Perk flash effect ── */
