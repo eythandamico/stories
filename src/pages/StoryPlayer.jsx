@@ -481,7 +481,7 @@ export default function StoryPlayer() {
                       type="button"
                       onClick={() => chosenIndex === null && handleChoice(choice, i)}
                       disabled={chosenIndex !== null}
-                      className={`animate-fade-up w-full text-center px-3.5 py-3 rounded-xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center justify-center gap-2.5 relative overflow-hidden ${
+                      className={`animate-fade-up w-full text-center px-4 py-5 rounded-2xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center justify-center gap-2.5 relative overflow-hidden ${
                         isChosen
                           ? 'bg-white/[0.18]'
                           : isOther
