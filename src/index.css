@@ -147,6 +147,19 @@ p {
   animation: shimmer 1.8s ease-in-out infinite;
 }
 
+/* ── Connection burst ── */
+@keyframes burst-in-out {
+  0% { opacity: 0; transform: scale(0.5); }
+  15% { opacity: 1; transform: scale(1.1); }
+  25% { transform: scale(1); }
+  75% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.2) translateY(-20px); }
+}
+
+.animate-burst {
+  animation: burst-in-out 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* ── Perk flash effect ── */
 @keyframes perk-flash {
   0% { opacity: 0; transform: scale(0.8); }

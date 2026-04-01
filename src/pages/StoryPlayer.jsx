@@ -25,6 +25,7 @@ export default function StoryPlayer() {
   const [showBuyPerks, setShowBuyPerks] = useState(false)
   const [perkFlash, setPerkFlash] = useState(null)
   const [choicesExiting, setChoicesExiting] = useState(false)
+  const [showConnectionBurst, setShowConnectionBurst] = useState(false)
   const [currentNodeId, setCurrentNodeId] = useState(story.startNodeId)
   const [showChoices, setShowChoices] = useState(false)
   const [chosenIndex, setChosenIndex] = useState(null)
@@ -190,10 +191,12 @@ export default function StoryPlayer() {
         soundPositive()
         setConnection((prev) => Math.min(prev + 1, MAX_CONNECTION))
         setShowConnectionBar(true)
+        setShowConnectionBurst(true)
         hapticMedium()
         soundConnection()
         clearTimeout(connectionTimer.current)
         connectionTimer.current = setTimeout(() => setShowConnectionBar(false), 2000)
+        setTimeout(() => setShowConnectionBurst(false), 1500)
       } else {
         soundNeutral()
       }
@@ -315,6 +318,16 @@ export default function StoryPlayer() {
         style={{ background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.35) 100%)' }}
         aria-hidden="true"
       />
+
+      {/* Connection burst — centered */}
+      {showConnectionBurst && (
+        <div className="fixed inset-0 z-[45] flex items-center justify-center pointer-events-none" key={connection}>
+          <div className="flex flex-col items-center animate-burst">
+            <HeartIcon size={80} className="mb-3" />
+            <span className="text-white text-[36px] font-semibold">+{connection * 5}</span>
+          </div>
+        </div>
+      )}
 
       {/* Perk flash effect */}
       {perkFlash && (
@@ -488,7 +501,7 @@ export default function StoryPlayer() {
                       disabled={chosenIndex !== null}
                       className={`animate-fade-up w-full px-4 py-5 rounded-2xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 group flex items-center relative overflow-hidden ${
                         isChosen
-                          ? 'bg-white/[0.18]'
+                          ? 'bg-white/[0.25] ring-1 ring-white/30'
                           : isOther
                             ? 'bg-white/[0.05] opacity-50'
                             : hintActive && choice.positive
