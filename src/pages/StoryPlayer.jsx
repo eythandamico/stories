@@ -515,7 +515,7 @@ export default function StoryPlayer() {
                       style={{ background: p.active ? `${p.color}25` : `${p.color}12` }}
                     >
                       <Icon name={p.active ? 'check' : p.icon} size={14} style={{ color: p.color }} />
-                      <span className="text-[13px] font-medium text-white/60">{p.active ? 'Active' : p.label}</span>
+                      <span className="text-[13px] font-medium" style={{ color: p.color }}>{p.active ? 'Active' : p.label}</span>
                       <span className="text-[13px] font-semibold tabular-nums" style={{ color: p.count > 0 ? p.color : 'rgba(255,255,255,0.3)' }}>
                         {p.count > 0 ? p.count : '0'}
                       </span>
