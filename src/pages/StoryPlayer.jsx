@@ -418,7 +418,7 @@ export default function StoryPlayer() {
 
       {/* Bottom content */}
       <div
-        className={`fixed inset-0 z-10 flex flex-col justify-end transition-[opacity,transform] duration-500 ease-out ${
+        className={`fixed inset-0 z-10 flex flex-col justify-end transition-opacity duration-700 ease-out ${
           showComplete ? 'opacity-0 pointer-events-none' : showChoices ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -436,14 +436,14 @@ export default function StoryPlayer() {
 
           {(showChoices) && (
             <>
-              <h1 className="text-white font-semibold text-[22px] leading-tight tracking-[-0.01em] mb-1">{node.title}</h1>
-              <p className="text-white/60 text-[14px] leading-relaxed mb-8 line-clamp-2">{node.description}</p>
+              <h1 className="text-white font-semibold text-[22px] leading-tight tracking-[-0.01em] mb-1 animate-fade-up" style={{ animationDelay: '0.05s' }}>{node.title}</h1>
+              <p className="text-white/60 text-[14px] leading-relaxed mb-8 line-clamp-2 animate-fade-up" style={{ animationDelay: '0.1s' }}>{node.description}</p>
             </>
           )}
 
           {node.ending && showChoices ? (
-            <div className="animate-fade-up">
-              <div className="p-5 rounded-2xl bg-white/[0.10] backdrop-blur-md  mb-4">
+            <div className="animate-fade-up" style={{ animationDelay: '0.15s' }}>
+              <div className="p-5 rounded-2xl bg-white/[0.10] backdrop-blur-md mb-4">
                 <p className="text-white font-semibold text-[20px] mb-1">{node.endingTitle}</p>
                 <p className="text-white/60 text-[16px] leading-relaxed">{node.endingDescription}</p>
                 <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/[0.08]">
@@ -467,7 +467,7 @@ export default function StoryPlayer() {
             </div>
           ) : showChoices ? (
             <div>
-              <p className="text-white/50 text-[12px] font-medium tracking-widest uppercase mb-2">
+              <p className="text-white/50 text-[12px] font-medium tracking-widest uppercase mb-2 animate-fade-up" style={{ animationDelay: '0.15s' }}>
                 {node.timed ? 'Decide quickly' : 'What do you do?'}
               </p>
               <Stack gap="sm">
@@ -490,7 +490,7 @@ export default function StoryPlayer() {
                               ? 'bg-[#a78bfa]/15 hover:bg-[#a78bfa]/25 active:scale-[0.97]'
                               : 'bg-white/[0.10] hover:bg-white/[0.15] active:scale-[0.97]'
                       }`}
-                      style={{ animationDelay: `${i * 80}ms` }}
+                      style={{ animationDelay: `${200 + i * 100}ms` }}
                     >
                       {/* Percentage fill bar (always rendered, animates from 0) */}
                       <div
@@ -526,7 +526,7 @@ export default function StoryPlayer() {
               </Stack>
 
               {/* Perk action buttons */}
-              <div className="flex items-stretch justify-center gap-2 mt-8 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+              <div className="flex items-stretch justify-center gap-2 mt-8 animate-fade-up" style={{ animationDelay: '0.45s' }}>
                   {[
                     node.timed && { type: 'freeze', icon: 'clock', color: '#38bdf8', label: 'Freeze', count: perks.freeze, active: freezeActive, handler: handleFreeze, disabled: freezeActive },
                     { type: 'hint', icon: 'sparkle', color: '#a78bfa', label: 'Hint', count: perks.hint, active: hintActive, handler: handleHint, disabled: hintActive },
