@@ -129,7 +129,7 @@ export function BuyHeartsModal({ isOpen, onClose, onPurchase, onPurchasePerks })
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-[60] flex flex-col justify-end"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -148,13 +148,20 @@ export function BuyHeartsModal({ isOpen, onClose, onPurchase, onPurchasePerks })
 
       {/* Bottom sheet */}
       <div
-        className={`relative w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-[var(--inv-surface)] p-6 pb-[max(env(safe-area-inset-bottom),24px)] animate-slide-up ${showSuccess ? 'opacity-0' : ''}`}
+        className={`relative w-full sm:max-w-sm max-h-[85vh] rounded-t-3xl sm:rounded-2xl bg-[var(--inv-surface)] animate-slide-up overflow-hidden flex flex-col ${showSuccess ? 'opacity-0' : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Handle */}
-        <div className="flex justify-center mb-4 sm:hidden">
+        {/* Handle + close */}
+        <div className="flex items-center justify-between px-6 pt-4 pb-2 shrink-0">
+          <div />
           <div className="w-10 h-1 rounded-full bg-[var(--inv-border)]" />
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-[var(--inv-bg-alt)] flex items-center justify-center cursor-pointer active:scale-[0.96]">
+            <Icon name="close" size={14} className="text-[var(--inv-muted)]" />
+          </button>
         </div>
+
+        {/* Scrollable content */}
+        <div className="overflow-y-auto flex-1 px-6 pb-[max(env(safe-area-inset-bottom),24px)]">
 
         {/* Header */}
         <div className="text-center mb-5">
@@ -259,6 +266,7 @@ export function BuyHeartsModal({ isOpen, onClose, onPurchase, onPurchasePerks })
           </div>
         </div>
 
+        </div>
       </div>
     </div>
   )
