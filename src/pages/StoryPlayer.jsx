@@ -538,10 +538,10 @@ export default function StoryPlayer() {
               {/* Perk action buttons */}
               <div className="flex items-stretch gap-2 mt-3 animate-fade-up" style={{ animationDelay: '0.2s' }}>
                   {[
-                    { type: 'freeze', icon: 'clock', color: '#38bdf8', label: 'Freeze', count: perks.freeze, active: freezeActive, handler: handleFreeze, disabled: freezeActive || (!node.timed && perks.freeze > 0) },
+                    node.timed && { type: 'freeze', icon: 'clock', color: '#38bdf8', label: 'Freeze', count: perks.freeze, active: freezeActive, handler: handleFreeze, disabled: freezeActive },
                     { type: 'hint', icon: 'sparkle', color: '#a78bfa', label: 'Hint', count: perks.hint, active: hintActive, handler: handleHint, disabled: hintActive },
-                    { type: 'rewind', icon: 'rotate-ccw', color: '#34d399', label: 'Rewind', count: perks.rewind, active: false, handler: handleRewind, disabled: history.length === 0 && perks.rewind > 0 },
-                  ].map((p) => (
+                    history.length > 0 && { type: 'rewind', icon: 'rotate-ccw', color: '#34d399', label: 'Rewind', count: perks.rewind, active: false, handler: handleRewind, disabled: false },
+                  ].filter(Boolean).map((p) => (
                     <button
                       key={p.type}
                       type="button"
