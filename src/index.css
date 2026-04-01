@@ -160,6 +160,12 @@ p {
   animation: burst-in-out 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── Spinning rays ── */
+@keyframes spin-slow {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
 /* ── Perk flash effect ── */
 @keyframes perk-flash {
   0% { opacity: 0; transform: scale(0.8); }

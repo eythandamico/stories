@@ -331,25 +331,60 @@ export default function StoryPlayer() {
       {/* Connection burst — WebGL rays behind heart */}
       {showConnectionBurst && (
         <div className="fixed inset-0 z-[45] pointer-events-none">
-          {/* Contained PrismaticBurst */}
+          {/* Rotating ray groups */}
           <div
+            className="absolute"
             style={{
-              position: 'absolute',
               top: `${burstParams.top}%`, left: '50%',
               transform: 'translate(-50%, -50%)',
               width: burstParams.size, height: burstParams.size,
-              opacity: burstParams.opacity,
-              maskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
-              WebkitMaskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
+              animation: 'spin-slow 12s linear infinite',
             }}
           >
-            <PrismaticBurst
-              intensity={4}
-              speed={0.6}
-              animationType="rotate3d"
-              colors={['#ec4899', '#f97316', '#f472b6', '#fb923c', '#ec4899']}
-              mixBlendMode="lighten"
-            />
+            {Array.from({ length: 16 }).map((_, r) => (
+              <div
+                key={r}
+                style={{
+                  position: 'absolute',
+                  top: '50%', left: '50%',
+                  width: r % 3 === 0 ? 4 : 2,
+                  height: '50%',
+                  transformOrigin: 'center top',
+                  transform: `translate(-50%, 0) rotate(${r * 22.5}deg)`,
+                  background: `linear-gradient(to bottom, ${
+                    r % 3 === 0 ? `rgba(236,72,153,${burstParams.opacity})`
+                    : r % 3 === 1 ? `rgba(249,115,22,${burstParams.opacity * 0.8})`
+                    : `rgba(244,114,182,${burstParams.opacity * 0.6})`
+                  }, transparent 80%)`,
+                  filter: `blur(${burstParams.blur}px)`,
+                }}
+              />
+            ))}
+          </div>
+          <div
+            className="absolute"
+            style={{
+              top: `${burstParams.top}%`, left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: burstParams.size * 0.7, height: burstParams.size * 0.7,
+              animation: 'spin-slow 8s linear infinite reverse',
+            }}
+          >
+            {Array.from({ length: 12 }).map((_, r) => (
+              <div
+                key={r}
+                style={{
+                  position: 'absolute',
+                  top: '50%', left: '50%',
+                  width: 2,
+                  height: '50%',
+                  transformOrigin: 'center top',
+                  transform: `translate(-50%, 0) rotate(${r * 30 + 15}deg)`,
+                  background: `linear-gradient(to bottom, rgba(251,146,60,${burstParams.opacity * 0.5}), transparent 70%)`,
+                  filter: `blur(${burstParams.blur + 4}px)`,
+                }}
+              />
+            ))}
           </div>
           {/* Heart + number */}
           <div style={{ position: 'absolute', top: `${burstParams.top}%`, left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex flex-col items-center">
