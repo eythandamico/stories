@@ -24,6 +24,7 @@ export default function StoryPlayer() {
   const [freezeActive, setFreezeActive] = useState(false)
   const [showBuyPerks, setShowBuyPerks] = useState(false)
   const [perkFlash, setPerkFlash] = useState(null)
+  const [choicesExiting, setChoicesExiting] = useState(false)
   const [currentNodeId, setCurrentNodeId] = useState(story.startNodeId)
   const [showChoices, setShowChoices] = useState(false)
   const [chosenIndex, setChosenIndex] = useState(null)
@@ -198,12 +199,16 @@ export default function StoryPlayer() {
       }
     }, 200)
 
-    // Transition after showing percentages
+    // Fade out, then transition
+    setTimeout(() => {
+      setChoicesExiting(true)
+    }, 1000)
     setTimeout(() => {
       setHistory((prev) => [...prev, currentNodeId])
       setShowChoices(false)
+      setChoicesExiting(false)
       setCurrentNodeId(choice.nextNodeId)
-    }, 1200)
+    }, 1600)
   }
 
   const handleChoice = (choice, index) => {
@@ -418,8 +423,8 @@ export default function StoryPlayer() {
 
       {/* Bottom content */}
       <div
-        className={`fixed inset-0 z-10 flex flex-col justify-end transition-opacity duration-700 ease-out ${
-          showComplete ? 'opacity-0 pointer-events-none' : showChoices ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-10 flex flex-col justify-end transition-opacity duration-500 ease-out ${
+          showComplete ? 'opacity-0 pointer-events-none' : (showChoices && !choicesExiting) ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
