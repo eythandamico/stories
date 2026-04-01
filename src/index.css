@@ -167,22 +167,18 @@ p {
 }
 
 /* ── Heart confetti with gravity ── */
-@keyframes heart-gravity {
+@keyframes confetti-fly {
   0% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(0) rotate(0deg);
   }
-  20% {
+  25% {
     opacity: 1;
-    transform: translate(calc(-50% + var(--hx)), calc(-50% - 80px)) scale(1.2) rotate(var(--hr));
-  }
-  50% {
-    opacity: 0.8;
-    transform: translate(calc(-50% + var(--hx) * 1.2), calc(-50% - 40px)) scale(1) rotate(calc(var(--hr) * 1.5));
+    transform: translate(calc(-50% + var(--cx)), calc(-50% + var(--cy))) scale(1.1) rotate(var(--cr));
   }
   100% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--hx) * 1.4), calc(-50% + 120px)) scale(0.6) rotate(calc(var(--hr) * 2));
+    transform: translate(calc(-50% + var(--cx)), calc(-50% + var(--cg))) scale(0.5) rotate(calc(var(--cr) * 2));
   }
 }
 

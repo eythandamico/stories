@@ -333,24 +333,34 @@ export default function StoryPlayer() {
             }}
           />
           {/* Heart confetti with gravity */}
-          {Array.from({ length: 16 }).map((_, j) => {
-            const angle = (j / 16) * 360
-            const dist = 60 + Math.random() * 80
-            const x = Math.cos(angle * Math.PI / 180) * dist
-            const size = 12 + (j % 4) * 5
+          {Array.from({ length: 12 }).map((_, j) => {
+            const angle = (j / 12) * 360
+            const dist = 70 + (j % 3) * 30
+            const x = Math.round(Math.cos(angle * Math.PI / 180) * dist)
+            const upY = Math.round(-Math.abs(Math.sin(angle * Math.PI / 180) * dist * 0.5) - 30)
+            const downY = 80 + (j % 3) * 20
+            const size = 14 + (j % 3) * 4
+            const rot = (j % 2 === 0 ? 1 : -1) * 20
+            const name = `cf-${j}`
             return (
-              <div
-                key={j}
-                className="absolute"
-                style={{
-                  top: '25%', left: '50%',
-                  opacity: 0,
-                  animation: `heart-gravity 1.4s cubic-bezier(0.2, 0, 0.2, 1) ${j * 0.03}s forwards`,
-                  '--hx': `${x}px`,
-                  '--hr': `${(Math.random() - 0.5) * 60}deg`,
-                }}
-              >
-                <HeartIcon size={size} />
+              <div key={j}>
+                <style>{`
+                  @keyframes ${name} {
+                    0% { opacity:1; transform:translate(-50%,-50%) scale(0) rotate(0deg); }
+                    25% { opacity:1; transform:translate(calc(-50% + ${x}px),calc(-50% + ${upY}px)) scale(1.1) rotate(${rot}deg); }
+                    100% { opacity:0; transform:translate(calc(-50% + ${x}px),calc(-50% + ${downY}px)) scale(0.5) rotate(${rot * 2}deg); }
+                  }
+                `}</style>
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    top: '25%', left: '50%',
+                    transform: 'translate(-50%, -50%) scale(0)',
+                    animation: `${name} 1.3s ease-out ${j * 0.04}s forwards`,
+                  }}
+                >
+                  <HeartIcon size={size} />
+                </div>
               </div>
             )
           })}
@@ -377,53 +387,6 @@ export default function StoryPlayer() {
         />
       )}
 
-      {/* Connection bar blur + glow */}
-      <div
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-[19] pointer-events-none transition-opacity duration-700"
-        style={{
-          opacity: showConnectionBar ? 1 : 0, width: 140, height: 260,
-          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-          maskImage: 'radial-gradient(ellipse at center right, black 15%, transparent 65%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at center right, black 15%, transparent 65%)',
-        }}
-        aria-hidden="true"
-      />
-      <div
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-[19] pointer-events-none transition-opacity duration-700"
-        style={{
-          opacity: showConnectionBar ? 1 : 0, width: 140, height: 260,
-          background: connectionPct >= 80
-            ? 'radial-gradient(ellipse at center right, rgba(236,72,153,0.2), transparent 65%)'
-            : connectionPct >= 40
-              ? 'radial-gradient(ellipse at center right, rgba(244,114,182,0.15), transparent 65%)'
-              : 'radial-gradient(ellipse at center right, rgba(0,0,0,0.3), transparent 65%)',
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Connection bar */}
-      <div
-        className="absolute right-5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-3 pointer-events-none transition-[opacity,transform,color] duration-700 ease-out"
-        style={{
-          opacity: showConnectionBar ? 1 : 0,
-          transform: showConnectionBar ? 'translateX(0) translateY(-50%)' : 'translateX(16px) translateY(-50%)',
-        }}
-        aria-hidden="true"
-      >
-        <span className="text-[16px] font-semibold animate-count-up" key={connection}
-          style={{ color: connectionPct >= 80 ? '#ec4899' : connectionPct >= 40 ? '#f472b6' : 'rgba(255,255,255,0.7)' }}
-        >+{connection}</span>
-        <div className="relative w-3 h-36 rounded-full bg-white/20 overflow-hidden backdrop-blur-xl">
-          <div className="absolute bottom-0 left-0 right-0 rounded-full transition-[height,background-color] duration-1000 ease-out"
-            style={{
-              height: `${connectionPct}%`,
-              background: connectionPct >= 80 ? 'linear-gradient(to top, #f472b6, #ec4899)' : connectionPct >= 40 ? 'linear-gradient(to top, #fb923c, #f472b6)' : 'linear-gradient(to top, rgba(255,255,255,0.4), rgba(255,255,255,0.7))',
-              ...(connectionPct >= 100 ? { animation: 'bar-pulse 2s ease-in-out infinite' } : {}),
-            }}
-          />
-        </div>
-        <HeartIcon size={24} />
-      </div>
 
       {/* Top bar */}
       <div
