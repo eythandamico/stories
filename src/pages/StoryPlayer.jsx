@@ -328,24 +328,26 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
-      {/* Connection burst — WebGL rays behind heart */}
+      {/* Connection burst — rays same level as video */}
       {showConnectionBurst && (
-        <div className="fixed inset-0 z-[45] pointer-events-none">
-          {/* PrismaticBurst — exact same as home feed */}
-          <div
-            className="absolute inset-0 z-[7] pointer-events-none"
-            style={{ opacity: 0.8, mixBlendMode: 'lighten' }}
-          >
-            <PrismaticBurst
-              intensity={2}
-              speed={0.4}
-              animationType="rotate3d"
-              mixBlendMode="normal"
-              offset={{ x: 0, y: -(window.innerHeight * 0.55) }}
-            />
-          </div>
-          {/* Heart + number */}
-          <div style={{ position: 'absolute', top: `${burstParams.top}%`, left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex flex-col items-center">
+        <div
+          className="absolute inset-0 z-[7] pointer-events-none"
+          style={{ opacity: 0.8, mixBlendMode: 'lighten' }}
+        >
+          <PrismaticBurst
+            intensity={2}
+            speed={0.4}
+            animationType="rotate3d"
+            mixBlendMode="normal"
+            offset={{ x: 0, y: -(window.innerHeight * 0.55) }}
+          />
+        </div>
+      )}
+
+      {/* Connection burst heart + number */}
+      {showConnectionBurst && (
+        <div className="absolute inset-0 z-[46] pointer-events-none">
+          <div style={{ position: 'absolute', top: `${burstParams.top}%`, left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex flex-col items-center animate-burst">
             <HeartIcon size={burstParams.heartSize} className="mb-3" />
             <span className="text-white font-semibold" style={{ fontSize: burstParams.textSize, textShadow: '0 0 40px rgba(236,72,153,0.6), 0 0 80px rgba(249,115,22,0.3)' }}>+{connection * 5}</span>
           </div>
