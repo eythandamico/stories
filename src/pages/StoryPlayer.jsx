@@ -374,18 +374,18 @@ export default function StoryPlayer() {
       {/* Top bar */}
       <div
         className={`absolute top-0 left-0 right-0 z-20 px-5 pt-[calc(env(safe-area-inset-top,20px)+20px)] pb-6 flex items-center justify-between transition-[opacity,transform] duration-500 ${
-          showControls || showChoices ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+          showComplete ? 'opacity-0 pointer-events-none' : (showControls || showChoices) ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
         }`}
         onClick={(e) => e.stopPropagation()}
         style={{ background: 'linear-gradient(rgba(0,0,0,0.4), transparent)' }}
       >
         <button
           type="button"
-          onClick={history.length > 0 ? handleGoBack : () => navigate('/')}
-          className="w-10 h-10 rounded-full bg-white/[0.14] backdrop-blur-md  flex items-center justify-center cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-90 hover:bg-white/15"
-          aria-label={history.length > 0 ? 'Go back' : 'Close'}
+          onClick={() => navigate('/')}
+          className="w-10 h-10 rounded-full bg-white/[0.14] backdrop-blur-md flex items-center justify-center cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] hover:bg-white/15"
+          aria-label="Close"
         >
-          <Icon name={history.length > 0 ? 'arrow-left' : 'close'} size={18} className="text-white/80" />
+          <Icon name="close" size={18} className="text-white/80" />
         </button>
 
         {/* Timer in top right */}
