@@ -322,15 +322,17 @@ export default function StoryPlayer() {
       {/* Connection burst — upper area with radial glow */}
       {showConnectionBurst && (
         <div className="fixed inset-0 z-[45] pointer-events-none" key={connection}>
-          {/* Pink-orange radial glow rays */}
+          {/* Pink-orange radial glow rays — compact */}
           <div
-            className="absolute animate-burst"
+            className="absolute"
             style={{
-              top: '15%', left: '50%', transform: 'translateX(-50%)',
-              width: '140vw', height: '140vw',
-              background: 'conic-gradient(from 0deg, rgba(236,72,153,0.3), rgba(249,115,22,0.2), transparent 15%, transparent 20%, rgba(244,114,182,0.25), rgba(251,146,60,0.15), transparent 35%, transparent 40%, rgba(236,72,153,0.3), rgba(249,115,22,0.2), transparent 55%, transparent 60%, rgba(244,114,182,0.2), transparent 75%, transparent 80%, rgba(236,72,153,0.25), transparent 95%)',
-              filter: 'blur(20px)',
+              top: '15%', left: '50%', transform: 'translate(-50%, -20%)',
+              width: 300, height: 300,
+              background: 'conic-gradient(from 0deg, rgba(236,72,153,0.35), rgba(249,115,22,0.25), transparent 12%, transparent 18%, rgba(244,114,182,0.3), rgba(251,146,60,0.2), transparent 30%, transparent 36%, rgba(236,72,153,0.35), rgba(249,115,22,0.25), transparent 48%, transparent 54%, rgba(244,114,182,0.25), transparent 66%, transparent 72%, rgba(236,72,153,0.3), transparent 84%, transparent 90%, rgba(249,115,22,0.2), transparent)',
+              filter: 'blur(8px)',
               mixBlendMode: 'screen',
+              borderRadius: '50%',
+              animation: 'burst-in-out 1.5s cubic-bezier(0.16, 1, 0.3, 1) both',
             }}
           />
           {/* Heart + number */}
@@ -340,6 +342,16 @@ export default function StoryPlayer() {
           </div>
         </div>
       )}
+
+      {/* DEV: toggle connection burst */}
+      <button
+        type="button"
+        onClick={() => setShowConnectionBurst(prev => !prev)}
+        className="fixed bottom-20 right-4 z-[60] w-10 h-10 rounded-full bg-pink-500/30 backdrop-blur-md flex items-center justify-center cursor-pointer active:scale-90"
+        aria-label="Dev: toggle burst"
+      >
+        <HeartIcon size={20} />
+      </button>
 
       {/* Perk flash effect */}
       {perkFlash && (
