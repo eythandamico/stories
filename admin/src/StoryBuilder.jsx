@@ -42,7 +42,7 @@ function calculatePositions(nodes, startNodeId) {
   return positions
 }
 
-function ConnectionLines({ nodes, positions }) {
+function ConnectionLines({ nodes, positions, canvasW, canvasH }) {
   const lines = []
   Object.entries(nodes).forEach(([id, node]) => {
     if (!node.choices || !positions[id]) return
@@ -51,26 +51,47 @@ function ConnectionLines({ nodes, positions }) {
       const to = positions[choice.nextNodeId]
       if (!to) return
       const x1 = from.x + NODE_W
-      const y1 = from.y + 50 + i * 20
+      const y1 = from.y + 40 + i * 24
       const x2 = to.x
       const y2 = to.y + NODE_H / 2
-      const cx1 = x1 + 60
-      const cx2 = x2 - 60
+      const dx = Math.abs(x2 - x1)
+      const cx1 = x1 + Math.max(60, dx * 0.4)
+      const cx2 = x2 - Math.max(60, dx * 0.4)
+      const color = choice.positive ? '#22c55e' : '#94a3b8'
       lines.push(
         <g key={`${id}-${i}`}>
           <path
             d={`M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`}
             fill="none"
-            stroke={choice.positive ? '#22c55e' : '#64748b'}
+            stroke={color}
             strokeWidth={2}
-            opacity={0.5}
+            opacity={0.6}
           />
-          <circle cx={x2} cy={y2} r={4} fill={choice.positive ? '#22c55e' : '#64748b'} opacity={0.7} />
+          {/* Arrow head */}
+          <circle cx={x2} cy={y2} r={5} fill={color} opacity={0.8} />
+          {/* Label */}
+          <text
+            x={(x1 + x2) / 2}
+            y={(y1 + y2) / 2 - 6}
+            fill={color}
+            fontSize={10}
+            textAnchor="middle"
+            opacity={0.5}
+          >
+            {choice.label?.slice(0, 20)}
+          </text>
         </g>
       )
     })
   })
-  return <svg className="absolute inset-0 w-full h-full pointer-events-none">{lines}</svg>
+  return (
+    <svg
+      className="absolute pointer-events-none"
+      style={{ top: 0, left: 0, width: canvasW, height: canvasH, zIndex: 0 }}
+    >
+      {lines}
+    </svg>
+  )
 }
 
 function NodeCard({ node, position, selected, onSelect, onDrag }) {
@@ -416,7 +437,7 @@ export default function StoryBuilder({ storyId, onBack }) {
             <rect width="100%" height="100%" fill="url(#grid)" />
           </svg>
 
-          <ConnectionLines nodes={nodes} positions={positions} />
+          <ConnectionLines nodes={nodes} positions={positions} canvasW={canvasW} canvasH={canvasH} />
 
           {Object.values(nodes).map(node => positions[node.id] && (
             <NodeCard
