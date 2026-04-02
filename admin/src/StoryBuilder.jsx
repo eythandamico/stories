@@ -55,43 +55,61 @@ function ConnectionLines({ nodes, positions, canvasW, canvasH }) {
       const x2 = to.x
       const y2 = to.y + NODE_H / 2
       const dx = Math.abs(x2 - x1)
-      const cx1 = x1 + Math.max(60, dx * 0.4)
-      const cx2 = x2 - Math.max(60, dx * 0.4)
+      const cx1 = x1 + Math.max(40, dx * 0.3)
+      const cx2 = x2 - Math.max(40, dx * 0.3)
       const color = choice.positive ? '#22c55e' : '#94a3b8'
+      // Line from scene to choice pill
+      const midX = (x1 + x2) / 2
+      const midY = (y1 + y2) / 2
       lines.push(
         <g key={`${id}-${i}`}>
-          <path
-            d={`M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`}
-            fill="none"
-            stroke={color}
-            strokeWidth={2}
-            opacity={0.6}
-          />
-          {/* Arrow head */}
-          <circle cx={x2} cy={y2} r={5} fill={color} opacity={0.8} />
-          {/* Label */}
-          <text
-            x={(x1 + x2) / 2}
-            y={(y1 + y2) / 2 - 6}
-            fill={color}
-            fontSize={10}
-            textAnchor="middle"
-            opacity={0.5}
-          >
-            {choice.label?.slice(0, 20)}
-          </text>
+          <path d={`M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`}
+            fill="none" stroke={color} strokeWidth={2} opacity={0.4} />
+          <circle cx={x2} cy={y2} r={4} fill={color} opacity={0.6} />
         </g>
       )
     })
   })
   return (
-    <svg
-      className="absolute pointer-events-none"
-      style={{ top: 0, left: 0, width: canvasW, height: canvasH, zIndex: 0 }}
-    >
+    <svg className="absolute pointer-events-none" style={{ top: 0, left: 0, width: canvasW, height: canvasH, zIndex: 0 }}>
       {lines}
     </svg>
   )
+}
+
+// Choice pills rendered as HTML on top of connections
+function ChoicePills({ nodes, positions, onEditChoice }) {
+  const pills = []
+  Object.entries(nodes).forEach(([id, node]) => {
+    if (!node.choices || !positions[id]) return
+    const from = positions[id]
+    node.choices.forEach((choice, i) => {
+      const to = positions[choice.nextNodeId]
+      if (!to) return
+      const x1 = from.x + NODE_W
+      const y1 = from.y + 40 + i * 24
+      const x2 = to.x
+      const y2 = to.y + NODE_H / 2
+      const midX = (x1 + x2) / 2
+      const midY = (y1 + y2) / 2
+      const color = choice.positive ? '#22c55e' : '#94a3b8'
+      const bgColor = choice.positive ? 'rgba(34,197,94,0.12)' : 'rgba(148,163,184,0.1)'
+      pills.push(
+        <div
+          key={`pill-${id}-${i}`}
+          className="absolute cursor-pointer hover:scale-105 transition-transform select-none"
+          style={{ left: midX, top: midY, transform: 'translate(-50%, -50%)', zIndex: 5 }}
+          onClick={(e) => { e.stopPropagation(); onEditChoice(id, i, choice) }}
+        >
+          <div className="px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap max-w-[140px] truncate"
+            style={{ background: bgColor, color, border: `1px solid ${color}30` }}>
+            {choice.label || 'Untitled'}
+          </div>
+        </div>
+      )
+    })
+  })
+  return <>{pills}</>
 }
 
 function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, onEndConnect, connectingFrom }) {
@@ -391,17 +409,45 @@ export default function StoryBuilder({ storyId, onBack }) {
     const sourceNode = nodes[connectingFrom]
     if (!sourceNode) return
 
-    const label = prompt('Choice label:')
-    if (!label) return
-
-    const positive = confirm('Is this a positive choice (builds connection)?')
-    const newChoice = { label, nextNodeId: targetNodeId, positive }
+    const choiceNum = (sourceNode.choices?.length || 0) + 1
+    const newChoice = { label: `Choice ${choiceNum}`, nextNodeId: targetNodeId, positive: false }
     const updatedChoices = [...(sourceNode.choices || []), newChoice]
 
     await admin.saveChoices(storyId, connectingFrom, updatedChoices)
     load()
     setConnectingFrom(null)
     setConnectMousePos(null)
+  }
+
+  const [editingChoice, setEditingChoice] = useState(null)
+
+  const handleEditChoice = (nodeId, choiceIndex, choice) => {
+    setEditingChoice({ nodeId, choiceIndex, ...choice })
+  }
+
+  const handleSaveChoice = async () => {
+    if (!editingChoice) return
+    const node = nodes[editingChoice.nodeId]
+    if (!node) return
+    const updatedChoices = [...(node.choices || [])]
+    updatedChoices[editingChoice.choiceIndex] = {
+      label: editingChoice.label,
+      nextNodeId: editingChoice.nextNodeId,
+      positive: editingChoice.positive,
+    }
+    await admin.saveChoices(storyId, editingChoice.nodeId, updatedChoices)
+    setEditingChoice(null)
+    load()
+  }
+
+  const handleDeleteChoice = async () => {
+    if (!editingChoice) return
+    const node = nodes[editingChoice.nodeId]
+    if (!node) return
+    const updatedChoices = (node.choices || []).filter((_, i) => i !== editingChoice.choiceIndex)
+    await admin.saveChoices(storyId, editingChoice.nodeId, updatedChoices)
+    setEditingChoice(null)
+    load()
   }
 
   const load = useCallback(() => {
@@ -499,6 +545,7 @@ export default function StoryBuilder({ storyId, onBack }) {
           </svg>
 
           <ConnectionLines nodes={nodes} positions={positions} canvasW={canvasW} canvasH={canvasH} />
+          <ChoicePills nodes={nodes} positions={positions} onEditChoice={handleEditChoice} />
 
           {/* Drag-to-connect line */}
           {connectingFrom && connectMousePos && positions[connectingFrom] && (
@@ -532,6 +579,47 @@ export default function StoryBuilder({ storyId, onBack }) {
           ))}
         </div>
       </div>
+
+      {/* Choice editor popup */}
+      {editingChoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setEditingChoice(null)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative bg-[#1a1a2e] rounded-xl p-5 w-80 space-y-3" onClick={e => e.stopPropagation()}>
+            <h3 className="text-[16px] font-semibold">Edit Choice</h3>
+            <input
+              placeholder="Choice label"
+              value={editingChoice.label}
+              onChange={e => setEditingChoice({ ...editingChoice, label: e.target.value })}
+              autoFocus
+              className="w-full h-10 px-3 rounded-lg bg-white/5 text-[15px] text-white outline-none focus:bg-white/8"
+            />
+            <select
+              value={editingChoice.nextNodeId}
+              onChange={e => setEditingChoice({ ...editingChoice, nextNodeId: e.target.value })}
+              className="w-full h-10 px-3 rounded-lg bg-white/5 text-[15px] text-white outline-none"
+            >
+              <option value="">Select target scene</option>
+              {Object.values(nodes).filter(n => n.id !== editingChoice.nodeId).map(n => (
+                <option key={n.id} value={n.id}>{n.title || n.id}</option>
+              ))}
+            </select>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={editingChoice.positive} onChange={e => setEditingChoice({ ...editingChoice, positive: e.target.checked })} className="accent-green-400" />
+              <span className="text-[15px]">Positive (builds connection)</span>
+            </label>
+            <div className="flex gap-2 pt-1">
+              <button onClick={handleSaveChoice}
+                className="flex-1 h-10 rounded-lg bg-white text-black font-semibold text-[15px] cursor-pointer active:scale-[0.97]">
+                Save
+              </button>
+              <button onClick={handleDeleteChoice}
+                className="h-10 px-4 rounded-lg bg-red-500/15 text-red-400 font-medium text-[15px] cursor-pointer active:scale-[0.97]">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Editor panel */}
       {selectedNode && (
