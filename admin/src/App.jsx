@@ -227,11 +227,93 @@ function LoginScreen({ onLogin }) {
   )
 }
 
+function UsersPanel() {
+  const [users, setUsers] = useState([])
+  const [newUser, setNewUser] = useState({ username: '', password: '', role: 'editor' })
+  const [msg, setMsg] = useState('')
+
+  const load = () => { admin.getUsers().then(setUsers).catch(() => {}) }
+  useEffect(() => { load() }, [])
+
+  const handleCreate = async () => {
+    if (!newUser.username || !newUser.password) return setMsg('Username and password required')
+    setMsg('')
+    try {
+      const result = await admin.createUser(newUser)
+      if (result.error) return setMsg(result.error)
+      setNewUser({ username: '', password: '', role: 'editor' })
+      setMsg('User created!')
+      load()
+    } catch (e) { setMsg(e.message) }
+  }
+
+  const handleDelete = async (id, username) => {
+    if (!confirm(`Delete ${username}?`)) return
+    await admin.deleteUser(id)
+    load()
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-[18px] font-semibold">Team Members</h2>
+
+      {/* Existing users */}
+      <div className="space-y-2">
+        {users.length === 0 && <p className="text-[14px] text-white/30">No team members yet</p>}
+        {users.map(u => (
+          <div key={u.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5">
+            <div>
+              <span className="text-[15px] font-medium">{u.username}</span>
+              <span className="text-[12px] text-white/30 ml-2 px-1.5 py-0.5 rounded bg-white/5">{u.role}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={u.role}
+                onChange={async (e) => { await admin.updateUser(u.id, { role: e.target.value }); load() }}
+                className="h-8 px-2 rounded bg-white/5 text-[13px] text-white outline-none cursor-pointer"
+              >
+                <option value="editor">Editor</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button onClick={() => handleDelete(u.id, u.username)}
+                className="text-red-400/50 hover:text-red-400 text-[14px] cursor-pointer px-1">×</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Add new */}
+      <div className="space-y-2">
+        <h3 className="text-[14px] text-white/40 font-medium uppercase tracking-wider">Add Member</h3>
+        <div className="grid grid-cols-3 gap-2">
+          <input placeholder="Username" value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value })}
+            className="h-10 px-3 rounded-lg bg-white/5 text-[15px] text-white outline-none" />
+          <input placeholder="Password" type="password" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })}
+            className="h-10 px-3 rounded-lg bg-white/5 text-[15px] text-white outline-none" />
+          <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })}
+            className="h-10 px-3 rounded-lg bg-white/5 text-[15px] text-white outline-none">
+            <option value="editor">Editor</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={handleCreate}
+            className="px-4 h-10 rounded-lg bg-white text-black font-semibold text-[15px] cursor-pointer active:scale-[0.97]">
+            Add Member
+          </button>
+          {msg && <span className={`text-[14px] ${msg.includes('created') ? 'text-green-400' : 'text-red-400'}`}>{msg}</span>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [authed, setAuthed] = useState(isLoggedIn())
   const [stories, setStories] = useState([])
   const [selected, setSelected] = useState(null)
   const [tab, setTab] = useState('story')
+  const [view, setView] = useState('stories') // 'stories' | 'users'
   const [builderStoryId, setBuilderStoryId] = useState(null)
 
   const loadStories = () => {
@@ -252,11 +334,27 @@ export default function App() {
           <button onClick={() => { logoutAdmin(); setAuthed(false) }} className="text-[13px] text-white/30 cursor-pointer hover:text-white/60">Logout</button>
         </div>
         <p className="text-[13px] text-white/40 mb-4">Story management</p>
-        <button onClick={() => { setSelected(null); setTab('story') }}
-          className="w-full text-left px-3 py-2 rounded-lg bg-white/5 text-[14px] font-medium cursor-pointer hover:bg-white/10 mb-3">
-          + New Story
-        </button>
-        <StoryList stories={stories} onSelect={(s) => { setSelected(s); setTab('story') }} selected={selected} />
+        {/* Nav */}
+        <div className="flex gap-1.5 mb-3">
+          <button onClick={() => setView('stories')}
+            className={`flex-1 px-3 py-2 rounded-lg text-[13px] font-medium cursor-pointer ${view === 'stories' ? 'bg-white/10 text-white' : 'text-white/40 hover:bg-white/5'}`}>
+            Stories
+          </button>
+          <button onClick={() => { setView('users'); setSelected(null) }}
+            className={`flex-1 px-3 py-2 rounded-lg text-[13px] font-medium cursor-pointer ${view === 'users' ? 'bg-white/10 text-white' : 'text-white/40 hover:bg-white/5'}`}>
+            Team
+          </button>
+        </div>
+
+        {view === 'stories' && (
+          <>
+            <button onClick={() => { setSelected(null); setTab('story') }}
+              className="w-full text-left px-3 py-2 rounded-lg bg-white/5 text-[14px] font-medium cursor-pointer hover:bg-white/10 mb-3">
+              + New Story
+            </button>
+            <StoryList stories={stories} onSelect={(s) => { setSelected(s); setTab('story') }} selected={selected} />
+          </>
+        )}
       </div>
 
       {/* Main */}
@@ -275,7 +373,8 @@ export default function App() {
           </div>
         )}
 
-        {tab === 'story' && (
+        {view === 'users' && <UsersPanel />}
+        {view === 'stories' && tab === 'story' && (
           <StoryEditor story={selected} onSaved={loadStories} />
         )}
       </div>

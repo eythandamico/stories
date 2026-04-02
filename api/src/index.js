@@ -36,6 +36,12 @@ function error(msg, status = 400) {
   return json({ error: msg }, status)
 }
 
+async function hashPassword(password) {
+  const data = new TextEncoder().encode(password)
+  const hash = await crypto.subtle.digest('SHA-256', data)
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
 async function authenticate(request, env) {
   const auth = request.headers.get('Authorization')
   if (!auth?.startsWith('Bearer ')) return null
@@ -113,11 +119,22 @@ export default {
     // ── Admin login ──
     if (path === '/api/admin/login' && method === 'POST') {
       const { username, password } = await request.json()
+      if (!env.ADMIN_SECRET) return error('Admin secret not configured', 500)
+
+      // Check env superadmin first
       if (username === (env.ADMIN_USERNAME || 'admin') && password === (env.ADMIN_PASSWORD || '')) {
-        if (!env.ADMIN_SECRET) return error('Admin secret not configured', 500)
         const token = await createAdminToken(env.ADMIN_SECRET)
-        return json({ token })
+        return json({ token, role: 'superadmin', username })
       }
+
+      // Check admin_users table
+      const hash = await hashPassword(password)
+      const dbUser = await env.DB.prepare('SELECT * FROM admin_users WHERE username = ? AND password_hash = ?').bind(username, hash).first()
+      if (dbUser) {
+        const token = await createAdminToken(env.ADMIN_SECRET)
+        return json({ token, role: dbUser.role, username: dbUser.username })
+      }
+
       return error('Invalid credentials', 401)
     }
 
@@ -289,6 +306,50 @@ export default {
       } catch (e) {
         return error(e.message, 500)
       }
+    }
+
+    // GET /api/admin/users — list admin users
+    if (path === '/api/admin/users' && method === 'GET') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      const rows = await env.DB.prepare('SELECT id, username, role, created_at FROM admin_users ORDER BY created_at DESC').all()
+      return json(rows.results)
+    }
+
+    // POST /api/admin/users — create admin user
+    if (path === '/api/admin/users' && method === 'POST') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      try {
+        const { username, password, role } = await request.json()
+        if (!username || !password) return error('Username and password required')
+        const hash = await hashPassword(password)
+        await env.DB.prepare('INSERT INTO admin_users (username, password_hash, role) VALUES (?, ?, ?)').bind(username, hash, role || 'editor').run()
+        return json({ ok: true })
+      } catch (e) {
+        if (e.message?.includes('UNIQUE')) return error('Username already exists')
+        return error(e.message, 500)
+      }
+    }
+
+    // DELETE /api/admin/users/:id — delete admin user
+    if (path.match(/^\/api\/admin\/users\/\d+$/) && method === 'DELETE') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      const id = path.split('/').pop()
+      await env.DB.prepare('DELETE FROM admin_users WHERE id = ?').bind(id).run()
+      return json({ ok: true })
+    }
+
+    // PUT /api/admin/users/:id — update admin user
+    if (path.match(/^\/api\/admin\/users\/\d+$/) && method === 'PUT') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      const id = path.split('/').pop()
+      const { role, password } = await request.json()
+      if (password) {
+        const hash = await hashPassword(password)
+        await env.DB.prepare('UPDATE admin_users SET password_hash = ?, role = ? WHERE id = ?').bind(hash, role || 'editor', id).run()
+      } else if (role) {
+        await env.DB.prepare('UPDATE admin_users SET role = ? WHERE id = ?').bind(role, id).run()
+      }
+      return json({ ok: true })
     }
 
     // POST /api/admin/upload — upload video/image to R2

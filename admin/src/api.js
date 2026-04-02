@@ -59,4 +59,10 @@ export const admin = {
     method: 'POST', body: JSON.stringify({ story_id: storyId, node_id: nodeId, choices }),
   }),
   setFeed: (items) => adminRequest('/api/admin/feed', { method: 'POST', body: JSON.stringify({ items }) }),
+
+  // Users
+  getUsers: () => adminRequest('/api/admin/users'),
+  createUser: (data) => adminRequest('/api/admin/users', { method: 'POST', body: JSON.stringify(data) }),
+  deleteUser: (id) => adminRequest(`/api/admin/users/${id}`, { method: 'DELETE' }),
+  updateUser: (id, data) => adminRequest(`/api/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 }
