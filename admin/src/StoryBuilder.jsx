@@ -44,10 +44,10 @@ function ConnectionLines({ nodes, positions, canvasW, canvasH }) {
     node.choices.forEach((choice, i) => {
       const to = positions[choice.nextNodeId]
       if (!to) return
-      const x1 = from.x + NODE_W
+      const x1 = from.x + NODE_W + 7
       const y1 = from.y + 60 + i * 28
-      const x2 = to.x
-      const y2 = to.y + 30
+      const x2 = to.x - 7
+      const y2 = to.y + 28
       const dx = Math.abs(x2 - x1)
       const cpx = Math.max(50, dx * 0.35)
       const color = choice.positive ? '#22c55e' : '#64748b'
@@ -382,7 +382,7 @@ export default function StoryBuilder({ storyId, onBack }) {
           {connectingFrom && connectMousePos && positions[connectingFrom.nodeId] && (
             <svg className="absolute pointer-events-none" style={{ width: canvasW, height: canvasH, zIndex: 100 }}>
               <line
-                x1={positions[connectingFrom.nodeId].x + NODE_W}
+                x1={positions[connectingFrom.nodeId].x + NODE_W + 7}
                 y1={positions[connectingFrom.nodeId].y + 60 + (connectingFrom.choiceIndex || 0) * 28}
                 x2={connectMousePos.x} y2={connectMousePos.y}
                 stroke="#3b82f6" strokeWidth={2} strokeDasharray="6 3" opacity={0.7}
