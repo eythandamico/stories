@@ -8,12 +8,18 @@ const API_URL = 'https://narrative-api.winter-lake-b4eb.workers.dev'
 async function post(path, data) {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer test-admin' },
+    headers: { 'Content-Type': 'application/json', 'X-Seed-Key': 'narrative-seed-2026' },
     body: JSON.stringify(data),
   })
-  const json = await res.json()
-  console.log(`${path}:`, json)
-  return json
+  const text = await res.text()
+  try {
+    const json = JSON.parse(text)
+    console.log(`${path}:`, json)
+    return json
+  } catch {
+    console.error(`${path}: ERROR`, res.status, text.slice(0, 200))
+    return { error: text.slice(0, 200) }
+  }
 }
 
 const VIDEO_BASE = 'https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev'
@@ -65,6 +71,8 @@ const feedStories = [
   { id: 'the-descent', title: 'The Descent', genre: 'Thriller', preview: 'feed-05.mp4', trending: true },
 ]
 
+const delay = (ms) => new Promise(r => setTimeout(r, ms))
+
 async function seed() {
   console.log('Seeding story...')
   await post('/api/admin/stories', story)
@@ -73,8 +81,10 @@ async function seed() {
   for (const node of nodes) {
     const { choices, ...nodeData } = node
     await post('/api/admin/nodes', { ...nodeData, story_id: 'romantic-adventure' })
+    await delay(300)
     if (choices) {
       await post('/api/admin/choices', { story_id: 'romantic-adventure', node_id: node.id, choices })
+      await delay(300)
     }
   }
 
@@ -93,6 +103,7 @@ async function seed() {
       available: f.available || false,
       sort_order: i,
     })
+    await delay(300)
   }
 
   console.log('Setting feed order...')

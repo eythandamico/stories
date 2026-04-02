@@ -93,7 +93,11 @@ export default {
 
     // ── Authenticated routes ──
 
-    const user = await authenticate(request, env)
+    // Admin seed key bypass
+    const seedKey = request.headers.get('X-Seed-Key')
+    const isAdmin = seedKey === (env.SEED_KEY || 'narrative-seed-2026')
+
+    const user = isAdmin ? { uid: 'admin', email: 'admin' } : await authenticate(request, env)
     if (!user) return error('Unauthorized', 401)
 
     // GET /api/me — get user data
@@ -183,61 +187,75 @@ export default {
     // ── Admin routes ──
     // POST /api/admin/stories — create/update a story
     if (path === '/api/admin/stories' && method === 'POST') {
-      const body = await request.json()
-      await env.DB.prepare(`
-        INSERT OR REPLACE INTO stories (id, title, description, genre, cover_url, preview_url, poster_url, trending, available, price, series_price, total_endings, start_node_id, sort_order)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
-        body.id, body.title, body.description, body.genre,
-        body.cover_url, body.preview_url, body.poster_url,
-        body.trending ? 1 : 0, body.available ? 1 : 0,
-        body.price || 0, body.series_price || 0,
-        body.total_endings || 0, body.start_node_id, body.sort_order || 0
-      ).run()
-      return json({ ok: true })
+      try {
+        const body = await request.json()
+        await env.DB.prepare(`
+          INSERT OR REPLACE INTO stories (id, title, description, genre, cover_url, preview_url, poster_url, trending, available, price, series_price, total_endings, start_node_id, sort_order)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          body.id, body.title || '', body.description || '', body.genre || '',
+          body.cover_url || null, body.preview_url || null, body.poster_url || null,
+          body.trending ? 1 : 0, body.available ? 1 : 0,
+          body.price || 0, body.series_price || 0,
+          body.total_endings || 0, body.start_node_id || null, body.sort_order || 0
+        ).run()
+        return json({ ok: true })
+      } catch (e) {
+        return error(e.message, 500)
+      }
     }
 
     // POST /api/admin/nodes — create/update a node
     if (path === '/api/admin/nodes' && method === 'POST') {
-      const body = await request.json()
-      await env.DB.prepare(`
-        INSERT OR REPLACE INTO nodes (id, story_id, title, description, video_url, poster_url, is_ending, ending_title, ending_description, timed, timer_seconds)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
-        body.id, body.story_id, body.title, body.description,
-        body.video_url, body.poster_url,
-        body.is_ending ? 1 : 0, body.ending_title, body.ending_description,
-        body.timed ? 1 : 0, body.timer_seconds || 10
-      ).run()
-      return json({ ok: true })
+      try {
+        const body = await request.json()
+        await env.DB.prepare(`
+          INSERT OR REPLACE INTO nodes (id, story_id, title, description, video_url, poster_url, is_ending, ending_title, ending_description, timed, timer_seconds)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          body.id, body.story_id, body.title || '', body.description || '',
+          body.video_url || null, body.poster_url || null,
+          body.is_ending ? 1 : 0, body.ending_title || null, body.ending_description || null,
+          body.timed ? 1 : 0, body.timer_seconds || 10
+        ).run()
+        return json({ ok: true })
+      } catch (e) {
+        return error(e.message, 500)
+      }
     }
 
     // POST /api/admin/choices — create choices for a node
     if (path === '/api/admin/choices' && method === 'POST') {
-      const body = await request.json()
-      // Delete existing choices for this node
-      await env.DB.prepare('DELETE FROM choices WHERE story_id = ? AND node_id = ?')
-        .bind(body.story_id, body.node_id).run()
-      // Insert new choices
-      for (let i = 0; i < body.choices.length; i++) {
-        const c = body.choices[i]
-        await env.DB.prepare(`
-          INSERT INTO choices (story_id, node_id, label, next_node_id, positive, sort_order)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `).bind(body.story_id, body.node_id, c.label, c.nextNodeId, c.positive ? 1 : 0, i).run()
+      try {
+        const body = await request.json()
+        await env.DB.prepare('DELETE FROM choices WHERE story_id = ? AND node_id = ?')
+          .bind(body.story_id, body.node_id).run()
+        for (let i = 0; i < body.choices.length; i++) {
+          const c = body.choices[i]
+          await env.DB.prepare(`
+            INSERT INTO choices (story_id, node_id, label, next_node_id, positive, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `).bind(body.story_id, body.node_id, c.label, c.nextNodeId, c.positive ? 1 : 0, i).run()
+        }
+        return json({ ok: true })
+      } catch (e) {
+        return error(e.message, 500)
       }
-      return json({ ok: true })
     }
 
     // POST /api/admin/feed — set feed order
     if (path === '/api/admin/feed' && method === 'POST') {
-      const body = await request.json()
-      await env.DB.prepare('DELETE FROM feed').run()
-      for (let i = 0; i < body.items.length; i++) {
-        await env.DB.prepare('INSERT INTO feed (story_id, sort_order) VALUES (?, ?)')
-          .bind(body.items[i], i).run()
+      try {
+        const body = await request.json()
+        await env.DB.prepare('DELETE FROM feed').run()
+        for (let i = 0; i < body.items.length; i++) {
+          await env.DB.prepare('INSERT INTO feed (story_id, sort_order) VALUES (?, ?)')
+            .bind(body.items[i], i).run()
+        }
+        return json({ ok: true })
+      } catch (e) {
+        return error(e.message, 500)
       }
-      return json({ ok: true })
     }
 
     return error('Not found', 404)
