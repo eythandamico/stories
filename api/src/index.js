@@ -1,9 +1,22 @@
 import { verifyToken } from './auth.js'
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Token, X-Seed-Key',
+const ALLOWED_ORIGINS = [
+  'https://stories-bph.pages.dev',
+  'https://narrative-admin.pages.dev',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'capacitor://localhost',
+  'ionic://localhost',
+]
+
+function getCorsHeaders(request) {
+  const origin = request.headers.get('Origin') || ''
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Token',
+  }
 }
 
 // Simple HMAC-based admin token
@@ -25,15 +38,17 @@ async function verifyAdminToken(token, secret) {
   } catch { return false }
 }
 
+let _corsHeaders = {}
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', ...cors },
+    headers: { 'Content-Type': 'application/json', ..._corsHeaders },
   })
 }
 
 function error(msg, status = 400) {
-  return json({ error: msg }, status)
+  return json({ error: 'Request failed' }, status) // Generic errors — don't leak internals
 }
 
 async function hashPassword(password) {
@@ -50,8 +65,10 @@ async function authenticate(request, env) {
 
 export default {
   async fetch(request, env) {
+    _corsHeaders = getCorsHeaders(request)
+
     if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: cors })
+      return new Response(null, { headers: _corsHeaders })
     }
 
     const url = new URL(request.url)
@@ -122,7 +139,8 @@ export default {
       if (!env.ADMIN_SECRET) return error('Admin secret not configured', 500)
 
       // Check env superadmin first
-      if (username === (env.ADMIN_USERNAME || 'admin') && password === (env.ADMIN_PASSWORD || '')) {
+      if (!env.ADMIN_PASSWORD) return error('Admin not configured', 500)
+      if (username === (env.ADMIN_USERNAME || 'admin') && password === env.ADMIN_PASSWORD) {
         const token = await createAdminToken(env.ADMIN_SECRET)
         return json({ token, role: 'superadmin', username })
       }
@@ -143,9 +161,9 @@ export default {
     const adminToken = request.headers.get('X-Admin-Token')
     const isAdmin = adminToken && env.ADMIN_SECRET ? await verifyAdminToken(adminToken, env.ADMIN_SECRET) : false
 
-    // Legacy seed key support for scripts
+    // Seed key — only works if explicitly configured as a secret
     const seedKey = request.headers.get('X-Seed-Key')
-    const isSeedAdmin = seedKey === (env.SEED_KEY || 'narrative-seed-2026')
+    const isSeedAdmin = env.SEED_KEY ? seedKey === env.SEED_KEY : false
 
     const user = (isAdmin || isSeedAdmin) ? { uid: 'admin', email: 'admin' } : await authenticate(request, env)
     if (!user) return error('Unauthorized', 401)
@@ -173,8 +191,7 @@ export default {
       const body = await request.json()
       const fields = []
       const values = []
-      const allowed = ['hearts', 'perks_freeze', 'perks_hint', 'perks_rewind',
-        'streak_current', 'streak_best', 'streak_last_play', 'last_heart_loss', 'display_name']
+      const allowed = ['streak_current', 'streak_best', 'streak_last_play', 'last_heart_loss', 'display_name']
       for (const key of allowed) {
         if (body[key] !== undefined) {
           fields.push(`${key} = ?`)
@@ -237,6 +254,7 @@ export default {
     // ── Admin routes ──
     // POST /api/admin/stories — create/update a story
     if (path === '/api/admin/stories' && method === 'POST') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
       try {
         const body = await request.json()
         await env.DB.prepare(`
@@ -257,6 +275,7 @@ export default {
 
     // POST /api/admin/nodes — create/update a node
     if (path === '/api/admin/nodes' && method === 'POST') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
       try {
         const body = await request.json()
         await env.DB.prepare(`
@@ -276,6 +295,7 @@ export default {
 
     // POST /api/admin/choices — create choices for a node
     if (path === '/api/admin/choices' && method === 'POST') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
       try {
         const body = await request.json()
         await env.DB.prepare('DELETE FROM choices WHERE story_id = ? AND node_id = ?')
@@ -295,6 +315,7 @@ export default {
 
     // POST /api/admin/feed — set feed order
     if (path === '/api/admin/feed' && method === 'POST') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
       try {
         const body = await request.json()
         await env.DB.prepare('DELETE FROM feed').run()
@@ -358,9 +379,14 @@ export default {
       try {
         const formData = await request.formData()
         const file = formData.get('file')
-        const filename = formData.get('filename') || file.name
-        const folder = formData.get('folder') || ''
-        const key = folder ? `${folder}/${filename}` : filename
+        if (!file || !file.size) return error('No file provided')
+        if (file.size > 100 * 1024 * 1024) return error('File too large (max 100MB)')
+        const allowedTypes = ['video/mp4', 'video/quicktime', 'image/jpeg', 'image/png', 'image/webp']
+        if (!allowedTypes.includes(file.type)) return error('Invalid file type')
+        const rawName = (formData.get('filename') || file.name || 'upload').replace(/[^a-zA-Z0-9._-]/g, '')
+        const rawFolder = (formData.get('folder') || '').replace(/[^a-zA-Z0-9_-]/g, '')
+        const filename = rawName
+        const key = rawFolder ? `${rawFolder}/${filename}` : filename
 
         await env.VIDEOS.put(key, file.stream(), {
           httpMetadata: { contentType: file.type },
