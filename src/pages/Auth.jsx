@@ -34,7 +34,7 @@ export default function Auth() {
     setError('')
     try {
       await loginWithGoogle()
-      navigate('/')
+      window.location.href = '/'
     } catch (err) {
       console.error('Google sign-in error:', err)
       if (err.code !== 'auth/popup-closed-by-user') {
@@ -47,7 +47,7 @@ export default function Auth() {
     setError('')
     try {
       await loginWithApple()
-      navigate('/')
+      window.location.href = '/'
     } catch (err) {
       console.error('Apple sign-in error:', err)
       if (err.code !== 'auth/popup-closed-by-user') {
