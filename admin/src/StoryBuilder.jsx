@@ -210,17 +210,46 @@ function NodeEditor({ node, storyId, onSaved, onClose }) {
         <textarea placeholder="Description" value={data.description} onChange={e => setData({ ...data, description: e.target.value })}
           className="w-full h-14 px-3 py-2 rounded-lg bg-white/5 text-[14px] text-white outline-none resize-none" />
 
-        {/* Video upload */}
+        {/* Video dropzone */}
         <div>
           <label className="text-[12px] text-white/40 block mb-1">Video</label>
-          <div className="flex gap-2">
-            <input placeholder="URL" value={data.video_url} onChange={e => setData({ ...data, video_url: e.target.value })}
-              className="flex-1 h-9 px-3 rounded-lg bg-white/5 text-[13px] text-white outline-none" />
-            <label className="h-9 px-3 rounded-lg bg-white/10 flex items-center cursor-pointer text-[13px] text-white/60 hover:bg-white/15 shrink-0">
-              {uploading ? '...' : '↑'}
+          {data.video_url ? (
+            <div className="relative rounded-lg overflow-hidden bg-white/5">
+              <video src={data.video_url} className="w-full h-24 object-cover" muted playsInline preload="metadata" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
+                <label className="px-3 py-1.5 rounded-lg bg-white/20 text-[13px] text-white cursor-pointer backdrop-blur">
+                  Replace
+                  <input type="file" accept="video/*" className="hidden" onChange={handleUpload} />
+                </label>
+                <button onClick={() => setData(d => ({ ...d, video_url: '' }))}
+                  className="ml-2 px-3 py-1.5 rounded-lg bg-red-500/20 text-[13px] text-red-400 cursor-pointer">
+                  Remove
+                </button>
+              </div>
+              {uploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                  <div className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <label
+              className="flex flex-col items-center justify-center h-24 rounded-lg border-2 border-dashed border-white/10 bg-white/[0.02] cursor-pointer hover:border-white/20 hover:bg-white/[0.04] transition-colors"
+              onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-blue-400/50', 'bg-blue-400/5') }}
+              onDragLeave={e => { e.currentTarget.classList.remove('border-blue-400/50', 'bg-blue-400/5') }}
+              onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-blue-400/50', 'bg-blue-400/5'); handleUpload({ target: { files: e.dataTransfer.files } }) }}
+            >
+              {uploading ? (
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span className="text-[20px] mb-1">🎬</span>
+                  <span className="text-[13px] text-white/30">Drop video or click to upload</span>
+                </>
+              )}
               <input type="file" accept="video/*" className="hidden" onChange={handleUpload} />
             </label>
-          </div>
+          )}
         </div>
 
         <div className="flex gap-3">
