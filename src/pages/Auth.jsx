@@ -17,14 +17,14 @@ export default function Auth() {
     setError('')
     setLoading(true)
     try {
-      if (mode === 'signup') {
-        await signupWithEmail(email, password, name)
-      } else {
-        await loginWithEmail(email, password)
-      }
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout — check your internet')), 10000))
+      const auth = mode === 'signup'
+        ? signupWithEmail(email, password, name)
+        : loginWithEmail(email, password)
+      await Promise.race([auth, timeout])
       navigate('/')
     } catch (err) {
-      const msg = err.code?.replace('auth/', '').replace(/-/g, ' ') || 'Something went wrong'
+      const msg = err.code?.replace('auth/', '').replace(/-/g, ' ') || err.message || 'Something went wrong'
       setError(msg.charAt(0).toUpperCase() + msg.slice(1))
     }
     setLoading(false)
@@ -36,8 +36,9 @@ export default function Auth() {
       await loginWithGoogle()
       navigate('/')
     } catch (err) {
+      console.error('Google sign-in error:', err)
       if (err.code !== 'auth/popup-closed-by-user') {
-        setError('Google sign in failed')
+        setError(`Google: ${err.message || err.code || 'Unknown error'}`)
       }
     }
   }
@@ -48,8 +49,9 @@ export default function Auth() {
       await loginWithApple()
       navigate('/')
     } catch (err) {
+      console.error('Apple sign-in error:', err)
       if (err.code !== 'auth/popup-closed-by-user') {
-        setError('Apple sign in failed')
+        setError(`Apple: ${err.message || err.code || 'Unknown error'}`)
       }
     }
   }
