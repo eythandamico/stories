@@ -4,39 +4,33 @@ import { admin } from './api.js'
 const API_URL = import.meta.env.VITE_API_URL || 'https://narrative-api.winter-lake-b4eb.workers.dev'
 const R2_BASE = 'https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev'
 
-const NODE_W = 200
-const NODE_H = 100
+const NODE_W = 220
+const NODE_MIN_H = 80
 
 function getNodeColor(node) {
-  if (node.is_ending) return { bg: '#831843', border: '#ec4899', text: '#fce7f3' }
-  if (node.timed) return { bg: '#7c2d12', border: '#f97316', text: '#ffedd5' }
-  return { bg: '#1e293b', border: '#475569', text: '#e2e8f0' }
+  if (node.is_ending) return { bg: '#1a0a14', border: '#ec4899', text: '#fce7f3', accent: '#ec4899' }
+  if (node.timed) return { bg: '#1a0f0a', border: '#f97316', text: '#ffedd5', accent: '#f97316' }
+  return { bg: '#111827', border: '#374151', text: '#e5e7eb', accent: '#6b7280' }
 }
 
 function calculatePositions(nodes, startNodeId) {
   const positions = {}
   const visited = new Set()
   const cols = {}
-
-  function walk(nodeId, depth = 0, lane = 0) {
+  function walk(nodeId, depth = 0) {
     if (!nodeId || visited.has(nodeId)) return
     visited.add(nodeId)
     if (!cols[depth]) cols[depth] = 0
-    const y = cols[depth]
+    positions[nodeId] = { x: depth * 300 + 40, y: cols[depth] * 160 + 40 }
     cols[depth] += 1
-    positions[nodeId] = { x: depth * 280 + 40, y: y * 140 + 40 }
     const node = nodes[nodeId]
-    if (node?.choices) {
-      node.choices.forEach((c, i) => walk(c.nextNodeId, depth + 1, lane + i))
-    }
+    if (node?.choices) node.choices.forEach(c => walk(c.nextNodeId, depth + 1))
   }
-
   walk(startNodeId)
-  // Place unvisited nodes
   Object.keys(nodes).forEach(id => {
     if (!positions[id]) {
       const maxY = Math.max(0, ...Object.values(positions).map(p => p.y))
-      positions[id] = { x: 40, y: maxY + 160 }
+      positions[id] = { x: 40, y: maxY + 180 }
     }
   })
   return positions
@@ -51,149 +45,109 @@ function ConnectionLines({ nodes, positions, canvasW, canvasH }) {
       const to = positions[choice.nextNodeId]
       if (!to) return
       const x1 = from.x + NODE_W
-      const y1 = from.y + 40 + i * 24
+      const y1 = from.y + 60 + i * 28
       const x2 = to.x
-      const y2 = to.y + NODE_H / 2
+      const y2 = to.y + 30
       const dx = Math.abs(x2 - x1)
-      const cx1 = x1 + Math.max(40, dx * 0.3)
-      const cx2 = x2 - Math.max(40, dx * 0.3)
-      const color = choice.positive ? '#22c55e' : '#94a3b8'
-      // Line from scene to choice pill
-      const midX = (x1 + x2) / 2
-      const midY = (y1 + y2) / 2
+      const cpx = Math.max(50, dx * 0.35)
+      const color = choice.positive ? '#22c55e' : '#64748b'
       lines.push(
         <g key={`${id}-${i}`}>
-          <path d={`M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`}
-            fill="none" stroke={color} strokeWidth={2} opacity={0.4} />
-          <circle cx={x2} cy={y2} r={4} fill={color} opacity={0.6} />
+          <path d={`M ${x1} ${y1} C ${x1 + cpx} ${y1}, ${x2 - cpx} ${y2}, ${x2} ${y2}`}
+            fill="none" stroke={color} strokeWidth={2} opacity={0.5} />
+          <polygon points={`${x2},${y2} ${x2 - 8},${y2 - 4} ${x2 - 8},${y2 + 4}`}
+            fill={color} opacity={0.6} />
         </g>
       )
     })
   })
-  return (
-    <svg className="absolute pointer-events-none" style={{ top: 0, left: 0, width: canvasW, height: canvasH, zIndex: 0 }}>
-      {lines}
-    </svg>
-  )
+  return <svg className="absolute pointer-events-none" style={{ width: canvasW, height: canvasH, zIndex: 0 }}>{lines}</svg>
 }
 
-// Choice pills rendered as HTML on top of connections
-function ChoicePills({ nodes, positions, onEditChoice }) {
-  const pills = []
-  Object.entries(nodes).forEach(([id, node]) => {
-    if (!node.choices || !positions[id]) return
-    const from = positions[id]
-    node.choices.forEach((choice, i) => {
-      const to = positions[choice.nextNodeId]
-      if (!to) return
-      const x1 = from.x + NODE_W
-      const y1 = from.y + 40 + i * 24
-      const x2 = to.x
-      const y2 = to.y + NODE_H / 2
-      const midX = (x1 + x2) / 2
-      const midY = (y1 + y2) / 2
-      const color = choice.positive ? '#22c55e' : '#94a3b8'
-      const bgColor = choice.positive ? 'rgba(34,197,94,0.12)' : 'rgba(148,163,184,0.1)'
-      pills.push(
-        <div
-          key={`pill-${id}-${i}`}
-          className="absolute cursor-pointer hover:scale-105 transition-transform select-none"
-          style={{ left: midX, top: midY, transform: 'translate(-50%, -50%)', zIndex: 5 }}
-          onClick={(e) => { e.stopPropagation(); onEditChoice(id, i, choice) }}
-        >
-          <div className="px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap max-w-[140px] truncate"
-            style={{ background: bgColor, color, border: `1px solid ${color}30` }}>
-            {choice.label || 'Untitled'}
-          </div>
-        </div>
-      )
-    })
-  })
-  return <>{pills}</>
-}
-
-function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, onEndConnect, connectingFrom }) {
+function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, onEndConnect, connectingFrom, onAddChoice, onUpdateChoice, onDeleteChoice }) {
   const colors = getNodeColor(node)
   const dragRef = useRef(null)
   const [dragging, setDragging] = useState(false)
+  const isDropTarget = connectingFrom && connectingFrom.nodeId !== node.id
 
   const handleMouseDown = (e) => {
-    if (e.target.closest('[data-port]')) return
+    if (e.target.closest('[data-port]') || e.target.closest('[data-input]') || e.target.closest('button')) return
     setDragging(true)
     dragRef.current = { startX: e.clientX - position.x, startY: e.clientY - position.y }
-    const handleMove = (e) => {
-      if (dragRef.current) {
-        onDrag(node.id, { x: e.clientX - dragRef.current.startX, y: e.clientY - dragRef.current.startY })
-      }
-    }
-    const handleUp = () => {
-      setDragging(false)
-      document.removeEventListener('mousemove', handleMove)
-      document.removeEventListener('mouseup', handleUp)
-    }
-    document.addEventListener('mousemove', handleMove)
-    document.addEventListener('mouseup', handleUp)
+    const move = (e) => { if (dragRef.current) onDrag(node.id, { x: e.clientX - dragRef.current.startX, y: e.clientY - dragRef.current.startY }) }
+    const up = () => { setDragging(false); document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up) }
+    document.addEventListener('mousemove', move)
+    document.addEventListener('mouseup', up)
   }
-
-  const isDropTarget = connectingFrom && connectingFrom !== node.id
 
   return (
     <div
-      className="absolute cursor-grab active:cursor-grabbing select-none"
-      style={{
-        left: position.x, top: position.y,
-        width: NODE_W, zIndex: dragging ? 50 : selected ? 10 : 1,
-      }}
+      className="absolute select-none"
+      style={{ left: position.x, top: position.y, width: NODE_W, zIndex: dragging ? 50 : selected ? 10 : 1 }}
       onMouseDown={handleMouseDown}
-      onClick={() => onSelect(node)}
+      onClick={(e) => { if (!e.target.closest('[data-port]') && !e.target.closest('[data-input]') && !e.target.closest('button')) onSelect(node) }}
       onMouseUp={() => { if (isDropTarget) onEndConnect(node.id) }}
     >
       <div
-        className="rounded-xl p-3 transition-all"
+        className="rounded-xl transition-all cursor-grab active:cursor-grabbing"
         style={{
           background: colors.bg,
           border: `2px solid ${isDropTarget ? '#3b82f6' : selected ? '#3b82f6' : colors.border}`,
-          boxShadow: isDropTarget ? '0 0 0 3px rgba(59,130,246,0.3)' : selected ? '0 0 0 2px rgba(59,130,246,0.3)' : 'none',
-          transform: isDropTarget ? 'scale(1.03)' : 'scale(1)',
+          boxShadow: isDropTarget ? '0 0 0 3px rgba(59,130,246,0.25)' : selected ? '0 0 0 2px rgba(59,130,246,0.2)' : 'none',
+          transform: isDropTarget ? 'scale(1.02)' : 'none',
         }}
       >
-        {/* Input port — left side */}
-        <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#475569] border-2 border-[#0f172a]" />
+        {/* Input port */}
+        <div className="absolute left-[-7px] top-[28px] w-3.5 h-3.5 rounded-full border-2" style={{ background: colors.bg, borderColor: colors.border }} />
 
-        <div className="text-[13px] font-semibold truncate" style={{ color: colors.text }}>{node.title || node.id}</div>
-        <div className="text-[11px] truncate mt-0.5" style={{ color: colors.text, opacity: 0.6 }}>{node.id}</div>
+        {/* Header */}
+        <div className="px-3 py-2.5 border-b" style={{ borderColor: `${colors.border}40` }}>
+          <div className="text-[13px] font-semibold truncate" style={{ color: colors.text }}>{node.title || node.id}</div>
+          <div className="text-[11px] mt-0.5 flex items-center gap-2" style={{ color: colors.accent }}>
+            <span>{node.id}</span>
+            {node.timed && <span className="px-1 py-px rounded text-[9px] bg-orange-500/15">⏱ {node.timer_seconds || 10}s</span>}
+            {node.is_ending && <span className="px-1 py-px rounded text-[9px] bg-pink-500/15">★ End</span>}
+          </div>
+        </div>
 
-        {/* Choice labels with output ports */}
-        {node.choices && node.choices.length > 0 ? (
-          <div className="mt-2 space-y-1">
-            {node.choices.map((c, i) => (
-              <div key={i} className="flex items-center gap-1 relative">
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: c.positive ? '#22c55e' : '#64748b' }} />
-                <span className="text-[10px] truncate flex-1" style={{ color: colors.text, opacity: 0.5 }}>{c.label}</span>
+        {/* Choices / Output ports */}
+        {!node.is_ending && (
+          <div className="px-3 py-2 space-y-1.5">
+            {(node.choices || []).map((c, i) => (
+              <div key={i} className="flex items-center gap-1.5 group relative">
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: c.positive ? '#22c55e' : '#64748b' }}
+                  onClick={(e) => { e.stopPropagation(); onUpdateChoice(node.id, i, { ...c, positive: !c.positive }) }}
+                  title="Toggle positive"
+                />
+                <input
+                  data-input="true"
+                  value={c.label}
+                  onChange={(e) => onUpdateChoice(node.id, i, { ...c, label: e.target.value })}
+                  onBlur={() => onUpdateChoice(node.id, i, c, true)}
+                  className="flex-1 bg-transparent text-[11px] outline-none min-w-0 truncate"
+                  style={{ color: `${colors.text}99` }}
+                  placeholder="Choice label..."
+                />
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDeleteChoice(node.id, i) }}
+                  className="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 text-[11px] cursor-pointer shrink-0 transition-opacity"
+                >×</button>
+                {/* Output port for this choice */}
+                <div
+                  data-port="output"
+                  className="absolute right-[-19px] w-3.5 h-3.5 rounded-full cursor-crosshair hover:scale-125 transition-transform border-2"
+                  style={{ top: '50%', transform: 'translateY(-50%)', background: c.positive ? '#22c55e' : '#3b82f6', borderColor: colors.bg }}
+                  onMouseDown={(e) => { e.stopPropagation(); onStartConnect(node.id, i) }}
+                />
               </div>
             ))}
-          </div>
-        ) : !node.is_ending && (
-          <div className="mt-2 text-[10px]" style={{ color: colors.text, opacity: 0.3 }}>No choices</div>
-        )}
-
-        {/* Output port — right side, drag to connect */}
-        {!node.is_ending && (
-          <div
-            data-port="output"
-            className="absolute right-[-7px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#0f172a] cursor-crosshair hover:scale-125 transition-transform"
-            onMouseDown={(e) => { e.stopPropagation(); onStartConnect(node.id) }}
-          />
-        )}
-
-        {node.is_ending && (
-          <div className="mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-pink-500/20 text-pink-300 inline-block">
-            Ending
-          </div>
-        )}
-        {node.timed && (
-          <div className="mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 inline-block ml-1">
-            {node.timer_seconds || 10}s
+            <button
+              onClick={(e) => { e.stopPropagation(); onAddChoice(node.id) }}
+              className="text-[11px] cursor-pointer hover:text-blue-300 transition-colors w-full text-left py-0.5"
+              style={{ color: `${colors.text}40` }}
+            >
+              + Add choice
+            </button>
           </div>
         )}
       </div>
@@ -201,28 +155,22 @@ function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, 
   )
 }
 
-function NodeEditor({ node, storyId, allNodes, onSaved, onClose }) {
+function NodeEditor({ node, storyId, onSaved, onClose }) {
   const [data, setData] = useState({})
-  const [choices, setChoices] = useState([])
   const [uploading, setUploading] = useState(false)
   const [msg, setMsg] = useState('')
 
   useEffect(() => {
-    if (node) {
-      setData({
-        id: node.id || '', title: node.title || '', description: node.description || '',
-        video_url: node.video_url || '', is_ending: Boolean(node.is_ending),
-        ending_title: node.ending_title || '', ending_description: node.ending_description || '',
-        timed: Boolean(node.timed), timer_seconds: node.timer_seconds || 10,
-      })
-      setChoices(node.choices?.length ? node.choices.map(c => ({
-        label: c.label, nextNodeId: c.nextNodeId, positive: Boolean(c.positive),
-      })) : [{ label: '', nextNodeId: '', positive: false }])
-    }
+    if (node) setData({
+      id: node.id || '', title: node.title || '', description: node.description || '',
+      video_url: node.video_url || '', is_ending: Boolean(node.is_ending),
+      ending_title: node.ending_title || '', ending_description: node.ending_description || '',
+      timed: Boolean(node.timed), timer_seconds: node.timer_seconds || 10,
+    })
   }, [node])
 
   const handleUpload = async (e) => {
-    const file = e.target.files[0]
+    const file = (e.target.files || e.dataTransfer?.files)?.[0]
     if (!file) return
     setUploading(true)
     try {
@@ -230,10 +178,7 @@ function NodeEditor({ node, storyId, allNodes, onSaved, onClose }) {
       formData.append('file', file)
       formData.append('filename', `${data.id || 'upload'}.mp4`)
       const token = localStorage.getItem('admin-token')
-      const res = await fetch(`${API_URL}/api/admin/upload`, {
-        method: 'POST', body: formData,
-        headers: { 'X-Admin-Token': token },
-      })
+      const res = await fetch(`${API_URL}/api/admin/upload`, { method: 'POST', body: formData, headers: { 'X-Admin-Token': token } })
       const result = await res.json()
       if (result.url) setData(d => ({ ...d, video_url: result.url }))
     } catch {}
@@ -245,9 +190,6 @@ function NodeEditor({ node, storyId, allNodes, onSaved, onClose }) {
     setMsg('')
     try {
       await admin.saveNode({ ...data, story_id: storyId, poster_url: `${R2_BASE}/posters/${data.id}.jpg` })
-      if (!data.is_ending && choices[0]?.label) {
-        await admin.saveChoices(storyId, data.id, choices.filter(c => c.label))
-      }
       setMsg('Saved!')
       onSaved?.()
     } catch (e) { setMsg('Error: ' + e.message) }
@@ -256,12 +198,11 @@ function NodeEditor({ node, storyId, allNodes, onSaved, onClose }) {
   if (!node) return null
 
   return (
-    <div className="w-80 border-l border-white/10 p-4 overflow-y-auto shrink-0">
+    <div className="w-72 border-l border-white/10 p-4 overflow-y-auto shrink-0">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[16px] font-semibold">Edit Scene</h3>
-        <button onClick={onClose} className="text-white/30 cursor-pointer hover:text-white/60">✕</button>
+        <h3 className="text-[16px] font-semibold">Scene</h3>
+        <button onClick={onClose} className="text-white/30 cursor-pointer hover:text-white/60 text-[16px]">✕</button>
       </div>
-
       <div className="space-y-2.5">
         <input placeholder="Node ID" value={data.id} onChange={e => setData({ ...data, id: e.target.value })}
           className="w-full h-9 px-3 rounded-lg bg-white/5 text-[14px] text-white outline-none" />
@@ -271,105 +212,36 @@ function NodeEditor({ node, storyId, allNodes, onSaved, onClose }) {
           className="w-full h-14 px-3 py-2 rounded-lg bg-white/5 text-[14px] text-white outline-none resize-none" />
 
         {/* Video dropzone */}
-        <div>
-          <label className="text-[12px] text-white/40 block mb-1">Video</label>
-          {data.video_url ? (
-            <div className="relative rounded-lg overflow-hidden bg-white/5">
-              <video src={data.video_url} className="w-full h-24 object-cover" muted playsInline preload="metadata" />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
-                <label className="px-3 py-1.5 rounded-lg bg-white/20 text-[13px] text-white cursor-pointer backdrop-blur">
-                  Replace
-                  <input type="file" accept="video/*" className="hidden" onChange={handleUpload} />
-                </label>
-                <button onClick={() => setData(d => ({ ...d, video_url: '' }))}
-                  className="ml-2 px-3 py-1.5 rounded-lg bg-red-500/20 text-[13px] text-red-400 cursor-pointer">
-                  Remove
-                </button>
-              </div>
-              {uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                  <div className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
-                </div>
-              )}
+        {data.video_url ? (
+          <div className="relative rounded-lg overflow-hidden bg-white/5">
+            <video src={data.video_url} className="w-full h-20 object-cover" muted playsInline preload="metadata" />
+            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
+              <label className="px-2.5 py-1 rounded bg-white/20 text-[12px] text-white cursor-pointer">Replace<input type="file" accept="video/*" className="hidden" onChange={handleUpload} /></label>
+              <button onClick={() => setData(d => ({ ...d, video_url: '' }))} className="px-2.5 py-1 rounded bg-red-500/20 text-[12px] text-red-400 cursor-pointer">Remove</button>
             </div>
-          ) : (
-            <label
-              className="flex flex-col items-center justify-center h-24 rounded-lg border-2 border-dashed border-white/10 bg-white/[0.02] cursor-pointer hover:border-white/20 hover:bg-white/[0.04] transition-colors"
-              onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-blue-400/50', 'bg-blue-400/5') }}
-              onDragLeave={e => { e.currentTarget.classList.remove('border-blue-400/50', 'bg-blue-400/5') }}
-              onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-blue-400/50', 'bg-blue-400/5'); handleUpload({ target: { files: e.dataTransfer.files } }) }}
-            >
-              {uploading ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span className="text-[20px] mb-1">🎬</span>
-                  <span className="text-[13px] text-white/30">Drop video or click to upload</span>
-                </>
-              )}
-              <input type="file" accept="video/*" className="hidden" onChange={handleUpload} />
-            </label>
-          )}
-        </div>
+            {uploading && <div className="absolute inset-0 flex items-center justify-center bg-black/60"><div className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" /></div>}
+          </div>
+        ) : (
+          <label className="flex flex-col items-center justify-center h-20 rounded-lg border-2 border-dashed border-white/10 bg-white/[0.02] cursor-pointer hover:border-white/20 transition-colors"
+            onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); handleUpload(e) }}>
+            {uploading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" /> : <><span className="text-[16px] mb-0.5">🎬</span><span className="text-[12px] text-white/30">Drop or click</span></>}
+            <input type="file" accept="video/*" className="hidden" onChange={handleUpload} />
+          </label>
+        )}
 
         <div className="flex gap-3">
-          <label className="flex items-center gap-1.5 cursor-pointer text-[14px]">
-            <input type="checkbox" checked={data.is_ending} onChange={e => setData({ ...data, is_ending: e.target.checked })} className="accent-pink-400" />
-            Ending
-          </label>
-          <label className="flex items-center gap-1.5 cursor-pointer text-[14px]">
-            <input type="checkbox" checked={data.timed} onChange={e => setData({ ...data, timed: e.target.checked })} className="accent-orange-400" />
-            Timed
-          </label>
-          {data.timed && (
-            <input type="number" value={data.timer_seconds} onChange={e => setData({ ...data, timer_seconds: parseInt(e.target.value) || 10 })}
-              className="w-14 h-8 px-2 rounded bg-white/5 text-[14px] text-white outline-none" />
-          )}
+          <label className="flex items-center gap-1.5 cursor-pointer text-[14px]"><input type="checkbox" checked={data.is_ending} onChange={e => setData({ ...data, is_ending: e.target.checked })} className="accent-pink-400" /> Ending</label>
+          <label className="flex items-center gap-1.5 cursor-pointer text-[14px]"><input type="checkbox" checked={data.timed} onChange={e => setData({ ...data, timed: e.target.checked })} className="accent-orange-400" /> Timed</label>
+          {data.timed && <input type="number" value={data.timer_seconds} onChange={e => setData({ ...data, timer_seconds: parseInt(e.target.value) || 10 })} className="w-12 h-8 px-2 rounded bg-white/5 text-[14px] text-white outline-none" />}
         </div>
-
         {data.is_ending && (
           <>
-            <input placeholder="Ending title" value={data.ending_title} onChange={e => setData({ ...data, ending_title: e.target.value })}
-              className="w-full h-9 px-3 rounded-lg bg-white/5 text-[14px] text-white outline-none" />
-            <textarea placeholder="Ending description" value={data.ending_description} onChange={e => setData({ ...data, ending_description: e.target.value })}
-              className="w-full h-14 px-3 py-2 rounded-lg bg-white/5 text-[14px] text-white outline-none resize-none" />
+            <input placeholder="Ending title" value={data.ending_title} onChange={e => setData({ ...data, ending_title: e.target.value })} className="w-full h-9 px-3 rounded-lg bg-white/5 text-[14px] text-white outline-none" />
+            <textarea placeholder="Ending description" value={data.ending_description} onChange={e => setData({ ...data, ending_description: e.target.value })} className="w-full h-14 px-3 py-2 rounded-lg bg-white/5 text-[14px] text-white outline-none resize-none" />
           </>
         )}
-
-        {!data.is_ending && (
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[12px] text-white/40 font-medium uppercase tracking-wider">Choices</span>
-              <button onClick={() => setChoices([...choices, { label: '', nextNodeId: '', positive: false }])}
-                className="text-[12px] text-blue-400 cursor-pointer">+ Add</button>
-            </div>
-            {choices.map((c, i) => (
-              <div key={i} className="flex gap-1.5 mb-1.5">
-                <input placeholder="Choice label" value={c.label} onChange={e => { const nc = [...choices]; nc[i] = { ...nc[i], label: e.target.value }; setChoices(nc) }}
-                  className="flex-1 h-8 px-2 rounded bg-white/5 text-[13px] text-white outline-none" />
-                <select value={c.nextNodeId} onChange={e => { const nc = [...choices]; nc[i] = { ...nc[i], nextNodeId: e.target.value }; setChoices(nc) }}
-                  className="w-24 h-8 px-1 rounded bg-white/5 text-[13px] text-white outline-none">
-                  <option value="">→ node</option>
-                  {Object.values(allNodes || {}).filter(n => n.id !== node?.id).map(n => (
-                    <option key={n.id} value={n.id}>{n.title || n.id}</option>
-                  ))}
-                </select>
-                <label className="flex items-center cursor-pointer">
-                  <input type="checkbox" checked={c.positive} onChange={e => { const nc = [...choices]; nc[i] = { ...nc[i], positive: e.target.checked }; setChoices(nc) }} className="accent-green-400" />
-                </label>
-                {choices.length > 1 && (
-                  <button onClick={() => setChoices(choices.filter((_, j) => j !== i))} className="text-red-400 text-[14px] cursor-pointer">×</button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
         <div className="flex items-center gap-2 pt-1">
-          <button onClick={save}
-            className="flex-1 h-9 rounded-lg bg-white text-black font-semibold text-[14px] cursor-pointer active:scale-[0.97]">
-            Save
-          </button>
+          <button onClick={save} className="flex-1 h-9 rounded-lg bg-white text-black font-semibold text-[14px] cursor-pointer active:scale-[0.97]">Save</button>
           {msg && <span className={`text-[13px] ${msg.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>{msg}</span>}
         </div>
       </div>
@@ -389,246 +261,148 @@ export default function StoryBuilder({ storyId, onBack }) {
   const canvasRef = useRef(null)
   const panRef = useRef(null)
 
-  const handleStartConnect = (nodeId) => {
-    setConnectingFrom(nodeId)
-    const handleMove = (e) => {
-      setConnectMousePos({ x: (e.clientX - pan.x) / zoom, y: (e.clientY - pan.y) / zoom })
-    }
-    const handleUp = () => {
-      setConnectingFrom(null)
-      setConnectMousePos(null)
-      document.removeEventListener('mousemove', handleMove)
-      document.removeEventListener('mouseup', handleUp)
-    }
-    document.addEventListener('mousemove', handleMove)
-    document.addEventListener('mouseup', handleUp)
-  }
-
-  const handleEndConnect = async (targetNodeId) => {
-    if (!connectingFrom || connectingFrom === targetNodeId) return
-    const sourceNode = nodes[connectingFrom]
-    if (!sourceNode) return
-
-    const choiceNum = (sourceNode.choices?.length || 0) + 1
-    const newChoice = { label: `Choice ${choiceNum}`, nextNodeId: targetNodeId, positive: false }
-    const updatedChoices = [...(sourceNode.choices || []), newChoice]
-
-    await admin.saveChoices(storyId, connectingFrom, updatedChoices)
-    load()
-    setConnectingFrom(null)
-    setConnectMousePos(null)
-  }
-
-  const [editingChoice, setEditingChoice] = useState(null)
-
-  const handleEditChoice = (nodeId, choiceIndex, choice) => {
-    setEditingChoice({ nodeId, choiceIndex, ...choice })
-  }
-
-  const handleSaveChoice = async () => {
-    if (!editingChoice) return
-    const node = nodes[editingChoice.nodeId]
-    if (!node) return
-    const updatedChoices = [...(node.choices || [])]
-    updatedChoices[editingChoice.choiceIndex] = {
-      label: editingChoice.label,
-      nextNodeId: editingChoice.nextNodeId,
-      positive: editingChoice.positive,
-    }
-    await admin.saveChoices(storyId, editingChoice.nodeId, updatedChoices)
-    setEditingChoice(null)
-    load()
-  }
-
-  const handleDeleteChoice = async () => {
-    if (!editingChoice) return
-    const node = nodes[editingChoice.nodeId]
-    if (!node) return
-    const updatedChoices = (node.choices || []).filter((_, i) => i !== editingChoice.choiceIndex)
-    await admin.saveChoices(storyId, editingChoice.nodeId, updatedChoices)
-    setEditingChoice(null)
-    load()
-  }
-
   const load = useCallback(() => {
     admin.getStory(storyId).then(s => {
-      if (s) {
-        setStory(s)
-        setNodes(s.nodes || {})
-        setPositions(calculatePositions(s.nodes || {}, s.start_node_id))
-      }
+      if (s) { setStory(s); setNodes(s.nodes || {}); setPositions(p => Object.keys(p).length ? p : calculatePositions(s.nodes || {}, s.start_node_id)) }
     })
   }, [storyId])
 
   useEffect(() => { load() }, [load])
 
-  const handleDrag = (nodeId, pos) => {
-    setPositions(p => ({ ...p, [nodeId]: pos }))
+  const handleDrag = (nodeId, pos) => setPositions(p => ({ ...p, [nodeId]: pos }))
+
+  const handleStartConnect = (nodeId, choiceIndex) => {
+    setConnectingFrom({ nodeId, choiceIndex })
+    const move = (e) => setConnectMousePos({ x: (e.clientX - pan.x) / zoom, y: (e.clientY - pan.y) / zoom })
+    const up = () => { setConnectingFrom(null); setConnectMousePos(null); document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up) }
+    document.addEventListener('mousemove', move)
+    document.addEventListener('mouseup', up)
+  }
+
+  const handleEndConnect = async (targetNodeId) => {
+    if (!connectingFrom || connectingFrom.nodeId === targetNodeId) return
+    const node = nodes[connectingFrom.nodeId]
+    if (!node) return
+    const updatedChoices = [...(node.choices || [])]
+    if (connectingFrom.choiceIndex !== undefined && updatedChoices[connectingFrom.choiceIndex]) {
+      updatedChoices[connectingFrom.choiceIndex] = { ...updatedChoices[connectingFrom.choiceIndex], nextNodeId: targetNodeId }
+    }
+    await admin.saveChoices(storyId, connectingFrom.nodeId, updatedChoices)
+    setConnectingFrom(null); setConnectMousePos(null); load()
+  }
+
+  const handleAddChoice = async (nodeId) => {
+    const node = nodes[nodeId]
+    if (!node) return
+    const num = (node.choices?.length || 0) + 1
+    const updatedChoices = [...(node.choices || []), { label: `Choice ${num}`, nextNodeId: '', positive: false }]
+    await admin.saveChoices(storyId, nodeId, updatedChoices)
+    load()
+  }
+
+  const handleUpdateChoice = async (nodeId, index, choice, save = false) => {
+    setNodes(prev => {
+      const updated = { ...prev }
+      const node = { ...updated[nodeId] }
+      const choices = [...(node.choices || [])]
+      choices[index] = choice
+      node.choices = choices
+      updated[nodeId] = node
+      return updated
+    })
+    if (save) {
+      const node = nodes[nodeId]
+      const choices = [...(node.choices || [])]
+      choices[index] = choice
+      await admin.saveChoices(storyId, nodeId, choices)
+    }
+  }
+
+  const handleDeleteChoice = async (nodeId, index) => {
+    const node = nodes[nodeId]
+    const choices = (node.choices || []).filter((_, i) => i !== index)
+    await admin.saveChoices(storyId, nodeId, choices)
+    load()
+  }
+
+  const addNode = async () => {
+    const id = `scene${String(Object.keys(nodes).length + 1).padStart(2, '0')}`
+    await admin.saveNode({ id, story_id: storyId, title: 'New Scene', description: '' })
+    const maxY = Math.max(0, ...Object.values(positions).map(p => p.y))
+    setPositions(p => ({ ...p, [id]: { x: 300, y: maxY + 180 } }))
+    load()
   }
 
   const handleCanvasMouseDown = (e) => {
     if (e.target !== canvasRef.current) return
     panRef.current = { startX: e.clientX - pan.x, startY: e.clientY - pan.y }
-    const handleMove = (e) => {
-      if (panRef.current) setPan({ x: e.clientX - panRef.current.startX, y: e.clientY - panRef.current.startY })
-    }
-    const handleUp = () => {
-      panRef.current = null
-      document.removeEventListener('mousemove', handleMove)
-      document.removeEventListener('mouseup', handleUp)
-    }
-    document.addEventListener('mousemove', handleMove)
-    document.addEventListener('mouseup', handleUp)
+    const move = (e) => { if (panRef.current) setPan({ x: e.clientX - panRef.current.startX, y: e.clientY - panRef.current.startY }) }
+    const up = () => { panRef.current = null; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up) }
+    document.addEventListener('mousemove', move)
+    document.addEventListener('mouseup', up)
   }
 
-  const addNode = () => {
-    const id = `scene${String(Object.keys(nodes).length + 1).padStart(2, '0')}`
-    const maxY = Math.max(0, ...Object.values(positions).map(p => p.y))
-    const newNode = { id, title: 'New Scene', description: '', is_ending: false, timed: false, choices: [] }
-    setNodes(n => ({ ...n, [id]: newNode }))
-    setPositions(p => ({ ...p, [id]: { x: 300, y: maxY + 160 } }))
-    setSelectedNode(newNode)
-  }
-
-  const canvasW = Math.max(1200, ...Object.values(positions).map(p => p.x + NODE_W + 100))
-  const canvasH = Math.max(800, ...Object.values(positions).map(p => p.y + NODE_H + 100))
+  const canvasW = Math.max(1400, ...Object.values(positions).map(p => p.x + NODE_W + 200))
+  const canvasH = Math.max(900, ...Object.values(positions).map(p => p.y + 200))
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-[#070710]">
       {/* Toolbar */}
       <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-        <button onClick={onBack}
-          className="h-9 px-3 rounded-lg bg-white/10 text-[14px] text-white/70 cursor-pointer hover:bg-white/15 backdrop-blur">
-          ← Back
-        </button>
+        <button onClick={onBack} className="h-9 px-3 rounded-lg bg-white/10 text-[14px] text-white/70 cursor-pointer hover:bg-white/15 backdrop-blur">← Back</button>
         <span className="text-[16px] font-semibold text-white/80">{story?.title || storyId}</span>
-        <button onClick={addNode}
-          className="h-9 px-3 rounded-lg bg-blue-500/20 text-[14px] text-blue-400 cursor-pointer hover:bg-blue-500/30">
-          + Add Scene
-        </button>
+        <button onClick={addNode} className="h-9 px-3 rounded-lg bg-blue-500/20 text-[14px] text-blue-400 cursor-pointer hover:bg-blue-500/30">+ Scene</button>
         <div className="flex items-center gap-1 ml-2">
-          <button onClick={() => setZoom(z => Math.max(0.3, z - 0.1))} className="w-8 h-8 rounded bg-white/5 text-white/40 cursor-pointer hover:bg-white/10 text-[16px]">−</button>
+          <button onClick={() => setZoom(z => Math.max(0.3, z - 0.1))} className="w-8 h-8 rounded bg-white/5 text-white/40 cursor-pointer hover:bg-white/10">−</button>
           <span className="text-[13px] text-white/40 w-12 text-center">{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="w-8 h-8 rounded bg-white/5 text-white/40 cursor-pointer hover:bg-white/10 text-[16px]">+</button>
+          <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="w-8 h-8 rounded bg-white/5 text-white/40 cursor-pointer hover:bg-white/10">+</button>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-4 text-[12px] text-white/40">
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded border-2 border-[#475569]" /> Normal</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded border-2 border-[#f97316]" /> Timed</div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded border-2 border-[#ec4899]" /> Ending</div>
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#22c55e]" /> Positive</div>
+      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-4 text-[12px] text-white/30">
+        <span>Drag blue port → scene to connect</span>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#22c55e]" /> Positive</div>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#64748b]" /> Neutral</div>
       </div>
 
       {/* Canvas */}
-      <div
-        ref={canvasRef}
-        className="flex-1 overflow-hidden bg-[#0a0a0a] relative cursor-grab active:cursor-grabbing"
-        onMouseDown={handleCanvasMouseDown}
-        onWheel={(e) => setZoom(z => Math.max(0.3, Math.min(2, z - e.deltaY * 0.001)))}
-      >
-        <div
-          style={{
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: '0 0',
-            width: canvasW, height: canvasH,
-            position: 'relative',
-          }}
-        >
+      <div ref={canvasRef} className="flex-1 overflow-hidden relative cursor-grab active:cursor-grabbing"
+        onMouseDown={handleCanvasMouseDown} onWheel={(e) => setZoom(z => Math.max(0.3, Math.min(2, z - e.deltaY * 0.001)))}>
+        <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0', width: canvasW, height: canvasH, position: 'relative' }}>
           {/* Grid */}
-          <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.05 }}>
-            <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
-            </pattern></defs>
+          <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.04 }}>
+            <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" /></pattern></defs>
             <rect width="100%" height="100%" fill="url(#grid)" />
           </svg>
 
           <ConnectionLines nodes={nodes} positions={positions} canvasW={canvasW} canvasH={canvasH} />
-          <ChoicePills nodes={nodes} positions={positions} onEditChoice={handleEditChoice} />
 
-          {/* Drag-to-connect line */}
-          {connectingFrom && connectMousePos && positions[connectingFrom] && (
-            <svg className="absolute pointer-events-none" style={{ top: 0, left: 0, width: canvasW, height: canvasH, zIndex: 100 }}>
+          {/* Drag line */}
+          {connectingFrom && connectMousePos && positions[connectingFrom.nodeId] && (
+            <svg className="absolute pointer-events-none" style={{ width: canvasW, height: canvasH, zIndex: 100 }}>
               <line
-                x1={positions[connectingFrom].x + NODE_W}
-                y1={positions[connectingFrom].y + NODE_H / 2}
-                x2={connectMousePos.x}
-                y2={connectMousePos.y}
-                stroke="#3b82f6"
-                strokeWidth={2}
-                strokeDasharray="6 4"
-                opacity={0.7}
+                x1={positions[connectingFrom.nodeId].x + NODE_W}
+                y1={positions[connectingFrom.nodeId].y + 60 + (connectingFrom.choiceIndex || 0) * 28}
+                x2={connectMousePos.x} y2={connectMousePos.y}
+                stroke="#3b82f6" strokeWidth={2} strokeDasharray="6 3" opacity={0.7}
               />
-              <circle cx={connectMousePos.x} cy={connectMousePos.y} r={6} fill="#3b82f6" opacity={0.5} />
             </svg>
           )}
 
           {Object.values(nodes).map(node => positions[node.id] && (
-            <NodeCard
-              key={node.id}
-              node={node}
-              position={positions[node.id]}
-              selected={selectedNode?.id === node.id}
-              onSelect={setSelectedNode}
-              onDrag={handleDrag}
-              onStartConnect={handleStartConnect}
-              onEndConnect={handleEndConnect}
-              connectingFrom={connectingFrom}
+            <NodeCard key={node.id} node={node} position={positions[node.id]}
+              selected={selectedNode?.id === node.id} onSelect={setSelectedNode} onDrag={handleDrag}
+              onStartConnect={handleStartConnect} onEndConnect={handleEndConnect} connectingFrom={connectingFrom}
+              onAddChoice={handleAddChoice} onUpdateChoice={handleUpdateChoice} onDeleteChoice={handleDeleteChoice}
             />
           ))}
         </div>
       </div>
 
-      {/* Choice editor popup */}
-      {editingChoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setEditingChoice(null)}>
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="relative bg-[#1a1a2e] rounded-xl p-5 w-80 space-y-3" onClick={e => e.stopPropagation()}>
-            <h3 className="text-[16px] font-semibold">Edit Choice</h3>
-            <input
-              placeholder="Choice label"
-              value={editingChoice.label}
-              onChange={e => setEditingChoice({ ...editingChoice, label: e.target.value })}
-              autoFocus
-              className="w-full h-10 px-3 rounded-lg bg-white/5 text-[15px] text-white outline-none focus:bg-white/8"
-            />
-            <select
-              value={editingChoice.nextNodeId}
-              onChange={e => setEditingChoice({ ...editingChoice, nextNodeId: e.target.value })}
-              className="w-full h-10 px-3 rounded-lg bg-white/5 text-[15px] text-white outline-none"
-            >
-              <option value="">Select target scene</option>
-              {Object.values(nodes).filter(n => n.id !== editingChoice.nodeId).map(n => (
-                <option key={n.id} value={n.id}>{n.title || n.id}</option>
-              ))}
-            </select>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={editingChoice.positive} onChange={e => setEditingChoice({ ...editingChoice, positive: e.target.checked })} className="accent-green-400" />
-              <span className="text-[15px]">Positive (builds connection)</span>
-            </label>
-            <div className="flex gap-2 pt-1">
-              <button onClick={handleSaveChoice}
-                className="flex-1 h-10 rounded-lg bg-white text-black font-semibold text-[15px] cursor-pointer active:scale-[0.97]">
-                Save
-              </button>
-              <button onClick={handleDeleteChoice}
-                className="h-10 px-4 rounded-lg bg-red-500/15 text-red-400 font-medium text-[15px] cursor-pointer active:scale-[0.97]">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Editor panel */}
       {selectedNode && (
-        <NodeEditor
-          node={selectedNode}
-          storyId={storyId}
-          allNodes={nodes}
-          onSaved={() => { load(); setSelectedNode(null) }}
-          onClose={() => setSelectedNode(null)}
+        <NodeEditor node={selectedNode} storyId={storyId}
+          onSaved={() => { load(); setSelectedNode(null) }} onClose={() => setSelectedNode(null)}
         />
       )}
     </div>
