@@ -7,6 +7,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5174',
   'capacitor://localhost',
   'ionic://localhost',
+  'https://stories-a02bd.firebaseapp.com',
 ]
 
 function getCorsHeaders(request) {

@@ -45,8 +45,12 @@ export async function loginWithGoogle() {
   if (Capacitor.isNativePlatform()) {
     const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
     const result = await FirebaseAuthentication.signInWithGoogle()
-    const credential = GoogleAuthProvider.credential(result.credential?.idToken)
-    return signInWithCredential(auth, credential)
+    return new Promise((resolve) => {
+      const unsub = onAuthStateChanged(auth, (user) => {
+        if (user) { unsub(); resolve({ user }) }
+      })
+      setTimeout(() => { unsub(); resolve({ user: auth.currentUser }) }, 3000)
+    })
   }
   return signInWithPopup(auth, googleProvider)
 }
@@ -54,12 +58,17 @@ export async function loginWithGoogle() {
 export async function loginWithApple() {
   if (Capacitor.isNativePlatform()) {
     const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
+    // On native, FirebaseAuthentication handles the full sign-in flow
+    // including linking to Firebase — no need for signInWithCredential
     const result = await FirebaseAuthentication.signInWithApple()
-    const credential = appleProvider.credential({
-      idToken: result.credential?.idToken,
-      rawNonce: result.credential?.nonce,
+    // Wait for Firebase Auth to pick up the native sign-in
+    return new Promise((resolve) => {
+      const unsub = onAuthStateChanged(auth, (user) => {
+        if (user) { unsub(); resolve({ user }) }
+      })
+      // Fallback timeout
+      setTimeout(() => { unsub(); resolve({ user: auth.currentUser }) }, 3000)
     })
-    return signInWithCredential(auth, credential)
   }
   return signInWithPopup(auth, appleProvider)
 }
