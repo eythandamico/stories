@@ -3,7 +3,7 @@ import { verifyToken } from './auth.js'
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Token',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Token, X-Seed-Key',
 }
 
 // Simple HMAC-based admin token
@@ -286,6 +286,38 @@ export default {
             .bind(body.items[i], i).run()
         }
         return json({ ok: true })
+      } catch (e) {
+        return error(e.message, 500)
+      }
+    }
+
+    // POST /api/admin/upload — upload video/image to R2
+    if (path === '/api/admin/upload' && method === 'POST') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      try {
+        const formData = await request.formData()
+        const file = formData.get('file')
+        const filename = formData.get('filename') || file.name
+        const folder = formData.get('folder') || ''
+        const key = folder ? `${folder}/${filename}` : filename
+
+        await env.VIDEOS.put(key, file.stream(), {
+          httpMetadata: { contentType: file.type },
+        })
+
+        return json({ ok: true, key, url: `https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev/${key}` })
+      } catch (e) {
+        return error(e.message, 500)
+      }
+    }
+
+    // GET /api/admin/files — list R2 files
+    if (path === '/api/admin/files' && method === 'GET') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      try {
+        const prefix = url.searchParams.get('prefix') || ''
+        const list = await env.VIDEOS.list({ prefix, limit: 100 })
+        return json(list.objects.map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded })))
       } catch (e) {
         return error(e.message, 500)
       }

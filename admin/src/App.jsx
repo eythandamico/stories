@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { admin, isLoggedIn, loginAdmin, logoutAdmin } from './api.js'
+import StoryBuilder from './StoryBuilder.jsx'
 
 const R2_BASE = 'https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev'
 const GENRES = ['Romance', 'Thriller', 'Sci-Fi', 'Horror', 'Drama', 'Fantasy', 'Comedy']
@@ -301,6 +302,7 @@ export default function App() {
   const [stories, setStories] = useState([])
   const [selected, setSelected] = useState(null)
   const [tab, setTab] = useState('story')
+  const [builderStoryId, setBuilderStoryId] = useState(null)
 
   const loadStories = () => {
     admin.getStories().then(setStories).catch(() => {})
@@ -309,6 +311,7 @@ export default function App() {
   useEffect(() => { if (authed) loadStories() }, [authed])
 
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />
+  if (builderStoryId) return <StoryBuilder storyId={builderStoryId} onBack={() => { setBuilderStoryId(null); loadStories() }} />
 
   return (
     <div className="min-h-screen flex">
@@ -331,12 +334,12 @@ export default function App() {
         {/* Tabs */}
         {selected && (
           <div className="flex gap-2 mb-6">
-            {['story', 'scenes'].map(t => (
-              <button key={t} onClick={() => setTab(t)}
+            {['story', 'scenes', 'builder'].map(t => (
+              <button key={t} onClick={() => t === 'builder' ? setBuilderStoryId(selected.id) : setTab(t)}
                 className={`px-4 py-2 rounded-lg text-[15px] font-medium cursor-pointer ${
                   tab === t ? 'bg-white text-black' : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}>
-                {t === 'story' ? 'Details' : 'Scenes'}
+                {t === 'story' ? 'Details' : t === 'scenes' ? 'Scenes' : '🔀 Builder'}
               </button>
             ))}
           </div>
