@@ -11,7 +11,6 @@ const Settings = lazy(() => import('./pages/Settings.jsx'))
 const StoryPlayer = lazy(() => import('./pages/StoryPlayer.jsx'))
 const Auth = lazy(() => import('./pages/Auth.jsx'))
 const SetupUsername = lazy(() => import('./pages/SetupUsername.jsx'))
-const Admin = lazy(() => import('./pages/Admin.jsx'))
 
 const tabs = [
   { id: 'home', label: 'Home', icon: 'home' },
@@ -41,7 +40,7 @@ function AppShell() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup' || location.pathname === '/admin'
+  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup'
 
   const tabRoutes = { '/': 'home', '/explore': 'explore' }
   const activeTab = tabRoutes[location.pathname] || 'home'
@@ -60,7 +59,6 @@ function AppShell() {
         <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/play/:storyId?" element={<ProtectedRoute><StoryPlayer /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
       </Routes>
 
       {!hideNav && user && (
