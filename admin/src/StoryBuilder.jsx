@@ -122,6 +122,7 @@ function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, 
                 <input
                   data-input="true"
                   value={c.label}
+                  maxLength={40}
                   onChange={(e) => onUpdateChoice(node.id, i, { ...c, label: e.target.value })}
                   onBlur={() => onUpdateChoice(node.id, i, c, true)}
                   className="flex-1 bg-transparent text-[11px] outline-none min-w-0 truncate"
@@ -141,13 +142,15 @@ function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, 
                 />
               </div>
             ))}
-            <button
-              onClick={(e) => { e.stopPropagation(); onAddChoice(node.id) }}
-              className="text-[11px] cursor-pointer hover:text-blue-300 transition-colors w-full text-left py-0.5"
-              style={{ color: `${colors.text}40` }}
-            >
-              + Add choice
-            </button>
+            {(node.choices || []).length < 3 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onAddChoice(node.id) }}
+                className="text-[11px] cursor-pointer hover:text-blue-300 transition-colors w-full text-left py-0.5"
+                style={{ color: `${colors.text}40` }}
+              >
+                + Add choice ({3 - (node.choices?.length || 0)} left)
+              </button>
+            )}
           </div>
         )}
       </div>
