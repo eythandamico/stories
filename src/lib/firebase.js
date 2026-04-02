@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
+  signInWithCredential,
   GoogleAuthProvider,
   OAuthProvider,
   signOut,
@@ -43,19 +43,32 @@ export async function signupWithEmail(email, password, name) {
 
 export async function loginWithGoogle() {
   if (Capacitor.isNativePlatform()) {
-    return signInWithRedirect(auth, googleProvider)
+    const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
+    const result = await FirebaseAuthentication.signInWithGoogle()
+    const credential = GoogleAuthProvider.credential(result.credential?.idToken)
+    return signInWithCredential(auth, credential)
   }
   return signInWithPopup(auth, googleProvider)
 }
 
 export async function loginWithApple() {
   if (Capacitor.isNativePlatform()) {
-    return signInWithRedirect(auth, appleProvider)
+    const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
+    const result = await FirebaseAuthentication.signInWithApple()
+    const credential = appleProvider.credential({
+      idToken: result.credential?.idToken,
+      rawNonce: result.credential?.nonce,
+    })
+    return signInWithCredential(auth, credential)
   }
   return signInWithPopup(auth, appleProvider)
 }
 
 export async function logout() {
+  if (Capacitor.isNativePlatform()) {
+    const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
+    await FirebaseAuthentication.signOut()
+  }
   return signOut(auth)
 }
 
