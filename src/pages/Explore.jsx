@@ -1,32 +1,45 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { feed } from '../data/feed.js'
-import { posterUrl } from '../lib/config.js'
+import { fetchFeed } from '../lib/data.js'
 import Icon from '../lib/icon.jsx'
 
-const categories = [
-  { id: 'romance', label: 'Romance', emoji: '💕', stories: feed.filter(s => s.genre === 'Romance') },
-  { id: 'thriller', label: 'Thriller', emoji: '🔪', stories: feed.filter(s => s.genre === 'Thriller') },
-  { id: 'sci-fi', label: 'Sci-Fi', emoji: '🚀', stories: feed.filter(s => s.genre === 'Sci-Fi') },
-  { id: 'horror', label: 'Horror', emoji: '👻', stories: feed.filter(s => s.genre === 'Horror') },
-  { id: 'drama', label: 'Drama', emoji: '🎭', stories: feed.filter(s => s.genre === 'Drama') },
-  { id: 'fantasy', label: 'Fantasy', emoji: '⚔️', stories: feed.filter(s => s.genre === 'Fantasy') },
+const categoryDefs = [
+  { id: 'romance', label: 'Romance', emoji: '💕' },
+  { id: 'thriller', label: 'Thriller', emoji: '🔪' },
+  { id: 'sci-fi', label: 'Sci-Fi', emoji: '🚀' },
+  { id: 'horror', label: 'Horror', emoji: '👻' },
+  { id: 'drama', label: 'Drama', emoji: '🎭' },
+  { id: 'fantasy', label: 'Fantasy', emoji: '⚔️' },
 ]
 
 export default function Explore() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [feed, setFeed] = useState([])
   const videoRefs = useRef({})
+
+  useEffect(() => {
+    fetchFeed().then(setFeed)
+  }, [])
+
+  const categories = useMemo(() => {
+    return categoryDefs
+      .map(cat => ({
+        ...cat,
+        stories: feed.filter(s => s.genre === cat.label),
+      }))
+      .filter(cat => cat.stories.length > 0)
+  }, [feed])
 
   const filteredCategories = search
     ? categories.map(cat => ({
         ...cat,
         stories: cat.stories.filter(s =>
           s.title.toLowerCase().includes(search.toLowerCase()) ||
-          s.description.toLowerCase().includes(search.toLowerCase())
+          (s.description || '').toLowerCase().includes(search.toLowerCase())
         ),
       })).filter(cat => cat.stories.length > 0)
-    : categories.filter(cat => cat.stories.length > 0)
+    : categories
 
   const handleMouseEnter = (key) => {
     videoRefs.current[key]?.play().catch(() => {})
@@ -74,9 +87,8 @@ export default function Explore() {
             <div
               key={cat.id}
               className="animate-fade-up"
-              style={{ animationDelay: `${0.05 + catIdx * 0.06}s` }}
+              style={{ animationDelay: `${catIdx * 0.06}s` }}
             >
-              {/* Category header */}
               <div className="flex items-center justify-between px-6 mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-[18px]">{cat.emoji}</span>
@@ -85,7 +97,6 @@ export default function Explore() {
                 <span className="text-[14px] text-[var(--inv-muted)]">{cat.stories.length} stories</span>
               </div>
 
-              {/* Horizontal scroll of cards */}
               <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-6">
                 {cat.stories.map((item, i) => {
                   const key = `${cat.id}-${i}`
@@ -93,33 +104,24 @@ export default function Explore() {
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => item.route ? navigate(item.route) : null}
+                      onClick={() => item.route ? navigate(`/play/${item.storyId || item.id}`) : null}
                       className="shrink-0 text-left cursor-pointer group"
                       style={{ width: 160 }}
                       onMouseEnter={() => handleMouseEnter(key)}
                       onMouseLeave={() => handleMouseLeave(key)}
                     >
-                      {/* Card */}
                       <div className="relative mb-0 rounded-[20px] overflow-hidden aspect-[3/4] bg-[var(--inv-bg-alt)] transition-transform duration-300 group-hover:scale-[1.03] group-active:scale-[0.97]">
-                        {/* Video */}
                         <video
                           ref={(el) => { videoRefs.current[key] = el }}
                           src={item.preview}
-                          poster={posterUrl(item.preview)}
+                          poster={item.poster || ''}
                           className="w-full h-full object-cover"
-                          muted
-                          loop
-                          playsInline
-                          preload="metadata"
+                          muted loop playsInline preload="metadata"
                         />
-
-                        {/* Bottom gradient */}
                         <div
                           className="absolute inset-0 pointer-events-none"
                           style={{ background: 'linear-gradient(transparent 40%, rgba(0,0,0,0.75))' }}
                         />
-
-                        {/* Title on card */}
                         <div className="absolute bottom-0 left-0 right-0 p-3.5">
                           <p className="text-white font-semibold text-[16px] leading-snug line-clamp-2">
                             {item.title}
@@ -128,8 +130,6 @@ export default function Explore() {
                             {item.description}
                           </p>
                         </div>
-
-                        {/* Locked overlay */}
                         {!item.route && (
                           <div className="absolute top-3 right-3">
                             <div className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">

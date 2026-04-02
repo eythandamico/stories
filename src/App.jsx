@@ -40,7 +40,7 @@ function AppShell() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const hideNav = location.pathname === '/play' || location.pathname === '/auth' || location.pathname === '/setup'
+  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup'
 
   const tabRoutes = { '/': 'home', '/explore': 'explore' }
   const activeTab = tabRoutes[location.pathname] || 'home'
@@ -58,7 +58,7 @@ function AppShell() {
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/play" element={<ProtectedRoute><StoryPlayer /></ProtectedRoute>} />
+        <Route path="/play/:storyId?" element={<ProtectedRoute><StoryPlayer /></ProtectedRoute>} />
       </Routes>
 
       {!hideNav && user && (

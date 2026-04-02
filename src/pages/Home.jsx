@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { feed } from '../data/feed.js'
+import { fetchFeed } from '../lib/data.js'
 import { ProfileMenu } from '../components/profile-menu.jsx'
 import { NoHeartsModal } from '../components/no-hearts-modal.jsx'
 import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
@@ -8,7 +8,6 @@ import { StreakModal } from '../components/streak-modal.jsx'
 import { Onboarding, shouldShowOnboarding } from '../components/onboarding.jsx'
 import { useGameState } from '../lib/use-game-state.js'
 import { hapticLight, hapticError } from '../lib/haptics.js'
-import { posterUrl } from '../lib/config.js'
 import PrismaticBurst from '../components/prismatic-burst.jsx'
 import Icon from '../lib/icon.jsx'
 import { HeartIcon } from '../components/heart-icon.jsx'
@@ -48,7 +47,7 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
           <video
             ref={videoRef}
             src={item.preview}
-            poster={posterUrl(item.preview)}
+            poster={item.poster || ''}
             className="w-full h-full object-cover transition-opacity duration-500"
             aria-label={`${item.title} preview`}
             loop
@@ -224,6 +223,8 @@ export default function Home() {
   const navigate = useNavigate()
   const containerRef = useRef(null)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [feed, setFeed] = useState([])
+  const [feedLoaded, setFeedLoaded] = useState(false)
   const [showNoHearts, setShowNoHearts] = useState(false)
   const [showBuyHearts, setShowBuyHearts] = useState(false)
   const [showStreak, setShowStreak] = useState(false)
@@ -231,6 +232,11 @@ export default function Home() {
   const [shaderReady, setShaderReady] = useState(false)
   const [shaderVisible, setShaderVisible] = useState(false)
   const { hearts, maxHearts, nextHeartTime, spendHeart, purchaseHearts, purchasePerks, recordPlay, streak } = useGameState()
+
+  // Load feed from API
+  useEffect(() => {
+    fetchFeed().then(data => { setFeed(data); setFeedLoaded(true) })
+  }, [])
 
   // Delay shader mount
   useEffect(() => {
@@ -268,7 +274,7 @@ export default function Home() {
     }
     hapticLight()
     recordPlay()
-    navigate(item.route)
+    navigate(`/play/${item.storyId || item.id}`)
   }
 
   return (

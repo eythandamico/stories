@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { story } from '../data/story.js'
+import { useNavigate, useParams } from 'react-router-dom'
+import { fetchStory } from '../lib/data.js'
+import { api } from '../lib/api.js'
 import { useGameState } from '../lib/use-game-state.js'
 import { StoryComplete } from '../components/story-complete.jsx'
 import { Stack } from '../components/stack.jsx'
@@ -8,15 +9,17 @@ import { hapticLight, hapticMedium, hapticSuccess, hapticError } from '../lib/ha
 import { soundClick, soundPositive, soundNeutral, soundConnection, soundTick, soundTimerWarn, soundTimerExpired, soundEndingDiscovered, startHeartbeat, stopHeartbeat } from '../lib/sounds.js'
 import Icon from '../lib/icon.jsx'
 import { HeartIcon } from '../components/heart-icon.jsx'
-import { posterUrl } from '../lib/config.js'
 import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
 
 const MAX_CONNECTION = 5
-const allEndings = Object.values(story.nodes).filter((n) => n.ending)
 
 export default function StoryPlayer() {
   const navigate = useNavigate()
+  const { storyId } = useParams()
   const { addEnding, endingsFound, hearts, spendHeart, perks, usePerk, purchasePerks } = useGameState()
+
+  const [story, setStory] = useState(null)
+  const [loading, setLoading] = useState(true)
   const videoRef = useRef(null)
   const [newEnding, setNewEnding] = useState(false)
   const [showComplete, setShowComplete] = useState(false)
@@ -26,7 +29,19 @@ export default function StoryPlayer() {
   const [perkFlash, setPerkFlash] = useState(null)
   const [choicesExiting, setChoicesExiting] = useState(false)
   const [showConnectionBurst, setShowConnectionBurst] = useState(false)
-  const [currentNodeId, setCurrentNodeId] = useState(story.startNodeId)
+  const [currentNodeId, setCurrentNodeId] = useState(null)
+
+  // Load story from API
+  useEffect(() => {
+    const id = storyId || 'romantic-adventure'
+    fetchStory(id).then(s => {
+      setStory(s)
+      setCurrentNodeId(s.startNodeId)
+      setLoading(false)
+    })
+  }, [storyId])
+
+  const allEndings = story ? Object.values(story.nodes).filter(n => n.ending) : []
   const [showChoices, setShowChoices] = useState(false)
   const [chosenIndex, setChosenIndex] = useState(null)
   const [showPercentages, setShowPercentages] = useState(false)
@@ -48,7 +63,7 @@ export default function StoryPlayer() {
   const timerRef = useRef(null)
   const tickRef = useRef(null)
 
-  const node = story.nodes[currentNodeId]
+  const node = story?.nodes?.[currentNodeId]
 
   // Reset state on node change
   useEffect(() => {
@@ -308,7 +323,11 @@ export default function StoryPlayer() {
     setSkipping(false)
   }
 
-  if (!node) return null
+  if (loading || !node) return (
+    <div className="fixed inset-0 bg-black flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+    </div>
+  )
 
   const currentScene = history.length + 1
   const connectionPct = (connection / MAX_CONNECTION) * 100
@@ -341,7 +360,7 @@ export default function StoryPlayer() {
         ref={videoRef}
         key={currentNodeId}
         src={node.video}
-        poster={posterUrl(node.video)}
+        poster={node.poster || ''}
         aria-label={node.title}
         className="w-full h-full object-cover animate-crossfade"
         onEnded={handleVideoEnd}
