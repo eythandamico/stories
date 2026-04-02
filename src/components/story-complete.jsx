@@ -1,8 +1,9 @@
 import Icon from '../lib/icon.jsx'
 import { HeartIcon } from './heart-icon.jsx'
+import { shareEnding } from '../lib/share.js'
 
 export function StoryComplete({
-  isOpen, endingTitle, endingDescription, connectionPct,
+  isOpen, endingTitle, endingDescription, connectionPct, storyTitle,
   isNewEnding, endingsFound, totalEndings, onReplay, onHome, onBuyNext, onBuySeries,
 }) {
   if (!isOpen) return null
@@ -77,6 +78,15 @@ export function StoryComplete({
 
         {/* Buy options */}
         <div className="animate-fade-up mb-4" style={{ animationDelay: '0.3s' }}>
+          {/* Share */}
+          <button
+            type="button"
+            onClick={() => shareEnding(endingTitle, Math.round(connectionPct), storyTitle || 'Narrative')}
+            className="w-full h-[44px] rounded-2xl bg-white/10 text-white/70 font-medium text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2 mb-4"
+          >
+            <Icon name="share" size={16} /> Share Result
+          </button>
+
           <p className="text-white/30 text-[12px] font-medium tracking-widest uppercase text-center mb-3">Continue the story</p>
           <div className="flex gap-2.5">
             <button

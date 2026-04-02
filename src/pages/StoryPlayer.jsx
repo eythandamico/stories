@@ -664,6 +664,7 @@ export default function StoryPlayer() {
         onHome={() => navigate('/')}
         onBuyNext={() => { /* TODO: payment flow */ }}
         onBuySeries={() => { /* TODO: payment flow */ }}
+        storyTitle={story?.title}
       />
       <BuyHeartsModal
         isOpen={showBuyPerks}

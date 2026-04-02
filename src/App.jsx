@@ -1,7 +1,8 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import './tokens/theme.css'
 import { AuthProvider, useAuth } from './lib/use-auth.jsx'
+import { initPushNotifications } from './lib/notifications.js'
 import { BottomNav } from './components/bottom-nav.jsx'
 
 // Lazy load pages for code splitting
@@ -39,6 +40,8 @@ function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuth()
+
+  useEffect(() => { if (user) initPushNotifications() }, [user])
 
   const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup'
 

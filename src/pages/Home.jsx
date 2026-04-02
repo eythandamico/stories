@@ -9,7 +9,9 @@ import { StreakModal } from '../components/streak-modal.jsx'
 import { Onboarding, shouldShowOnboarding } from '../components/onboarding.jsx'
 import { useGameState } from '../lib/use-game-state.js'
 import { hapticLight, hapticError } from '../lib/haptics.js'
+import { shareStory } from '../lib/share.js'
 import PrismaticBurst from '../components/prismatic-burst.jsx'
+import { FeedSkeleton } from '../components/skeleton.jsx'
 import Icon from '../lib/icon.jsx'
 import { HeartIcon } from '../components/heart-icon.jsx'
 import { FlameIcon } from '../components/flame-icon.jsx'
@@ -104,7 +106,7 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
       {/* Share button */}
       <button
         type="button"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); shareStory(item) }}
         className="absolute top-[env(safe-area-inset-top,20px)] right-5 mt-5 z-20 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center cursor-pointer active:scale-[0.96] hover:bg-white/15 transition-[opacity,transform] duration-300"
         style={{
           opacity: isActive ? 1 : 0,
@@ -278,6 +280,8 @@ export default function Home() {
     recordPlay()
     navigate(`/play/${item.storyId || item.id}`)
   }
+
+  if (!feedLoaded) return <FeedSkeleton />
 
   return (
     <>
