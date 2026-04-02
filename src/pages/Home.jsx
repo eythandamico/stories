@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchFeed } from '../lib/data.js'
+import { useAuth } from '../lib/use-auth.jsx'
 import { ProfileMenu } from '../components/profile-menu.jsx'
 import { NoHeartsModal } from '../components/no-hearts-modal.jsx'
 import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
@@ -221,6 +222,7 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
 
 export default function Home() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const containerRef = useRef(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [feed, setFeed] = useState([])
@@ -289,8 +291,8 @@ export default function Home() {
       {/* Profile avatar */}
       <div className="fixed top-[env(safe-area-inset-top,20px)] left-5 mt-5 z-30">
         <ProfileMenu
-          avatarUrl="/profile.jpg"
-          profile={{ name: 'Leo', email: 'leo@example.com' }}
+          avatarUrl={user?.photoURL || '/profile.jpg'}
+          profile={{ name: user?.displayName || 'User', email: user?.email || '' }}
           profileItems={[
             { icon: 'settings', label: 'Settings', onAction: () => navigate('/settings') },
             { icon: 'user', label: 'Edit Profile', onAction: () => {} },
