@@ -47,7 +47,7 @@ export default function Explore() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search stories..."
-            className="w-full h-[44px] pl-10 pr-4 rounded-2xl bg-[var(--inv-surface)] border border-[var(--inv-border)] text-[16px] text-[var(--inv-heading)] placeholder-[var(--inv-muted)] outline-none transition-all duration-200 focus:border-[var(--inv-accent)]"
+            className="w-full h-[44px] pl-10 pr-4 rounded-2xl bg-[var(--inv-surface)] text-[16px] text-[var(--inv-heading)] placeholder-[var(--inv-muted)] outline-none"
           />
           {search && (
             <button

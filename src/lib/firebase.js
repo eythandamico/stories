@@ -13,12 +13,13 @@ import {
 
 // TODO: Replace with your Firebase project config
 const firebaseConfig = {
-  apiKey: '',
-  authDomain: '',
-  projectId: '',
-  storageBucket: '',
-  messagingSenderId: '',
-  appId: '',
+  apiKey: 'AIzaSyBMGaDc0CK7Sz52834vWYCdiZoHK6rIYp8',
+  authDomain: 'stories-a02bd.firebaseapp.com',
+  projectId: 'stories-a02bd',
+  storageBucket: 'stories-a02bd.firebasestorage.app',
+  messagingSenderId: '772155057015',
+  appId: '1:772155057015:web:02c2d7abae8a1df34ab772',
+  measurementId: 'G-L46VJF6538',
 }
 
 export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey)
