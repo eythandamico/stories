@@ -4,12 +4,14 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
   OAuthProvider,
   signOut,
   onAuthStateChanged,
   updateProfile,
 } from 'firebase/auth'
+import { Capacitor } from '@capacitor/core'
 
 // Firebase project config (loaded from environment variables)
 const firebaseConfig = {
@@ -40,10 +42,16 @@ export async function signupWithEmail(email, password, name) {
 }
 
 export async function loginWithGoogle() {
+  if (Capacitor.isNativePlatform()) {
+    return signInWithRedirect(auth, googleProvider)
+  }
   return signInWithPopup(auth, googleProvider)
 }
 
 export async function loginWithApple() {
+  if (Capacitor.isNativePlatform()) {
+    return signInWithRedirect(auth, appleProvider)
+  }
   return signInWithPopup(auth, appleProvider)
 }
 

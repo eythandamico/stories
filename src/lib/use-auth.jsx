@@ -16,7 +16,15 @@ export function AuthProvider({ children }) {
       setUser(u)
       setLoading(false)
     })
-    return unsub
+    // Timeout fallback — if Firebase never responds, stop loading
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn('Firebase auth timeout — falling back')
+        setUser(null)
+        setLoading(false)
+      }
+    }, 5000)
+    return () => { unsub(); clearTimeout(timeout) }
   }, [])
 
   return (

@@ -299,7 +299,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 546GF9Q8PX;
 				INFOPLIST_FILE = App/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Stories;
+				INFOPLIST_KEY_CFBundleDisplayName = "Narrative Stories";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.simulation-games";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -324,7 +324,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 546GF9Q8PX;
 				INFOPLIST_FILE = App/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Stories;
+				INFOPLIST_KEY_CFBundleDisplayName = "Narrative Stories";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.simulation-games";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
