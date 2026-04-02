@@ -8,7 +8,10 @@ export function isLoggedIn() {
   return Boolean(getToken())
 }
 
-export function logoutAdmin() {
+export async function logoutAdmin() {
+  try {
+    await adminRequest('/api/admin/logout', { method: 'POST', body: '{}' })
+  } catch {}
   localStorage.removeItem('admin-token')
 }
 

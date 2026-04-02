@@ -19,23 +19,69 @@ function getCorsHeaders(request) {
   }
 }
 
-// Simple HMAC-based admin token
-async function createAdminToken(secret) {
-  const payload = JSON.stringify({ role: 'admin', exp: Date.now() + 24 * 60 * 60 * 1000 })
+// ── PBKDF2 Password Hashing ──
+async function hashPassword(password, salt) {
+  if (!salt) {
+    const arr = new Uint8Array(16)
+    crypto.getRandomValues(arr)
+    salt = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')
+  }
+  const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'])
+  const bits = await crypto.subtle.deriveBits({
+    name: 'PBKDF2', salt: new TextEncoder().encode(salt), iterations: 100000, hash: 'SHA-256',
+  }, keyMaterial, 256)
+  const hash = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('')
+  return `${salt}:${hash}`
+}
+
+async function verifyPassword(password, stored) {
+  const [salt] = stored.split(':')
+  const computed = await hashPassword(password, salt)
+  return computed === stored
+}
+
+// ── HMAC Admin Tokens (2h expiry) ──
+async function createAdminToken(secret, role = 'admin', username = '') {
+  const payload = JSON.stringify({ role, username, exp: Date.now() + 2 * 60 * 60 * 1000 })
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))
   return btoa(payload) + '.' + btoa(String.fromCharCode(...new Uint8Array(sig)))
 }
 
-async function verifyAdminToken(token, secret) {
+async function verifyAdminToken(token, secret, db) {
   try {
     const [payloadB64, sigB64] = token.split('.')
     const payload = JSON.parse(atob(payloadB64))
-    if (payload.exp < Date.now()) return false
+    if (payload.exp < Date.now()) return null
     const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
     const sig = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0))
-    return await crypto.subtle.verify('HMAC', key, sig, new TextEncoder().encode(JSON.stringify(payload)))
-  } catch { return false }
+    const valid = await crypto.subtle.verify('HMAC', key, sig, new TextEncoder().encode(JSON.stringify(payload)))
+    if (!valid) return null
+    // Check revocation
+    const tokenHash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token)))).map(b => b.toString(16).padStart(2, '0')).join('')
+    const revoked = await db.prepare('SELECT 1 FROM revoked_tokens WHERE token_hash = ?').bind(tokenHash).first()
+    if (revoked) return null
+    return payload
+  } catch { return null }
+}
+
+// ── Rate Limiting ──
+async function checkRateLimit(db, key, maxRequests = 10, windowSeconds = 60) {
+  const now = new Date().toISOString()
+  const row = await db.prepare('SELECT count, window_start FROM rate_limits WHERE key = ?').bind(key).first()
+  if (!row) {
+    await db.prepare('INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?)').bind(key, now).run()
+    return true
+  }
+  const windowStart = new Date(row.window_start)
+  const elapsed = (Date.now() - windowStart.getTime()) / 1000
+  if (elapsed > windowSeconds) {
+    await db.prepare('UPDATE rate_limits SET count = 1, window_start = ? WHERE key = ?').bind(now, key).run()
+    return true
+  }
+  if (row.count >= maxRequests) return false
+  await db.prepare('UPDATE rate_limits SET count = count + 1 WHERE key = ?').bind(key).run()
+  return true
 }
 
 let _corsHeaders = {}
@@ -48,13 +94,7 @@ function json(data, status = 200) {
 }
 
 function error(msg, status = 400) {
-  return json({ error: 'Request failed' }, status) // Generic errors — don't leak internals
-}
-
-async function hashPassword(password) {
-  const data = new TextEncoder().encode(password)
-  const hash = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
+  return json({ error: 'Request failed' }, status)
 }
 
 async function authenticate(request, env) {
@@ -77,8 +117,12 @@ export default {
 
     // ── Public routes ──
 
+    // Rate limit public endpoints
+    const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown'
+
     // GET /api/feed — list feed items
     if (path === '/api/feed' && method === 'GET') {
+      if (!await checkRateLimit(env.DB, `feed:${clientIp}`, 30, 60)) return json({ error: 'Rate limited' }, 429)
       const rows = await env.DB.prepare(`
         SELECT s.*, f.sort_order as feed_order
         FROM feed f
@@ -133,38 +177,35 @@ export default {
       return json(rows.results)
     }
 
+
     // ── Admin login ──
     if (path === '/api/admin/login' && method === 'POST') {
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown'
+      const allowed = await checkRateLimit(env.DB, `login:${ip}`, 5, 300)
+      if (!allowed) return json({ error: 'Too many attempts. Try again in 5 minutes.' }, 429)
       const { username, password } = await request.json()
-      if (!env.ADMIN_SECRET) return error('Admin secret not configured', 500)
-
-      // Check env superadmin first
-      if (!env.ADMIN_PASSWORD) return error('Admin not configured', 500)
+      if (!env.ADMIN_SECRET || !env.ADMIN_PASSWORD) return error('Admin not configured', 500)
       if (username === (env.ADMIN_USERNAME || 'admin') && password === env.ADMIN_PASSWORD) {
-        const token = await createAdminToken(env.ADMIN_SECRET)
+        const token = await createAdminToken(env.ADMIN_SECRET, 'superadmin', username)
         return json({ token, role: 'superadmin', username })
       }
-
-      // Check admin_users table
-      const hash = await hashPassword(password)
-      const dbUser = await env.DB.prepare('SELECT * FROM admin_users WHERE username = ? AND password_hash = ?').bind(username, hash).first()
-      if (dbUser) {
-        const token = await createAdminToken(env.ADMIN_SECRET)
-        return json({ token, role: dbUser.role, username: dbUser.username })
+      const dbUser = await env.DB.prepare('SELECT * FROM admin_users WHERE username = ?').bind(username).first()
+      if (dbUser && dbUser.password_hash.includes(':')) {
+        const valid = await verifyPassword(password, dbUser.password_hash)
+        if (valid) {
+          const token = await createAdminToken(env.ADMIN_SECRET, dbUser.role, dbUser.username)
+          return json({ token, role: dbUser.role, username: dbUser.username })
+        }
       }
-
-      return error('Invalid credentials', 401)
+      return json({ error: 'Invalid credentials' }, 401)
     }
 
     // ── Authenticated routes ──
-    // Check admin token or Firebase user token
     const adminToken = request.headers.get('X-Admin-Token')
-    const isAdmin = adminToken && env.ADMIN_SECRET ? await verifyAdminToken(adminToken, env.ADMIN_SECRET) : false
-
-    // Seed key — only works if explicitly configured as a secret
+    const adminPayload = adminToken && env.ADMIN_SECRET ? await verifyAdminToken(adminToken, env.ADMIN_SECRET, env.DB) : null
+    const isAdmin = Boolean(adminPayload)
     const seedKey = request.headers.get('X-Seed-Key')
     const isSeedAdmin = env.SEED_KEY ? seedKey === env.SEED_KEY : false
-
     const user = (isAdmin || isSeedAdmin) ? { uid: 'admin', email: 'admin' } : await authenticate(request, env)
     if (!user) return error('Unauthorized', 401)
 
@@ -369,6 +410,17 @@ export default {
         await env.DB.prepare('UPDATE admin_users SET password_hash = ?, role = ? WHERE id = ?').bind(hash, role || 'editor', id).run()
       } else if (role) {
         await env.DB.prepare('UPDATE admin_users SET role = ? WHERE id = ?').bind(role, id).run()
+      }
+      return json({ ok: true })
+    }
+
+    // POST /api/admin/logout — revoke token
+    if (path === '/api/admin/logout' && method === 'POST') {
+      if (adminToken) {
+        const tokenHash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(adminToken)))).map(b => b.toString(16).padStart(2, '0')).join('')
+        await env.DB.prepare('INSERT OR IGNORE INTO revoked_tokens (token_hash) VALUES (?)').bind(tokenHash).run()
+        // Clean up old revoked tokens (older than 24h)
+        await env.DB.prepare("DELETE FROM revoked_tokens WHERE revoked_at < datetime('now', '-1 day')").run()
       }
       return json({ ok: true })
     }
