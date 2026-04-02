@@ -11,7 +11,7 @@ import {
   updateProfile,
 } from 'firebase/auth'
 
-// TODO: Replace with your Firebase project config
+// Firebase project config (loaded from environment variables)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',

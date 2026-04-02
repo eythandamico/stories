@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { fetchStory } from '../lib/data.js'
-import { api } from '../lib/api.js'
 import { useGameState } from '../lib/use-game-state.js'
 import { StoryComplete } from '../components/story-complete.jsx'
 import { Stack } from '../components/stack.jsx'

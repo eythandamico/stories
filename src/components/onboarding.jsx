@@ -15,11 +15,9 @@ export function shouldShowOnboarding() {
 
 export function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0)
-  const [direction, setDirection] = useState(0)
 
   const advance = () => {
     if (step < steps.length - 1) {
-      setDirection(1)
       setStep((s) => s + 1)
     }
   }

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import Icon from '../lib/icon.jsx'
 import { HeartIcon } from './heart-icon.jsx'
 
 export function NoHeartsModal({ isOpen, onClose, nextHeartTime, onBuy }) {
