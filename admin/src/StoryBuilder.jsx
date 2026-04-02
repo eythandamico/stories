@@ -94,13 +94,13 @@ function ConnectionLines({ nodes, positions, canvasW, canvasH }) {
   )
 }
 
-function NodeCard({ node, position, selected, onSelect, onDrag }) {
+function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, onEndConnect, connectingFrom }) {
   const colors = getNodeColor(node)
   const dragRef = useRef(null)
   const [dragging, setDragging] = useState(false)
 
   const handleMouseDown = (e) => {
-    if (e.target.tagName === 'BUTTON') return
+    if (e.target.closest('[data-port]')) return
     setDragging(true)
     dragRef.current = { startX: e.clientX - position.x, startY: e.clientY - position.y }
     const handleMove = (e) => {
@@ -117,6 +117,8 @@ function NodeCard({ node, position, selected, onSelect, onDrag }) {
     document.addEventListener('mouseup', handleUp)
   }
 
+  const isDropTarget = connectingFrom && connectingFrom !== node.id
+
   return (
     <div
       className="absolute cursor-grab active:cursor-grabbing select-none"
@@ -126,34 +128,53 @@ function NodeCard({ node, position, selected, onSelect, onDrag }) {
       }}
       onMouseDown={handleMouseDown}
       onClick={() => onSelect(node)}
+      onMouseUp={() => { if (isDropTarget) onEndConnect(node.id) }}
     >
       <div
-        className="rounded-xl p-3 transition-shadow"
+        className="rounded-xl p-3 transition-all"
         style={{
           background: colors.bg,
-          border: `2px solid ${selected ? '#3b82f6' : colors.border}`,
-          boxShadow: selected ? '0 0 0 2px rgba(59,130,246,0.3)' : 'none',
+          border: `2px solid ${isDropTarget ? '#3b82f6' : selected ? '#3b82f6' : colors.border}`,
+          boxShadow: isDropTarget ? '0 0 0 3px rgba(59,130,246,0.3)' : selected ? '0 0 0 2px rgba(59,130,246,0.3)' : 'none',
+          transform: isDropTarget ? 'scale(1.03)' : 'scale(1)',
         }}
       >
+        {/* Input port — left side */}
+        <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#475569] border-2 border-[#0f172a]" />
+
         <div className="text-[13px] font-semibold truncate" style={{ color: colors.text }}>{node.title || node.id}</div>
         <div className="text-[11px] truncate mt-0.5" style={{ color: colors.text, opacity: 0.6 }}>{node.id}</div>
-        {node.choices && (
-          <div className="mt-2 space-y-0.5">
+
+        {/* Choice labels with output ports */}
+        {node.choices && node.choices.length > 0 ? (
+          <div className="mt-2 space-y-1">
             {node.choices.map((c, i) => (
-              <div key={i} className="flex items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full" style={{ background: c.positive ? '#22c55e' : '#64748b' }} />
-                <span className="text-[10px] truncate" style={{ color: colors.text, opacity: 0.5 }}>{c.label}</span>
+              <div key={i} className="flex items-center gap-1 relative">
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: c.positive ? '#22c55e' : '#64748b' }} />
+                <span className="text-[10px] truncate flex-1" style={{ color: colors.text, opacity: 0.5 }}>{c.label}</span>
               </div>
             ))}
           </div>
+        ) : !node.is_ending && (
+          <div className="mt-2 text-[10px]" style={{ color: colors.text, opacity: 0.3 }}>No choices</div>
         )}
+
+        {/* Output port — right side, drag to connect */}
+        {!node.is_ending && (
+          <div
+            data-port="output"
+            className="absolute right-[-7px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#0f172a] cursor-crosshair hover:scale-125 transition-transform"
+            onMouseDown={(e) => { e.stopPropagation(); onStartConnect(node.id) }}
+          />
+        )}
+
         {node.is_ending && (
           <div className="mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-pink-500/20 text-pink-300 inline-block">
             Ending
           </div>
         )}
         {node.timed && (
-          <div className="mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 inline-block">
+          <div className="mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 inline-block ml-1">
             {node.timer_seconds || 10}s
           </div>
         )}
@@ -162,7 +183,7 @@ function NodeCard({ node, position, selected, onSelect, onDrag }) {
   )
 }
 
-function NodeEditor({ node, storyId, onSaved, onClose }) {
+function NodeEditor({ node, storyId, allNodes, onSaved, onClose }) {
   const [data, setData] = useState({})
   const [choices, setChoices] = useState([])
   const [uploading, setUploading] = useState(false)
@@ -306,10 +327,15 @@ function NodeEditor({ node, storyId, onSaved, onClose }) {
             </div>
             {choices.map((c, i) => (
               <div key={i} className="flex gap-1.5 mb-1.5">
-                <input placeholder="Label" value={c.label} onChange={e => { const nc = [...choices]; nc[i] = { ...nc[i], label: e.target.value }; setChoices(nc) }}
+                <input placeholder="Choice label" value={c.label} onChange={e => { const nc = [...choices]; nc[i] = { ...nc[i], label: e.target.value }; setChoices(nc) }}
                   className="flex-1 h-8 px-2 rounded bg-white/5 text-[13px] text-white outline-none" />
-                <input placeholder="→ node" value={c.nextNodeId} onChange={e => { const nc = [...choices]; nc[i] = { ...nc[i], nextNodeId: e.target.value }; setChoices(nc) }}
-                  className="w-20 h-8 px-2 rounded bg-white/5 text-[13px] text-white outline-none" />
+                <select value={c.nextNodeId} onChange={e => { const nc = [...choices]; nc[i] = { ...nc[i], nextNodeId: e.target.value }; setChoices(nc) }}
+                  className="w-24 h-8 px-1 rounded bg-white/5 text-[13px] text-white outline-none">
+                  <option value="">→ node</option>
+                  {Object.values(allNodes || {}).filter(n => n.id !== node?.id).map(n => (
+                    <option key={n.id} value={n.id}>{n.title || n.id}</option>
+                  ))}
+                </select>
                 <label className="flex items-center cursor-pointer">
                   <input type="checkbox" checked={c.positive} onChange={e => { const nc = [...choices]; nc[i] = { ...nc[i], positive: e.target.checked }; setChoices(nc) }} className="accent-green-400" />
                 </label>
@@ -338,10 +364,45 @@ export default function StoryBuilder({ storyId, onBack }) {
   const [nodes, setNodes] = useState({})
   const [positions, setPositions] = useState({})
   const [selectedNode, setSelectedNode] = useState(null)
+  const [connectingFrom, setConnectingFrom] = useState(null)
+  const [connectMousePos, setConnectMousePos] = useState(null)
   const [zoom, setZoom] = useState(0.85)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const canvasRef = useRef(null)
   const panRef = useRef(null)
+
+  const handleStartConnect = (nodeId) => {
+    setConnectingFrom(nodeId)
+    const handleMove = (e) => {
+      setConnectMousePos({ x: (e.clientX - pan.x) / zoom, y: (e.clientY - pan.y) / zoom })
+    }
+    const handleUp = () => {
+      setConnectingFrom(null)
+      setConnectMousePos(null)
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('mouseup', handleUp)
+    }
+    document.addEventListener('mousemove', handleMove)
+    document.addEventListener('mouseup', handleUp)
+  }
+
+  const handleEndConnect = async (targetNodeId) => {
+    if (!connectingFrom || connectingFrom === targetNodeId) return
+    const sourceNode = nodes[connectingFrom]
+    if (!sourceNode) return
+
+    const label = prompt('Choice label:')
+    if (!label) return
+
+    const positive = confirm('Is this a positive choice (builds connection)?')
+    const newChoice = { label, nextNodeId: targetNodeId, positive }
+    const updatedChoices = [...(sourceNode.choices || []), newChoice]
+
+    await admin.saveChoices(storyId, connectingFrom, updatedChoices)
+    load()
+    setConnectingFrom(null)
+    setConnectMousePos(null)
+  }
 
   const load = useCallback(() => {
     admin.getStory(storyId).then(s => {
@@ -439,6 +500,23 @@ export default function StoryBuilder({ storyId, onBack }) {
 
           <ConnectionLines nodes={nodes} positions={positions} canvasW={canvasW} canvasH={canvasH} />
 
+          {/* Drag-to-connect line */}
+          {connectingFrom && connectMousePos && positions[connectingFrom] && (
+            <svg className="absolute pointer-events-none" style={{ top: 0, left: 0, width: canvasW, height: canvasH, zIndex: 100 }}>
+              <line
+                x1={positions[connectingFrom].x + NODE_W}
+                y1={positions[connectingFrom].y + NODE_H / 2}
+                x2={connectMousePos.x}
+                y2={connectMousePos.y}
+                stroke="#3b82f6"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                opacity={0.7}
+              />
+              <circle cx={connectMousePos.x} cy={connectMousePos.y} r={6} fill="#3b82f6" opacity={0.5} />
+            </svg>
+          )}
+
           {Object.values(nodes).map(node => positions[node.id] && (
             <NodeCard
               key={node.id}
@@ -447,6 +525,9 @@ export default function StoryBuilder({ storyId, onBack }) {
               selected={selectedNode?.id === node.id}
               onSelect={setSelectedNode}
               onDrag={handleDrag}
+              onStartConnect={handleStartConnect}
+              onEndConnect={handleEndConnect}
+              connectingFrom={connectingFrom}
             />
           ))}
         </div>
@@ -457,6 +538,7 @@ export default function StoryBuilder({ storyId, onBack }) {
         <NodeEditor
           node={selectedNode}
           storyId={storyId}
+          allNodes={nodes}
           onSaved={() => { load(); setSelectedNode(null) }}
           onClose={() => setSelectedNode(null)}
         />
