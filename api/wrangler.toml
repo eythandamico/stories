@@ -13,3 +13,7 @@ bucket_name = "stories-bucket"
 
 [vars]
 FIREBASE_PROJECT_ID = "stories-a02bd"
+ADMIN_USERNAME = "admin"
+
+# Set ADMIN_PASSWORD as a secret via: npx wrangler secret put ADMIN_PASSWORD
+# Set ADMIN_SECRET as a secret via: npx wrangler secret put ADMIN_SECRET

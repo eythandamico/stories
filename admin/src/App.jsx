@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { admin } from './api.js'
+import { admin, isLoggedIn, loginAdmin, logoutAdmin } from './api.js'
 
 const R2_BASE = 'https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev'
 const GENRES = ['Romance', 'Thriller', 'Sci-Fi', 'Horror', 'Drama', 'Fantasy', 'Comedy']
@@ -259,7 +259,45 @@ function NodeEditor({ storyId }) {
   )
 }
 
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      await loginAdmin(username, password)
+      onLogin()
+    } catch (err) {
+      setError(err.message)
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <form onSubmit={handleSubmit} className="w-80 space-y-4">
+        <h1 className="text-[24px] font-semibold text-center mb-2">Narrative Admin</h1>
+        <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} autoFocus
+          className="w-full h-12 px-4 rounded-lg bg-white/5 text-[16px] text-white outline-none focus:bg-white/8" />
+        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)}
+          className="w-full h-12 px-4 rounded-lg bg-white/5 text-[16px] text-white outline-none focus:bg-white/8" />
+        {error && <p className="text-red-400 text-[14px] text-center">{error}</p>}
+        <button type="submit" disabled={loading}
+          className="w-full h-12 rounded-lg bg-white text-black font-semibold text-[16px] cursor-pointer active:scale-[0.97] disabled:opacity-50">
+          {loading ? 'Signing in...' : 'Sign In'}
+        </button>
+      </form>
+    </div>
+  )
+}
+
 export default function App() {
+  const [authed, setAuthed] = useState(isLoggedIn())
   const [stories, setStories] = useState([])
   const [selected, setSelected] = useState(null)
   const [tab, setTab] = useState('story')
@@ -268,13 +306,18 @@ export default function App() {
     admin.getStories().then(setStories).catch(() => {})
   }
 
-  useEffect(() => { loadStories() }, [])
+  useEffect(() => { if (authed) loadStories() }, [authed])
+
+  if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />
 
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
-      <div className="w-64 border-r border-white/10 p-4 shrink-0">
-        <h1 className="text-[20px] font-semibold mb-1">Narrative Admin</h1>
+      <div className="w-64 border-r border-white/10 p-4 shrink-0 flex flex-col">
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-[20px] font-semibold">Narrative Admin</h1>
+          <button onClick={() => { logoutAdmin(); setAuthed(false) }} className="text-[13px] text-white/30 cursor-pointer hover:text-white/60">Logout</button>
+        </div>
         <p className="text-[13px] text-white/40 mb-4">Story management</p>
         <button onClick={() => { setSelected(null); setTab('story') }}
           className="w-full text-left px-3 py-2 rounded-lg bg-white/5 text-[14px] font-medium cursor-pointer hover:bg-white/10 mb-3">

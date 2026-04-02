@@ -3,7 +3,26 @@ import { verifyToken } from './auth.js'
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Token',
+}
+
+// Simple HMAC-based admin token
+async function createAdminToken(secret) {
+  const payload = JSON.stringify({ role: 'admin', exp: Date.now() + 24 * 60 * 60 * 1000 })
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))
+  return btoa(payload) + '.' + btoa(String.fromCharCode(...new Uint8Array(sig)))
+}
+
+async function verifyAdminToken(token, secret) {
+  try {
+    const [payloadB64, sigB64] = token.split('.')
+    const payload = JSON.parse(atob(payloadB64))
+    if (payload.exp < Date.now()) return false
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
+    const sig = Uint8Array.from(atob(sigB64), c => c.charCodeAt(0))
+    return await crypto.subtle.verify('HMAC', key, sig, new TextEncoder().encode(JSON.stringify(payload)))
+  } catch { return false }
 }
 
 function json(data, status = 200) {
@@ -91,13 +110,27 @@ export default {
       return json(rows.results)
     }
 
+    // ── Admin login ──
+    if (path === '/api/admin/login' && method === 'POST') {
+      const { username, password } = await request.json()
+      if (username === (env.ADMIN_USERNAME || 'admin') && password === (env.ADMIN_PASSWORD || '')) {
+        if (!env.ADMIN_SECRET) return error('Admin secret not configured', 500)
+        const token = await createAdminToken(env.ADMIN_SECRET)
+        return json({ token })
+      }
+      return error('Invalid credentials', 401)
+    }
+
     // ── Authenticated routes ──
+    // Check admin token or Firebase user token
+    const adminToken = request.headers.get('X-Admin-Token')
+    const isAdmin = adminToken && env.ADMIN_SECRET ? await verifyAdminToken(adminToken, env.ADMIN_SECRET) : false
 
-    // Admin seed key bypass
+    // Legacy seed key support for scripts
     const seedKey = request.headers.get('X-Seed-Key')
-    const isAdmin = seedKey === (env.SEED_KEY || 'narrative-seed-2026')
+    const isSeedAdmin = seedKey === (env.SEED_KEY || 'narrative-seed-2026')
 
-    const user = isAdmin ? { uid: 'admin', email: 'admin' } : await authenticate(request, env)
+    const user = (isAdmin || isSeedAdmin) ? { uid: 'admin', email: 'admin' } : await authenticate(request, env)
     if (!user) return error('Unauthorized', 401)
 
     // GET /api/me — get user data
