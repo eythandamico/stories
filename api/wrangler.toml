@@ -1,0 +1,15 @@
+name = "narrative-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "narrative-db"
+database_id = "5914fabe-1281-4c02-8b10-6dd4691b42da"
+
+[[r2_buckets]]
+binding = "VIDEOS"
+bucket_name = "stories-bucket"
+
+[vars]
+FIREBASE_PROJECT_ID = "stories-a02bd"
