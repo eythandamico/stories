@@ -19,6 +19,10 @@ public/videos/*.mp4
 
 # Wrangler local state
 .wrangler/
+
+# iOS build artifacts
+ios/App/Pods/
+ios/App/App/public/
 dist-ssr
 *.local
 

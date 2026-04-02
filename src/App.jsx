@@ -1,22 +1,33 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import './tokens/theme.css'
 import { AuthProvider, useAuth } from './lib/use-auth.jsx'
 import { BottomNav } from './components/bottom-nav.jsx'
-import Home from './pages/Home.jsx'
-import Explore from './pages/Explore.jsx'
-import Settings from './pages/Settings.jsx'
-import StoryPlayer from './pages/StoryPlayer.jsx'
-import Auth from './pages/Auth.jsx'
-import SetupUsername from './pages/SetupUsername.jsx'
+
+// Lazy load pages for code splitting
+const Home = lazy(() => import('./pages/Home.jsx'))
+const Explore = lazy(() => import('./pages/Explore.jsx'))
+const Settings = lazy(() => import('./pages/Settings.jsx'))
+const StoryPlayer = lazy(() => import('./pages/StoryPlayer.jsx'))
+const Auth = lazy(() => import('./pages/Auth.jsx'))
+const SetupUsername = lazy(() => import('./pages/SetupUsername.jsx'))
 
 const tabs = [
   { id: 'home', label: 'Home', icon: 'home' },
   { id: 'explore', label: 'Explore', icon: 'search' },
 ]
 
+function LoadingScreen() {
+  return (
+    <div className="fixed inset-0 bg-[var(--inv-bg)] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+    </div>
+  )
+}
+
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return null
+  if (loading) return <LoadingScreen />
   if (!user) return <Navigate to="/auth" replace />
   if (!user.displayName && !localStorage.getItem('narrative-username-set')) {
     return <Navigate to="/setup" replace />
@@ -27,7 +38,7 @@ function ProtectedRoute({ children }) {
 function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
 
   const hideNav = location.pathname === '/play' || location.pathname === '/auth' || location.pathname === '/setup'
 
@@ -40,7 +51,7 @@ function AppShell() {
   }
 
   return (
-    <>
+    <Suspense fallback={<LoadingScreen />}>
       <Routes>
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
         <Route path="/setup" element={user ? <SetupUsername /> : <Navigate to="/auth" replace />} />
@@ -57,7 +68,7 @@ function AppShell() {
           onTabChange={handleTabChange}
         />
       )}
-    </>
+    </Suspense>
   )
 }
 
