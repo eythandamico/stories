@@ -10,6 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 
+# Environment variables
+.env
+.env.local
+
 # Large video files
 public/videos/*.mp4
 

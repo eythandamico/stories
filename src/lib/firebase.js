@@ -13,13 +13,12 @@ import {
 
 // TODO: Replace with your Firebase project config
 const firebaseConfig = {
-  apiKey: 'AIzaSyBMGaDc0CK7Sz52834vWYCdiZoHK6rIYp8',
-  authDomain: 'stories-a02bd.firebaseapp.com',
-  projectId: 'stories-a02bd',
-  storageBucket: 'stories-a02bd.firebasestorage.app',
-  messagingSenderId: '772155057015',
-  appId: '1:772155057015:web:02c2d7abae8a1df34ab772',
-  measurementId: 'G-L46VJF6538',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
 }
 
 export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey)
