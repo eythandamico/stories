@@ -313,7 +313,7 @@ export default function App() {
   const [stories, setStories] = useState([])
   const [selected, setSelected] = useState(null)
   const [tab, setTab] = useState('story')
-  const [view, setView] = useState('stories') // 'stories' | 'users'
+  const [view, setView] = useState('stories') // 'stories' | 'users' | 'story-detail'
   const [builderStoryId, setBuilderStoryId] = useState(null)
 
   const loadStories = () => {
@@ -335,47 +335,78 @@ export default function App() {
         </div>
         <p className="text-[13px] text-white/40 mb-4">Story management</p>
         {/* Nav */}
-        <div className="flex gap-1.5 mb-3">
-          <button onClick={() => setView('stories')}
-            className={`flex-1 px-3 py-2 rounded-lg text-[13px] font-medium cursor-pointer ${view === 'stories' ? 'bg-white/10 text-white' : 'text-white/40 hover:bg-white/5'}`}>
-            Stories
+        <nav className="space-y-1">
+          <button onClick={() => { setView('stories'); setSelected(null) }}
+            className={`w-full text-left px-3 py-2.5 rounded-lg text-[14px] font-medium cursor-pointer flex items-center gap-2.5 ${view === 'stories' || view === 'story-detail' ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5'}`}>
+            <span className="text-[16px]">📖</span> Stories
           </button>
           <button onClick={() => { setView('users'); setSelected(null) }}
-            className={`flex-1 px-3 py-2 rounded-lg text-[13px] font-medium cursor-pointer ${view === 'users' ? 'bg-white/10 text-white' : 'text-white/40 hover:bg-white/5'}`}>
-            Team
+            className={`w-full text-left px-3 py-2.5 rounded-lg text-[14px] font-medium cursor-pointer flex items-center gap-2.5 ${view === 'users' ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5'}`}>
+            <span className="text-[16px]">👥</span> Team
           </button>
-        </div>
-
-        {view === 'stories' && (
-          <>
-            <button onClick={() => { setSelected(null); setTab('story') }}
-              className="w-full text-left px-3 py-2 rounded-lg bg-white/5 text-[14px] font-medium cursor-pointer hover:bg-white/10 mb-3">
-              + New Story
-            </button>
-            <StoryList stories={stories} onSelect={(s) => { setSelected(s); setTab('story') }} selected={selected} />
-          </>
-        )}
+        </nav>
       </div>
 
       {/* Main */}
-      <div className="flex-1 p-6 max-w-3xl">
-        {/* Tabs */}
-        {selected && (
-          <div className="flex gap-2 mb-6">
-            {['story', 'builder'].map(t => (
-              <button key={t} onClick={() => t === 'builder' ? setBuilderStoryId(selected.id) : setTab(t)}
-                className={`px-4 py-2 rounded-lg text-[15px] font-medium cursor-pointer ${
-                  tab === t ? 'bg-white text-black' : 'bg-white/5 text-white/60 hover:bg-white/10'
-                }`}>
-                {t === 'story' ? 'Details' : '🔀 Builder'}
+      <div className="flex-1 p-6 overflow-y-auto">
+        {/* Users view */}
+        {view === 'users' && <div className="max-w-2xl"><UsersPanel /></div>}
+
+        {/* Stories list view */}
+        {view === 'stories' && (
+          <div className="max-w-3xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-[20px] font-semibold">Stories</h2>
+              <button onClick={() => { setSelected(null); setView('story-detail'); setTab('story') }}
+                className="px-4 py-2 rounded-lg bg-white text-black text-[14px] font-semibold cursor-pointer active:scale-[0.97]">
+                + New Story
               </button>
-            ))}
+            </div>
+            <div className="space-y-1.5">
+              {stories.map(s => (
+                <button key={s.id} onClick={() => { setSelected(s); setView('story-detail'); setTab('story') }}
+                  className="w-full text-left px-4 py-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] cursor-pointer transition-colors flex items-center justify-between">
+                  <div>
+                    <span className="text-[15px] font-medium">{s.title || s.id}</span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[13px] text-white/30">{s.genre}</span>
+                      <span className="text-[13px] text-white/20">·</span>
+                      <span className="text-[13px] text-white/30">{s.id}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {s.available ? <span className="text-[11px] px-1.5 py-0.5 rounded bg-green-500/15 text-green-400">Live</span> : <span className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/20">Draft</span>}
+                    {s.trending ? <span className="text-[11px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400">Trending</span> : null}
+                    <span className="text-white/20 text-[14px]">→</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {view === 'users' && <UsersPanel />}
-        {view === 'stories' && tab === 'story' && (
-          <StoryEditor story={selected} onSaved={loadStories} />
+        {/* Story detail view */}
+        {view === 'story-detail' && (
+          <div className="max-w-2xl">
+            {/* Back + Tabs */}
+            <div className="flex items-center gap-3 mb-6">
+              <button onClick={() => { setView('stories'); setSelected(null) }}
+                className="text-[14px] text-white/40 cursor-pointer hover:text-white/60">← Stories</button>
+              {selected && (
+                <div className="flex gap-2">
+                  <button onClick={() => setTab('story')}
+                    className={`px-4 py-2 rounded-lg text-[15px] font-medium cursor-pointer ${tab === 'story' ? 'bg-white text-black' : 'bg-white/5 text-white/60 hover:bg-white/10'}`}>
+                    Details
+                  </button>
+                  <button onClick={() => setBuilderStoryId(selected.id)}
+                    className="px-4 py-2 rounded-lg text-[15px] font-medium cursor-pointer bg-white/5 text-white/60 hover:bg-white/10">
+                    🔀 Builder
+                  </button>
+                </div>
+              )}
+            </div>
+            {tab === 'story' && <StoryEditor story={selected} onSaved={loadStories} />}
+          </div>
         )}
       </div>
     </div>
