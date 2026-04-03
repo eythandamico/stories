@@ -556,6 +556,17 @@ export default function StoryPlayer() {
       )}
 
 
+      {/* Close button — always visible */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); navigate('/') }}
+        className="absolute z-30 w-10 h-10 rounded-full bg-white/[0.14] backdrop-blur-md flex items-center justify-center cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] hover:bg-white/15"
+        style={{ top: 'calc(env(safe-area-inset-top, 20px) + 20px)', left: 20 }}
+        aria-label="Close"
+      >
+        <Icon name="close" size={18} className="text-white/80" />
+      </button>
+
       {/* Top bar */}
       <div
         className={`absolute top-0 left-0 right-0 z-20 px-5 pt-[calc(env(safe-area-inset-top,20px)+20px)] pb-6 flex items-center justify-between transition-[opacity,transform] duration-500 ${
@@ -564,14 +575,8 @@ export default function StoryPlayer() {
         onClick={(e) => e.stopPropagation()}
         style={{ background: 'linear-gradient(rgba(0,0,0,0.4), transparent)' }}
       >
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          className="w-10 h-10 rounded-full bg-white/[0.14] backdrop-blur-md flex items-center justify-center cursor-pointer transition-[opacity,transform,background-color] duration-200 active:scale-[0.96] hover:bg-white/15"
-          aria-label="Close"
-        >
-          <Icon name="close" size={18} className="text-white/80" />
-        </button>
+        {/* Spacer where close button was */}
+        <div className="w-10 h-10" />
 
         {/* Timer in top right */}
         {timerActive && showChoices && (
@@ -596,7 +601,9 @@ export default function StoryPlayer() {
       {!isPlaying && !showChoices && !choicesExiting && !showComplete && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none animate-scale-in">
           <div className="rounded-full bg-white/12 backdrop-blur-md flex items-center justify-center" style={{ width: 72, height: 72 }}>
-            <Icon name="play" size={28} className="text-white ml-1" />
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 3 }}>
+              <path d="M8 5.14v14l11-7-11-7z"/>
+            </svg>
           </div>
         </div>
       )}
