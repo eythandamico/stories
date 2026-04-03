@@ -620,10 +620,10 @@ export default function StoryPlayer() {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Dark gradient overlay — no backdrop-filter, just solid gradients */}
+        {/* Dark gradient overlay */}
         <div className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 35%, rgba(0,0,0,0.2) 60%, transparent 80%)',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0.15) 80%, transparent 92%)',
           }}
           aria-hidden="true"
         />
