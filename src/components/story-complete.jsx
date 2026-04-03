@@ -12,7 +12,16 @@ export function StoryComplete({
     <div className="fixed inset-0 z-[55] flex flex-col justify-end" onClick={(e) => e.stopPropagation()}>
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 35%, rgba(0,0,0,0.2) 60%, transparent 80%)' }}
+        style={{
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          maskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
+          WebkitMaskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)' }}
       />
 
       {/* Content */}

@@ -617,13 +617,24 @@ export default function StoryPlayer() {
         style={{
           opacity: visible ? 1 : 0,
           transition: `opacity ${choicesExiting ? '0.5s cubic-bezier(0.55, 0, 1, 0.45)' : '0.6s ease-out'}`,
+          willChange: 'opacity',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Dark gradient overlay */}
+        {/* Progressive blur — static blur, fades via parent opacity */}
         <div className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0.15) 80%, transparent 92%)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            maskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
+            WebkitMaskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
+          }}
+          aria-hidden="true"
+        />
+        {/* Dark gradient on top for text legibility */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)',
           }}
           aria-hidden="true"
         />
