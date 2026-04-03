@@ -1,7 +1,9 @@
 import { initializeApp } from 'firebase/app'
 import {
+  getAuth,
   initializeAuth,
   indexedDBLocalPersistence,
+  browserLocalPersistence,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
@@ -27,11 +29,18 @@ export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey)
 
 const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null
 
-// Use initializeAuth with explicit IndexedDB persistence for reliable
-// auth state in Capacitor WebViews (getAuth's default can be flaky)
-const auth = app
-  ? initializeAuth(app, { persistence: indexedDBLocalPersistence })
-  : null
+// initializeAuth with explicit persistence for Capacitor WebViews.
+// Falls back to getAuth if already initialized (e.g. by another module).
+let auth = null
+if (app) {
+  try {
+    auth = initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+    })
+  } catch {
+    auth = getAuth(app)
+  }
+}
 
 const googleProvider = new GoogleAuthProvider()
 const appleProvider = new OAuthProvider('apple.com')
