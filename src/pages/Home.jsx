@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo, memo } from 'react'
+import { useRef, useState, useEffect, useMemo, memo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchFeed } from '../lib/data.js'
 import { useAuth } from '../lib/use-auth.jsx'
@@ -247,7 +247,7 @@ export default function Home() {
 
   // Load feed from API
   useEffect(() => {
-    fetchFeed().then(data => { setFeed(data); setFeedLoaded(true) })
+    fetchFeed().then(data => { setFeed(data); setFeedLoaded(true) }).catch(() => setFeedLoaded(true))
   }, [])
 
   // Delay shader mount
@@ -278,7 +278,7 @@ export default function Home() {
     return () => observer.disconnect()
   }, [feed])
 
-  const handlePlay = (item) => {
+  const handlePlay = useCallback((item) => {
     if (!spendHeart()) {
       hapticError()
       setShowNoHearts(true)
@@ -287,7 +287,7 @@ export default function Home() {
     hapticLight()
     recordPlay()
     navigate(`/play/${item.storyId || item.id}`)
-  }
+  }, [spendHeart, recordPlay, navigate])
 
   if (!feedLoaded) return <FeedSkeleton />
 
@@ -342,7 +342,6 @@ export default function Home() {
         role="main"
         aria-label="Story feed"
         className="fixed inset-0 bg-black overflow-y-scroll snap-y snap-mandatory no-scrollbar"
-        style={{ scrollSnapType: 'y mandatory' }}
       >
         {feed.map((item, i) => (
           <FeedCard

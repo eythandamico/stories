@@ -325,8 +325,9 @@ export default {
     // POST /api/me/perks/use — use a perk
     if (path === '/api/me/perks/use' && method === 'POST') {
       const { type } = await request.json()
-      const col = `perks_${type}`
-      if (!['perks_freeze', 'perks_hint', 'perks_rewind'].includes(col)) return error('Invalid perk')
+      const colMap = { freeze: 'perks_freeze', hint: 'perks_hint', rewind: 'perks_rewind' }
+      const col = colMap[type]
+      if (!col) return error('Invalid perk')
       const result = await env.DB.prepare(
         `UPDATE users SET ${col} = ${col} - 1 WHERE id = ? AND ${col} > 0`
       ).bind(user.uid).run()

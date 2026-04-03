@@ -13,6 +13,10 @@ async function request(path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers })
+  if (res.status === 401) {
+    window.location.href = '/auth'
+    throw new Error('Session expired')
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Request failed' }))
     throw new Error(err.error || 'Request failed')
