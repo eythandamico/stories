@@ -53,10 +53,10 @@ function ConnectionBurst({ connection, onDevToggle }) {
 
   const animStyle = frozen ? '' : `
     @keyframes conn-bg-${key} {
-      0% { opacity: 0; transform: translateY(-100%); }
-      15% { opacity: 1; transform: translateY(0); }
-      70% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(-100%); }
+      0% { opacity: 0; }
+      15% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { opacity: 0; }
     }
     @keyframes conn-pill-${key} {
       0% { opacity: 0; transform: scale(0); }
