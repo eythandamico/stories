@@ -14,6 +14,169 @@ import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
 
 const MAX_CONNECTION = 5
 
+// ── Connection Burst with dev controls ──
+const DEV_MODE = true // Set to false to hide dev panel
+
+const DEFAULT_PARAMS = {
+  blurHeight: 220,
+  blurAmount: 20,
+  blurMaskEnd: 100,
+  blurMaskSolid: 40,
+  gradAngle: 160,
+  gradPink: 0.45,
+  gradOrange: 0.35,
+  gradPurple: 0.15,
+  gradMaskSolid: 30,
+  pillPink: 0.3,
+  pillOrange: 0.25,
+  pillBorder: 0.2,
+  pillGlow: 0.2,
+  animDuration: 1.8,
+}
+
+function ConnectionBurst({ connection }) {
+  const [p, setP] = useState(DEFAULT_PARAMS)
+  const [showDev, setShowDev] = useState(false)
+  const [key, setKey] = useState(0)
+
+  const update = (k, v) => setP(prev => ({ ...prev, [k]: v }))
+  const replay = () => setKey(k => k + 1)
+
+  const animStyle = `
+    @keyframes conn-bg-${key} {
+      0% { opacity: 0; transform: translateY(-100%); }
+      15% { opacity: 1; transform: translateY(0); }
+      70% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-100%); }
+    }
+    @keyframes conn-pill-${key} {
+      0% { opacity: 0; transform: scale(0); }
+      15% { opacity: 1; transform: scale(1.15); }
+      22% { transform: scale(0.95); }
+      28% { transform: scale(1); }
+      70% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.8); }
+    }
+  `
+
+  return (
+    <>
+      <style>{animStyle}</style>
+      <div key={key} className="absolute top-0 left-0 right-0 z-[46] pointer-events-none">
+        {/* Background blur + gradient */}
+        <div style={{ animation: `conn-bg-${key} ${p.animDuration}s ease-out both` }}>
+          <div
+            className="absolute top-0 left-0 right-0"
+            style={{
+              height: p.blurHeight,
+              backdropFilter: `blur(${p.blurAmount}px)`,
+              WebkitBackdropFilter: `blur(${p.blurAmount}px)`,
+              maskImage: `linear-gradient(to bottom, black 0%, black ${p.blurMaskSolid}%, transparent ${p.blurMaskEnd}%)`,
+              WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${p.blurMaskSolid}%, transparent ${p.blurMaskEnd}%)`,
+            }}
+          />
+          <div
+            className="absolute top-0 left-0 right-0"
+            style={{
+              height: p.blurHeight,
+              background: `linear-gradient(${p.gradAngle}deg, rgba(236,72,153,${p.gradPink}) 0%, rgba(249,115,22,${p.gradOrange}) 40%, rgba(168,85,247,${p.gradPurple}) 70%, transparent 100%)`,
+              maskImage: `linear-gradient(to bottom, black 0%, black ${p.gradMaskSolid}%, transparent 100%)`,
+              WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${p.gradMaskSolid}%, transparent 100%)`,
+            }}
+          />
+        </div>
+        {/* Pill */}
+        <div
+          className="absolute left-0 right-0 flex items-center justify-center"
+          style={{
+            top: 'calc(env(safe-area-inset-top, 20px) + 70px)',
+            animation: `conn-pill-${key} ${p.animDuration}s cubic-bezier(0.34, 1.56, 0.64, 1) both`,
+          }}
+        >
+          <div
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full"
+            style={{
+              background: `linear-gradient(135deg, rgba(236,72,153,${p.pillPink}), rgba(249,115,22,${p.pillOrange}))`,
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: `1px solid rgba(236,72,153,${p.pillBorder})`,
+              boxShadow: `0 4px 24px rgba(236,72,153,${p.pillGlow})`,
+            }}
+          >
+            <HeartIcon size={22} />
+            <span className="text-white text-[18px] font-semibold">+{connection * 5}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Dev controls */}
+      {DEV_MODE && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setShowDev(d => !d) }}
+          className="absolute z-[60] w-8 h-8 rounded-full bg-red-500 flex items-center justify-center cursor-pointer text-white text-[12px] font-bold pointer-events-auto"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 20px) + 80px)', right: 12 }}
+        >
+          D
+        </button>
+      )}
+      {DEV_MODE && showDev && (
+        <div
+          className="absolute z-[60] overflow-y-auto pointer-events-auto"
+          style={{
+            top: 'calc(env(safe-area-inset-top, 20px) + 10px)',
+            right: 8, width: 220, maxHeight: '70vh',
+            background: 'rgba(0,0,0,0.9)', borderRadius: 12, padding: 12,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-white text-[13px] font-semibold">Connection Tuner</span>
+            <button type="button" onClick={replay} className="px-2 py-1 rounded-lg bg-pink-500 text-white text-[11px] font-semibold cursor-pointer">Replay</button>
+          </div>
+          {[
+            ['blurHeight', 'Blur Height', 100, 400, 10],
+            ['blurAmount', 'Blur Amount', 0, 40, 1],
+            ['blurMaskSolid', 'Blur Solid %', 0, 80, 5],
+            ['blurMaskEnd', 'Blur Fade %', 50, 100, 5],
+            ['gradAngle', 'Grad Angle', 0, 360, 10],
+            ['gradPink', 'Pink', 0, 1, 0.05],
+            ['gradOrange', 'Orange', 0, 1, 0.05],
+            ['gradPurple', 'Purple', 0, 1, 0.05],
+            ['gradMaskSolid', 'Grad Solid %', 0, 60, 5],
+            ['pillPink', 'Pill Pink', 0, 1, 0.05],
+            ['pillOrange', 'Pill Orange', 0, 1, 0.05],
+            ['pillBorder', 'Pill Border', 0, 0.5, 0.05],
+            ['pillGlow', 'Pill Glow', 0, 0.5, 0.05],
+            ['animDuration', 'Duration', 0.5, 4, 0.1],
+          ].map(([k, label, min, max, step]) => (
+            <div key={k} className="mb-2">
+              <div className="flex justify-between text-[11px] text-white/60 mb-0.5">
+                <span>{label}</span>
+                <span className="text-white/80 tabular-nums">{p[k]}</span>
+              </div>
+              <input
+                type="range" min={min} max={max} step={step}
+                value={p[k]}
+                onChange={(e) => update(k, parseFloat(e.target.value))}
+                className="w-full h-1 appearance-none bg-white/20 rounded-full cursor-pointer"
+                style={{ accentColor: '#ec4899' }}
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => { console.log('Connection params:', JSON.stringify(p, null, 2)); navigator.clipboard?.writeText(JSON.stringify(p, null, 2)) }}
+            className="w-full mt-2 py-1.5 rounded-lg bg-white/10 text-white/70 text-[11px] font-medium cursor-pointer"
+          >
+            Copy Params
+          </button>
+        </div>
+      )}
+    </>
+  )
+}
+
 export default function StoryPlayer() {
   const navigate = useNavigate()
   const { storyId } = useParams()
@@ -498,53 +661,7 @@ export default function StoryPlayer() {
 
       {/* Connection burst */}
       {showConnectionBurst && (
-        <div className="absolute top-0 left-0 right-0 z-[46] pointer-events-none">
-          {/* Progressive blur — slides in from top */}
-          <div style={{ animation: 'connection-bg-slide 1.8s ease-out both' }}>
-            <div
-              className="absolute top-0 left-0 right-0"
-              style={{
-                height: 220,
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                maskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%)',
-              }}
-            />
-            {/* Intense pink-orange gradient */}
-            <div
-              className="absolute top-0 left-0 right-0"
-              style={{
-                height: 220,
-                background: 'linear-gradient(160deg, rgba(236,72,153,0.45) 0%, rgba(249,115,22,0.35) 40%, rgba(168,85,247,0.15) 70%, transparent 100%)',
-                maskImage: 'linear-gradient(to bottom, black 0%, black 30%, transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 30%, transparent 100%)',
-              }}
-            />
-          </div>
-          {/* Badge — scales in from center */}
-          <div
-            className="absolute left-0 right-0 flex items-center justify-center"
-            style={{
-              top: 'calc(env(safe-area-inset-top, 20px) + 70px)',
-              animation: 'connection-pill-scale 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) both',
-            }}
-          >
-            <div
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full"
-              style={{
-                background: 'linear-gradient(135deg, rgba(236,72,153,0.3), rgba(249,115,22,0.25))',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                border: '1px solid rgba(236,72,153,0.2)',
-                boxShadow: '0 4px 24px rgba(236,72,153,0.2)',
-              }}
-            >
-              <HeartIcon size={22} />
-              <span className="text-white text-[18px] font-semibold">+{connection * 5}</span>
-            </div>
-          </div>
-        </div>
+        <ConnectionBurst connection={connection} />
       )}
 
 
