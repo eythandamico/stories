@@ -105,11 +105,9 @@ function ConnectionBurst({ connection, onDevToggle }) {
           <div
             className="flex items-center gap-2 px-5 py-2.5 rounded-full"
             style={{
-              background: `linear-gradient(135deg, rgba(236,72,153,${p.pillPink}), rgba(249,115,22,${p.pillOrange}))`,
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: `1px solid rgba(236,72,153,${p.pillBorder})`,
-              boxShadow: `0 4px 24px rgba(236,72,153,${p.pillGlow})`,
+              background: 'rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
             }}
           >
             <HeartIcon size={22} />
