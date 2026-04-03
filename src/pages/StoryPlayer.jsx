@@ -22,9 +22,7 @@ export default function StoryPlayer() {
   const [story, setStory] = useState(null)
   const [loading, setLoading] = useState(true)
   const videoRef = useRef(null)
-  const prevVideoRef = useRef(null)
-  const [prevVideoSrc, setPrevVideoSrc] = useState(null)
-  const [videoReady, setVideoReady] = useState(true) // true initially for first video
+  const [transitioning, setTransitioning] = useState(false)
   const [newEnding, setNewEnding] = useState(false)
   const [showComplete, setShowComplete] = useState(false)
   const [hintActive, setHintActive] = useState(false)
@@ -97,17 +95,10 @@ export default function StoryPlayer() {
 
   const node = story?.nodes?.[currentNodeId]
 
-  // Reset state on node change — capture previous video for crossfade
-  const prevNodeId = useRef(null)
+  // Reset state on node change — swap video src without remount
+  const isFirstNode = useRef(true)
   useEffect(() => {
-    // Capture old video src for the background layer
-    if (prevNodeId.current && story?.nodes?.[prevNodeId.current]?.video) {
-      setPrevVideoSrc(story.nodes[prevNodeId.current].video)
-      setVideoReady(false)
-      // Clear previous video after crossfade completes
-      setTimeout(() => setPrevVideoSrc(null), 800)
-    }
-    prevNodeId.current = currentNodeId
+    if (!node || !videoRef.current) return
 
     setProgress(0)
     setIsPlaying(true)
@@ -119,10 +110,26 @@ export default function StoryPlayer() {
     setHintActive(false)
     setFreezeActive(false)
     stopHeartbeat()
-    if (videoRef.current) {
-      videoRef.current.muted = false
-      videoRef.current.loop = false
+
+    if (isFirstNode.current) {
+      isFirstNode.current = false
+      return // First node uses the src set in JSX
     }
+
+    // Fade out, swap src, fade back in
+    const video = videoRef.current
+    setTransitioning(true)
+    setTimeout(() => {
+      video.muted = false
+      video.loop = false
+      video.src = node.video
+      video.load()
+      video.play().catch(() => {})
+      // Fade in after a frame
+      requestAnimationFrame(() => {
+        setTransitioning(false)
+      })
+    }, 300) // Wait for fade-out
   }, [currentNodeId])
 
   // Auto-hide controls
@@ -201,30 +208,15 @@ export default function StoryPlayer() {
     videoRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * videoRef.current.duration
   }
 
-  // Preload next videos when choices appear
-  const preloadLinks = useRef([])
+  // Preload next videos when choices appear (warm the browser cache)
   const preloadNextVideos = useCallback((choices) => {
-    // Clean up old preloads
-    preloadLinks.current.forEach(link => link.remove())
-    preloadLinks.current = []
-    // Preload each choice's destination video
     choices?.forEach(choice => {
       const nextNode = story?.nodes?.[choice.nextNodeId]
       if (nextNode?.video) {
-        const link = document.createElement('link')
-        link.rel = 'preload'
-        link.as = 'video'
-        link.href = nextNode.video
-        document.head.appendChild(link)
-        preloadLinks.current.push(link)
+        fetch(nextNode.video, { mode: 'no-cors' }).catch(() => {})
       }
     })
   }, [story])
-
-  // Cleanup preloads on unmount
-  useEffect(() => () => {
-    preloadLinks.current.forEach(link => link.remove())
-  }, [])
 
   const handleVideoEnd = useCallback(() => {
     setShowChoices(true)
@@ -452,32 +444,18 @@ export default function StoryPlayer() {
         </div>
       )}
 
-      {/* Previous video — stays visible as background during crossfade */}
-      {prevVideoSrc && (
-        <video
-          ref={prevVideoRef}
-          src={prevVideoSrc}
-          className="absolute inset-0 w-full h-full object-cover"
-          muted
-          playsInline
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Current video — fades in over previous */}
       <video
         ref={videoRef}
-        key={currentNodeId}
         src={node.video}
         poster={node.poster || ''}
         aria-label={node.title}
         className="w-full h-full object-cover"
         style={{
-          opacity: videoReady ? 1 : 0,
-          transition: 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-          willChange: 'opacity',
+          opacity: transitioning ? 0 : 1,
+          transition: transitioning
+            ? 'opacity 0.25s ease-in'
+            : 'opacity 0.35s ease-out',
         }}
-        onCanPlay={() => setVideoReady(true)}
         onEnded={handleVideoEnd}
         onPlay={() => { setIsPlaying(true); setVideoError(false) }}
         onPause={() => setIsPlaying(false)}
