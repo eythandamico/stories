@@ -118,20 +118,30 @@ export default function StoryPlayer() {
       return // First node uses the src set in JSX
     }
 
-    // Fade out, swap src, fade back in
+    // Fade out, swap src, fade back in only when video is ready
     const video = videoRef.current
     setTransitioning(true)
     setTimeout(() => {
       video.muted = false
       video.loop = false
+
+      // Listen for the video to be ready before fading in
+      const onReady = () => {
+        video.removeEventListener('canplay', onReady)
+        setTransitioning(false)
+      }
+      video.addEventListener('canplay', onReady)
+
       video.src = node.video
       video.load()
       video.play().catch(() => {})
-      // Fade in after a frame
-      requestAnimationFrame(() => {
+
+      // Safety timeout — fade in after 2s max even if canplay doesn't fire
+      setTimeout(() => {
+        video.removeEventListener('canplay', onReady)
         setTransitioning(false)
-      })
-    }, 300) // Wait for fade-out
+      }, 2000)
+    }, 300)
   }, [currentNodeId])
 
   // Auto-hide controls
