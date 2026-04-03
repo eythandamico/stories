@@ -268,7 +268,7 @@ export default function Home() {
     const items = container.querySelectorAll('[data-index]')
     items.forEach((item) => observer.observe(item))
     return () => observer.disconnect()
-  }, [])
+  }, [feed])
 
   const handlePlay = (item) => {
     if (!spendHeart()) {

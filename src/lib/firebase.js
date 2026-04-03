@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import {
-  getAuth,
+  initializeAuth,
+  indexedDBLocalPersistence,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
@@ -13,7 +14,6 @@ import {
 } from 'firebase/auth'
 import { Capacitor } from '@capacitor/core'
 
-// Firebase project config (loaded from environment variables)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
@@ -26,7 +26,12 @@ const firebaseConfig = {
 export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey)
 
 const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null
-const auth = app ? getAuth(app) : null
+
+// Use initializeAuth with explicit IndexedDB persistence for reliable
+// auth state in Capacitor WebViews (getAuth's default can be flaky)
+const auth = app
+  ? initializeAuth(app, { persistence: indexedDBLocalPersistence })
+  : null
 
 const googleProvider = new GoogleAuthProvider()
 const appleProvider = new OAuthProvider('apple.com')
@@ -45,12 +50,11 @@ export async function loginWithGoogle() {
   if (Capacitor.isNativePlatform()) {
     const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
     const result = await FirebaseAuthentication.signInWithGoogle()
-    return new Promise((resolve) => {
-      const unsub = onAuthStateChanged(auth, (user) => {
-        if (user) { unsub(); resolve({ user }) }
-      })
-      setTimeout(() => { unsub(); resolve({ user: auth.currentUser }) }, 3000)
-    })
+    const credential = GoogleAuthProvider.credential(
+      result.credential?.idToken,
+      result.credential?.accessToken,
+    )
+    return signInWithCredential(auth, credential)
   }
   return signInWithPopup(auth, googleProvider)
 }
@@ -58,17 +62,12 @@ export async function loginWithGoogle() {
 export async function loginWithApple() {
   if (Capacitor.isNativePlatform()) {
     const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
-    // On native, FirebaseAuthentication handles the full sign-in flow
-    // including linking to Firebase — no need for signInWithCredential
     const result = await FirebaseAuthentication.signInWithApple()
-    // Wait for Firebase Auth to pick up the native sign-in
-    return new Promise((resolve) => {
-      const unsub = onAuthStateChanged(auth, (user) => {
-        if (user) { unsub(); resolve({ user }) }
-      })
-      // Fallback timeout
-      setTimeout(() => { unsub(); resolve({ user: auth.currentUser }) }, 3000)
+    const credential = appleProvider.credential({
+      idToken: result.credential?.idToken,
+      rawNonce: result.credential?.nonce,
     })
+    return signInWithCredential(auth, credential)
   }
   return signInWithPopup(auth, appleProvider)
 }
