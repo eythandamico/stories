@@ -1,12 +1,29 @@
 import { useState } from 'react'
 import Icon from '../lib/icon.jsx'
+import { HeartIcon } from './heart-icon.jsx'
+import { FlameIcon } from './flame-icon.jsx'
 
 const STORAGE_KEY = 'narrative-onboarding-complete'
 
 const steps = [
-  { icon: 'play', color: 'text-white', title: 'Watch', description: 'Immerse yourself in cinematic stories' },
-  { icon: 'target', color: 'text-white', title: 'Choose', description: 'Your decisions shape the story' },
-  { icon: 'heart', color: 'text-pink-400', fill: true, title: 'Connect', description: 'Build relationships and discover every ending' },
+  {
+    video: 'https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev/previews/onboarding-1.mp4',
+    title: 'Watch',
+    description: 'Immerse yourself in cinematic stories crafted just for you',
+    icon: 'play',
+  },
+  {
+    video: 'https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev/previews/onboarding-2.mp4',
+    title: 'Choose',
+    description: 'Your decisions shape the narrative — every choice matters',
+    icon: 'target',
+  },
+  {
+    video: 'https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev/previews/onboarding-3.mp4',
+    title: 'Discover',
+    description: 'Unlock endings, build streaks, and collect every path',
+    icon: 'sparkle',
+  },
 ]
 
 export function shouldShowOnboarding() {
@@ -32,27 +49,58 @@ export function Onboarding({ onComplete }) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center px-10"
+      className="fixed inset-0 z-[60] bg-black flex flex-col"
       onClick={!isLast ? advance : undefined}
     >
-      {/* Step content */}
-      <div key={step} className="animate-fade-up flex flex-col items-center text-center">
-        <div className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-8">
-          <Icon
-            name={current.icon}
-            size={44}
-            className={current.color}
-            style={current.fill ? { fill: 'currentColor' } : undefined}
-          />
-        </div>
-        <h2 className="text-white font-semibold text-[32px] tracking-tight mb-3">{current.title}</h2>
-        <p className="text-white/45 text-[16px] leading-relaxed max-w-[280px]">{current.description}</p>
-      </div>
+      {/* Video background */}
+      <video
+        key={step}
+        className="absolute inset-0 w-full h-full object-cover"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      >
+        <source src={current.video} type="video/mp4" />
+      </video>
 
-      {/* Bottom area */}
-      <div className="absolute bottom-16 left-0 right-0 px-10 flex flex-col items-center gap-6">
+      {/* Progressive blur */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          maskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 65%)',
+          WebkitMaskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 65%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)' }}
+      />
+
+      {/* Skip button */}
+      {!isLast && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); finish() }}
+          className="absolute z-10 text-white/40 text-[15px] font-medium cursor-pointer"
+          style={{ top: 'calc(env(safe-area-inset-top, 20px) + 16px)', right: 20 }}
+        >
+          Skip
+        </button>
+      )}
+
+      {/* Bottom content */}
+      <div className="relative flex-1 flex flex-col justify-end px-8 pb-[max(env(safe-area-inset-bottom),24px)]">
+        <div key={step} className="animate-fade-up text-center mb-8">
+          <h2 className="text-white font-semibold text-[34px] tracking-tight mb-3">{current.title}</h2>
+          <p className="text-white/50 text-[17px] leading-relaxed max-w-[300px] mx-auto">{current.description}</p>
+        </div>
+
         {/* Progress dots */}
-        <div className="flex gap-2">
+        <div className="flex justify-center gap-2 mb-6">
           {steps.map((_, i) => (
             <div
               key={i}
@@ -66,8 +114,8 @@ export function Onboarding({ onComplete }) {
           ))}
         </div>
 
-        {/* Button on last step */}
-        {isLast && (
+        {/* Button */}
+        {isLast ? (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); finish() }}
@@ -75,10 +123,14 @@ export function Onboarding({ onComplete }) {
           >
             Get Started
           </button>
-        )}
-
-        {!isLast && (
-          <p className="text-white/25 text-[16px]">Tap to continue</p>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); advance() }}
+            className="w-full h-[52px] rounded-2xl bg-white/15 backdrop-blur-md text-white font-semibold text-[16px] cursor-pointer transition-all duration-200 active:scale-[0.97]"
+          >
+            Next
+          </button>
         )}
       </div>
     </div>
