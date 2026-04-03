@@ -33,20 +33,18 @@ const DEFAULT_PARAMS = {
 
 function ConnectionBurst({ connection, onDevToggle }) {
   const [p] = useState(DEFAULT_PARAMS)
-  const [phase, setPhase] = useState('in') // 'in' | 'hold' | 'out' | 'done'
+  const [showing, setShowing] = useState(false)
+  const [visible, setVisible] = useState(true)
 
-  // Lifecycle: fade in → hold → fade out
+  // Mount → fade in (next frame) → hold → fade out → unmount
   useEffect(() => {
-    const fadeInMs = p.animDuration * 0.15 * 1000
-    const holdMs = p.animDuration * 0.55 * 1000
-    const t1 = setTimeout(() => setPhase('hold'), fadeInMs)
-    const t2 = setTimeout(() => setPhase('out'), fadeInMs + holdMs)
-    const t3 = setTimeout(() => setPhase('done'), p.animDuration * 1000)
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+    const raf = requestAnimationFrame(() => setShowing(true))
+    const holdMs = p.animDuration * 0.7 * 1000
+    const totalMs = p.animDuration * 1000
+    const t1 = setTimeout(() => setShowing(false), holdMs)
+    const t2 = setTimeout(() => setVisible(false), totalMs)
+    return () => { cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2) }
   }, [])
-
-  const visible = phase !== 'done'
-  const showing = phase === 'in' || phase === 'hold'
 
   if (!visible) return null
 
@@ -107,7 +105,7 @@ function ConnectionBurst({ connection, onDevToggle }) {
           style={{
             top: 'calc(env(safe-area-inset-top, 20px) + 20px)',
             opacity: showing ? 1 : 0,
-            transform: showing ? 'scale(1)' : phase === 'in' ? 'scale(0)' : 'scale(0.8)',
+            transform: showing ? 'scale(1)' : 'scale(0)',
             transition: showing
               ? 'opacity 0.3s ease-out, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
               : 'opacity 0.6s ease-in, transform 0.6s ease-in',
