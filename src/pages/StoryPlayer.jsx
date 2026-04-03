@@ -608,31 +608,22 @@ export default function StoryPlayer() {
       )}
 
       {/* Bottom content */}
+      {(() => {
+        const visible = showChoices && !choicesExiting && !showComplete
+        const hidden = showComplete || (!showChoices && !choicesExiting)
+        return (
       <div
-        className={`fixed inset-0 z-10 flex flex-col justify-end ${
-          showComplete ? 'opacity-0 pointer-events-none' : (showChoices && !choicesExiting) ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 z-10 flex flex-col justify-end ${hidden ? 'pointer-events-none' : ''}`}
         style={{
-          transition: choicesExiting
-            ? 'opacity 0.5s cubic-bezier(0.55, 0, 1, 0.45)' // ease-in for exit
-            : 'opacity 0.5s ease-out', // ease-out for enter
+          opacity: visible ? 1 : 0,
+          transition: `opacity ${choicesExiting ? '0.5s cubic-bezier(0.55, 0, 1, 0.45)' : '0.6s ease-out'}`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Dark gradient overlay — no backdrop-filter, just solid gradients */}
         <div className="absolute inset-0 pointer-events-none"
           style={{
-            backdropFilter: (showChoices && !choicesExiting && !showComplete) ? 'blur(24px)' : 'blur(0px)',
-            WebkitBackdropFilter: (showChoices && !choicesExiting && !showComplete) ? 'blur(24px)' : 'blur(0px)',
-            transition: 'backdrop-filter 0.6s ease-out, -webkit-backdrop-filter 0.6s ease-out',
-            maskImage: 'linear-gradient(to top, black 40%, transparent 80%)',
-            WebkitMaskImage: 'linear-gradient(to top, black 40%, transparent 80%)',
-          }}
-          aria-hidden="true"
-        />
-        <div className="absolute inset-0 pointer-events-none"
-          style={{
-            background: (showChoices && !choicesExiting && !showComplete) ? 'linear-gradient(transparent 20%, rgba(0,0,0,0.8))' : 'linear-gradient(transparent 20%, rgba(0,0,0,0))',
-            transition: 'background 0.6s ease-out',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 35%, rgba(0,0,0,0.2) 60%, transparent 80%)',
           }}
           aria-hidden="true"
         />
@@ -767,6 +758,8 @@ export default function StoryPlayer() {
           ) : null}
         </div>
       </div>
+        )
+      })()}
 
       {/* Progress bar — always visible during playback */}
       {!showChoices && !showComplete && (
