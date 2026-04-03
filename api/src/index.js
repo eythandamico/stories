@@ -1,5 +1,52 @@
 import { verifyToken } from './auth.js'
 
+// ── FCM V1 Auth (Service Account → OAuth2 Access Token) ──
+let fcmTokenCache = { token: null, expiry: 0 }
+
+async function getFCMAccessToken(env) {
+  if (fcmTokenCache.token && Date.now() < fcmTokenCache.expiry) return fcmTokenCache.token
+  if (!env.FCM_SERVICE_ACCOUNT) return null
+
+  try {
+    const sa = JSON.parse(env.FCM_SERVICE_ACCOUNT)
+    const now = Math.floor(Date.now() / 1000)
+
+    // Build JWT header + claims
+    const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).replace(/=/g, '')
+    const claims = btoa(JSON.stringify({
+      iss: sa.client_email,
+      scope: 'https://www.googleapis.com/auth/firebase.messaging',
+      aud: 'https://oauth2.googleapis.com/token',
+      iat: now,
+      exp: now + 3600,
+    })).replace(/=/g, '')
+
+    // Sign with service account private key
+    const pem = sa.private_key.replace(/-----[^-]+-----/g, '').replace(/\s/g, '')
+    const keyData = Uint8Array.from(atob(pem), c => c.charCodeAt(0))
+    const key = await crypto.subtle.importKey('pkcs8', keyData, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign'])
+    const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(`${header}.${claims}`))
+    const signature = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+
+    const jwt = `${header}.${claims}.${signature}`
+
+    // Exchange JWT for access token
+    const res = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+    })
+    const data = await res.json()
+    if (data.access_token) {
+      fcmTokenCache = { token: data.access_token, expiry: Date.now() + (data.expires_in - 60) * 1000 }
+      return data.access_token
+    }
+  } catch (e) {
+    console.error('FCM auth error:', e)
+  }
+  return null
+}
+
 const ALLOWED_ORIGINS = [
   'https://stories-bph.pages.dev',
   'https://narrative-admin.pages.dev',
@@ -322,30 +369,30 @@ export default {
             .bind(body.id, (maxOrder?.m ?? -1) + 1).run()
         }
 
-        // Send push notification for new available stories
-        if (!existing && body.available && env.FIREBASE_SERVER_KEY) {
-          const users = await env.DB.prepare(
-            "SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ''"
-          ).all()
-          const tokens = users.results.map(u => u.push_token).filter(Boolean)
-          if (tokens.length > 0) {
-            fetch('https://fcm.googleapis.com/fcm/send', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `key=${env.FIREBASE_SERVER_KEY}`,
-              },
-              body: JSON.stringify({
-                registration_ids: tokens.slice(0, 500),
-                notification: {
-                  title: 'New Story Available',
-                  body: `${body.title || 'A new story'} is now available to play!`,
-                  sound: 'default',
-                },
-                data: { storyId: body.id },
-              }),
-            }).catch(() => {}) // Fire and forget
-          }
+        // Send push notification for new available stories (fire and forget)
+        if (!existing && body.available) {
+          getFCMAccessToken(env).then(accessToken => {
+            if (!accessToken) return
+            env.DB.prepare("SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ''")
+              .all().then(({ results }) => {
+                const projectId = env.FIREBASE_PROJECT_ID
+                for (const u of results) {
+                  if (!u.push_token) continue
+                  fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                    body: JSON.stringify({
+                      message: {
+                        token: u.push_token,
+                        notification: { title: 'New Story Available', body: `${body.title || 'A new story'} is now available to play!` },
+                        data: { storyId: body.id },
+                        apns: { payload: { aps: { sound: 'default' } } },
+                      },
+                    }),
+                  }).catch(() => {})
+                }
+              }).catch(() => {})
+          }).catch(() => {})
         }
 
         return json({ ok: true, isNew: !existing })
@@ -509,52 +556,54 @@ export default {
         const { title, body, data } = await request.json()
         if (!title || !body) return error('Title and body required')
 
-        // Get all users with push tokens
         const users = await env.DB.prepare(
-          'SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ?'
-        ).bind('').all()
-
+          "SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ''"
+        ).all()
         const tokens = users.results.map(u => u.push_token).filter(Boolean)
         if (tokens.length === 0) return json({ ok: true, sent: 0 })
 
-        // Send via Firebase Cloud Messaging (FCM v1 API)
-        // Requires FIREBASE_SERVER_KEY env var
-        if (!env.FIREBASE_SERVER_KEY) return error('FIREBASE_SERVER_KEY not configured', 500)
+        const accessToken = await getFCMAccessToken(env)
+        if (!accessToken) return error('FCM not configured — set FCM_SERVICE_ACCOUNT secret', 500)
 
         let sent = 0
         const failed = []
+        const projectId = env.FIREBASE_PROJECT_ID
 
-        // Send in batches of 500
-        for (let i = 0; i < tokens.length; i += 500) {
-          const batch = tokens.slice(i, i + 500)
-          const res = await fetch('https://fcm.googleapis.com/fcm/send', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `key=${env.FIREBASE_SERVER_KEY}`,
-            },
-            body: JSON.stringify({
-              registration_ids: batch,
-              notification: { title, body, sound: 'default' },
-              data: data || {},
-            }),
-          })
-          const result = await res.json()
-          sent += result.success || 0
-          if (result.results) {
-            result.results.forEach((r, idx) => {
-              if (r.error === 'NotRegistered' || r.error === 'InvalidRegistration') {
-                failed.push(batch[idx])
+        // FCM V1 sends one message per token
+        for (const token of tokens) {
+          try {
+            const res = await fetch(
+              `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({
+                  message: {
+                    token,
+                    notification: { title, body },
+                    data: data || {},
+                    apns: { payload: { aps: { sound: 'default' } } },
+                  },
+                }),
               }
-            })
-          }
+            )
+            if (res.ok) {
+              sent++
+            } else {
+              const err = await res.json().catch(() => ({}))
+              if (err.error?.details?.[0]?.errorCode === 'UNREGISTERED') {
+                failed.push(token)
+              }
+            }
+          } catch {}
         }
 
         // Clean up invalid tokens
-        if (failed.length > 0) {
-          for (const token of failed) {
-            await env.DB.prepare('UPDATE users SET push_token = NULL WHERE push_token = ?').bind(token).run()
-          }
+        for (const token of failed) {
+          await env.DB.prepare('UPDATE users SET push_token = NULL WHERE push_token = ?').bind(token).run()
         }
 
         return json({ ok: true, sent, total: tokens.length, cleaned: failed.length })
