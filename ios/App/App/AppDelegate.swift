@@ -14,13 +14,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DispatchQueue.main.async {
             if let vc = self.window?.rootViewController as? CAPBridgeViewController {
                 vc.webView?.scrollView.contentInsetAdjustmentBehavior = .never
-                // Negate safe area so WebView extends behind home indicator
+                // Negate only bottom safe area (home indicator)
+                // Keep top safe area so env(safe-area-inset-top) still works in CSS
                 let insets = vc.view.safeAreaInsets
                 vc.additionalSafeAreaInsets = UIEdgeInsets(
-                    top: -insets.top,
-                    left: -insets.left,
+                    top: 0,
+                    left: 0,
                     bottom: -insets.bottom,
-                    right: -insets.right
+                    right: 0
                 )
             }
         }
