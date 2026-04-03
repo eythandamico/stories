@@ -4,10 +4,11 @@ import {
   initializeAuth,
   indexedDBLocalPersistence,
   browserLocalPersistence,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signInWithPopup,
   signInWithCredential,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
   GoogleAuthProvider,
   OAuthProvider,
   signOut,
@@ -45,13 +46,25 @@ if (app) {
 const googleProvider = new GoogleAuthProvider()
 const appleProvider = new OAuthProvider('apple.com')
 
-export async function loginWithEmail(email, password) {
-  return signInWithEmailAndPassword(auth, email, password)
+export async function sendMagicLink(email) {
+  const actionCodeSettings = {
+    url: window.location.origin + '/auth?finishSignIn=true',
+    handleCodeInApp: true,
+    iOS: { bundleId: 'com.narrative.stories' },
+  }
+  await sendSignInLinkToEmail(auth, email, actionCodeSettings)
+  localStorage.setItem('narrative-email-for-signin', email)
 }
 
-export async function signupWithEmail(email, password, name) {
-  const result = await createUserWithEmailAndPassword(auth, email, password)
-  if (name) await updateProfile(result.user, { displayName: name })
+export function isEmailLink(url) {
+  return isSignInWithEmailLink(auth, url)
+}
+
+export async function completeEmailSignIn(url) {
+  const email = localStorage.getItem('narrative-email-for-signin')
+  if (!email) throw new Error('Email not found — try signing in again')
+  const result = await signInWithEmailLink(auth, email, url)
+  localStorage.removeItem('narrative-email-for-signin')
   return result
 }
 
