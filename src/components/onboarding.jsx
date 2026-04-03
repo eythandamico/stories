@@ -50,7 +50,7 @@ export function Onboarding({ onComplete }) {
   return (
     <div
       className="fixed inset-0 z-[60] bg-black flex flex-col"
-      onClick={!isLast ? advance : undefined}
+      onClick={isLast ? finish : advance}
     >
       {/* Video background */}
       <video
@@ -93,14 +93,14 @@ export function Onboarding({ onComplete }) {
       )}
 
       {/* Bottom content */}
-      <div className="relative flex-1 flex flex-col justify-end px-8 pb-[max(env(safe-area-inset-bottom),24px)]">
-        <div key={step} className="animate-fade-up text-center mb-8">
+      <div className="relative flex-1 flex flex-col justify-end items-center px-8 pb-[max(env(safe-area-inset-bottom),32px)]">
+        <div key={step} className="animate-fade-up text-center mb-16">
           <h2 className="text-white font-semibold text-[34px] tracking-tight mb-3">{current.title}</h2>
           <p className="text-white/50 text-[17px] leading-relaxed max-w-[300px] mx-auto">{current.description}</p>
         </div>
 
         {/* Progress dots */}
-        <div className="flex justify-center gap-2 mb-6">
+        <div className="flex justify-center gap-2 mb-5">
           {steps.map((_, i) => (
             <div
               key={i}
@@ -114,24 +114,7 @@ export function Onboarding({ onComplete }) {
           ))}
         </div>
 
-        {/* Button */}
-        {isLast ? (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); finish() }}
-            className="w-full h-[52px] rounded-2xl bg-white text-black font-semibold text-[16px] cursor-pointer transition-all duration-200 active:scale-[0.97] animate-fade-up"
-          >
-            Get Started
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); advance() }}
-            className="w-full h-[52px] rounded-2xl bg-white/15 backdrop-blur-md text-white font-semibold text-[16px] cursor-pointer transition-all duration-200 active:scale-[0.97]"
-          >
-            Next
-          </button>
-        )}
+        <p className="text-white/25 text-[15px]">Tap to continue</p>
       </div>
     </div>
   )
