@@ -360,7 +360,7 @@ export default {
         const body = await request.json()
 
         // Check if story already exists (update vs create)
-        const existing = await env.DB.prepare('SELECT id FROM stories WHERE id = ?').bind(body.id).first()
+        const existing = await env.DB.prepare('SELECT id, available FROM stories WHERE id = ?').bind(body.id).first()
 
         await env.DB.prepare(`
           INSERT OR REPLACE INTO stories (id, title, description, genre, cover_url, preview_url, poster_url, trending, available, price, series_price, total_endings, start_node_id, sort_order)
@@ -381,8 +381,9 @@ export default {
             .bind(body.id, (maxOrder?.m ?? -1) + 1).run()
         }
 
-        // Send push notification for new available stories (fire and forget)
-        if (!existing && body.available) {
+        // Send push notification when a story becomes available (new or toggled)
+        const wasAvailable = existing?.available
+        if (body.available && !wasAvailable) {
           getFCMAccessToken(env).then(accessToken => {
             if (!accessToken) return
             env.DB.prepare("SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ''")
