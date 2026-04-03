@@ -92,6 +92,14 @@ export function stopHeartbeat() {
   }
 }
 
+// Auth success — warm welcome chime
+export function soundAuthSuccess() {
+  playTone(523, 0.15, 'sine', 0.05)
+  setTimeout(() => playTone(659, 0.15, 'sine', 0.05), 120)
+  setTimeout(() => playTone(784, 0.2, 'sine', 0.04), 240)
+  setTimeout(() => playTone(1047, 0.3, 'sine', 0.03), 380)
+}
+
 // Buy hearts — cash register
 export function soundPurchase() {
   playTone(523, 0.05, 'sine', 0.06)

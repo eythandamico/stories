@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo, memo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchFeed } from '../lib/data.js'
+import { fetchFeed, clearCache } from '../lib/data.js'
 import { useAuth } from '../lib/use-auth.jsx'
 import { NoHeartsModal } from '../components/no-hearts-modal.jsx'
 import { Onboarding, shouldShowOnboarding } from '../components/onboarding.jsx'
@@ -290,6 +290,21 @@ export default function Home() {
   }, [spendHeart, recordPlay, navigate])
 
   if (!feedLoaded) return <FeedSkeleton />
+
+  if (feedLoaded && feed.length === 0) return (
+    <div className="fixed inset-0 bg-black flex flex-col items-center justify-center px-8 text-center">
+      <Icon name="play" size={48} className="text-white/20 mb-4" />
+      <h2 className="text-white text-[22px] font-semibold mb-2">No stories yet</h2>
+      <p className="text-white/40 text-[16px] mb-6">New stories are coming soon. Check back later.</p>
+      <button
+        type="button"
+        onClick={() => { clearCache(); setFeedLoaded(false); fetchFeed().then(data => { setFeed(data); setFeedLoaded(true) }).catch(() => setFeedLoaded(true)) }}
+        className="px-6 h-[44px] rounded-2xl bg-white/10 text-white font-medium text-[15px] cursor-pointer active:scale-[0.96]"
+      >
+        Refresh
+      </button>
+    </div>
+  )
 
   return (
     <>

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { sendMagicLink, isEmailLink, completeEmailSignIn, loginWithGoogle, loginWithApple } from '../lib/firebase.js'
+import { soundAuthSuccess } from '../lib/sounds.js'
+import { hapticSuccess } from '../lib/haptics.js'
 import Icon from '../lib/icon.jsx'
 
 export default function Auth() {
@@ -18,7 +20,7 @@ export default function Auth() {
     if (searchParams.get('finishSignIn') && isEmailLink(window.location.href)) {
       setLoading(true)
       completeEmailSignIn(window.location.href)
-        .then(() => navigate('/'))
+        .then(() => { soundAuthSuccess(); hapticSuccess(); navigate('/') })
         .catch((err) => {
           setError(err.message || 'Sign in failed — try again')
           setLoading(false)
@@ -46,6 +48,7 @@ export default function Auth() {
     setSocialLoading('google')
     try {
       await loginWithGoogle()
+      soundAuthSuccess(); hapticSuccess()
       navigate('/')
     } catch (err) {
       if (err.code !== 'auth/popup-closed-by-user') {
@@ -60,6 +63,7 @@ export default function Auth() {
     setSocialLoading('apple')
     try {
       await loginWithApple()
+      soundAuthSuccess(); hapticSuccess()
       navigate('/')
     } catch (err) {
       if (err.code !== 'auth/popup-closed-by-user') {

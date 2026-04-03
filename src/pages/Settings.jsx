@@ -4,6 +4,7 @@ import { useAuth } from '../lib/use-auth.jsx'
 import { logout, auth, isFirebaseConfigured } from '../lib/firebase.js'
 import { deleteUser } from 'firebase/auth'
 import { api } from '../lib/api.js'
+import { updateProfile } from 'firebase/auth'
 import { useGameState } from '../lib/use-game-state.js'
 import { Stack } from '../components/stack.jsx'
 import { Surface } from '../components/surface.jsx'
@@ -64,6 +65,9 @@ export default function Settings() {
   const [autoplay, setAutoplay] = useState(() => localStorage.getItem('narrative-autoplay') !== 'off')
   const [notifications, setNotifications] = useState(() => localStorage.getItem('narrative-notifs') !== 'off')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [savingName, setSavingName] = useState(false)
 
   useEffect(() => { localStorage.setItem('narrative-sound', sound ? 'on' : 'off') }, [sound])
   useEffect(() => { localStorage.setItem('narrative-autoplay', autoplay ? 'on' : 'off') }, [autoplay])
@@ -125,9 +129,48 @@ export default function Settings() {
                   style={{ boxShadow: 'var(--inv-shadow-sm)' }}
                 />
                 <div className="flex-1">
-                  <p className="inv-heading">{user?.displayName || 'User'}</p>
-                  <p className="inv-caption">{user?.email || ''}</p>
+                  {editingName ? (
+                    <form onSubmit={async (e) => {
+                      e.preventDefault()
+                      if (!newName.trim()) return
+                      setSavingName(true)
+                      try {
+                        await updateProfile(auth.currentUser, { displayName: newName.trim() })
+                        if (isFirebaseConfigured) api.updateMe({ display_name: newName.trim() }).catch(() => {})
+                      } catch {}
+                      setSavingName(false)
+                      setEditingName(false)
+                    }} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        maxLength={30}
+                        autoFocus
+                        className="flex-1 h-9 px-3 rounded-lg bg-[var(--inv-bg-alt)] text-[16px] text-[var(--inv-heading)] outline-none"
+                      />
+                      <button type="submit" disabled={savingName || !newName.trim()}
+                        className="h-9 px-3 rounded-lg bg-[var(--inv-accent)] text-white text-[14px] font-medium cursor-pointer disabled:opacity-50">
+                        {savingName ? '...' : 'Save'}
+                      </button>
+                      <button type="button" onClick={() => setEditingName(false)}
+                        className="h-9 px-2 text-[var(--inv-muted)] text-[14px] cursor-pointer">
+                        Cancel
+                      </button>
+                    </form>
+                  ) : (
+                    <button type="button" onClick={() => { setNewName(user?.displayName || ''); setEditingName(true) }} className="text-left cursor-pointer">
+                      <p className="inv-heading">{user?.displayName || 'User'}</p>
+                      <p className="inv-caption">{user?.email || ''}</p>
+                    </button>
+                  )}
                 </div>
+                {!editingName && (
+                  <button type="button" onClick={() => { setNewName(user?.displayName || ''); setEditingName(true) }}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer hover:bg-[var(--inv-bg-alt)]">
+                    <Icon name="edit" size={16} className="text-[var(--inv-muted)]" />
+                  </button>
+                )}
               </div>
             </Surface>
           </div>
