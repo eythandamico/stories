@@ -116,51 +116,22 @@ export default function Auth() {
             <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-5">
               <Icon name="mail" size={28} className="text-white" />
             </div>
-            <h2 className="text-white text-[24px] font-semibold mb-2">Check your email</h2>
+            <h2 className="text-white text-[24px] font-semibold mb-2">Check your inbox</h2>
             <p className="text-white/50 text-[16px] leading-relaxed mb-6">
               We sent a sign-in link to<br />
               <span className="text-white/70 font-medium">{email}</span>
             </p>
             <button
               type="button"
-              onClick={() => { setView('main'); setError('') }}
+              onClick={() => { setView('main'); setEmail(''); setError('') }}
               className="text-white/40 text-[15px] cursor-pointer"
             >
               Use a different method
             </button>
           </div>
-        ) : view === 'email' ? (
-          /* Email input view */
-          <div className="animate-fade-up">
-            <form onSubmit={handleSendLink}>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                autoFocus
-                className="w-full h-[50px] px-4 rounded-xl bg-white/10 text-white text-[16px] placeholder-white/30 outline-none mb-3 transition-colors duration-200 focus:bg-white/15"
-              />
-              <button
-                type="submit"
-                disabled={loading || !email.trim()}
-                className="w-full h-[50px] rounded-xl bg-white text-black font-semibold text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.97] disabled:opacity-50 mb-3"
-              >
-                {loading ? 'Sending...' : 'Send Sign-In Link'}
-              </button>
-            </form>
-            <button
-              type="button"
-              onClick={() => { setView('main'); setError('') }}
-              className="w-full text-center text-white/40 text-[15px] cursor-pointer py-2"
-            >
-              Back
-            </button>
-          </div>
         ) : (
-          /* Main view — social + email */
-          <div className="flex flex-col gap-2.5">
+          /* Main view — social + email input */
+          <div className="flex flex-col gap-2.5 mb-2">
             <button
               type="button"
               onClick={handleApple}
@@ -199,14 +170,30 @@ export default function Auth() {
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
-            <button
-              type="button"
-              onClick={() => { setView('email'); setError('') }}
-              className="w-full h-[50px] rounded-xl bg-white/10 backdrop-blur-md text-white font-semibold text-[16px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.97] flex items-center justify-center gap-2.5"
-            >
-              <Icon name="mail" size={18} className="text-white/70" />
-              Continue with Email
-            </button>
+            {/* Email input with inline send button */}
+            <form onSubmit={handleSendLink} className="relative">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+                className="w-full h-[50px] px-4 pr-14 rounded-xl bg-white/10 text-white text-[16px] placeholder-white/30 outline-none transition-colors duration-200 focus:bg-white/15"
+              />
+              {email.trim() && (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg bg-white flex items-center justify-center cursor-pointer active:scale-[0.94] disabled:opacity-50 transition-[opacity,transform] duration-150"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-black/20 border-t-black/70 rounded-full animate-spin" />
+                  ) : (
+                    <Icon name="arrow-right" size={16} className="text-black" />
+                  )}
+                </button>
+              )}
+            </form>
           </div>
         )}
       </div>
