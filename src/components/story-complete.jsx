@@ -82,24 +82,23 @@ export function StoryComplete({
           </div>
         )}
 
-        {/* Buy buttons */}
-        <div className="flex gap-2.5 mb-3 animate-fade-up" style={{ animationDelay: '0.25s' }}>
+        {/* Buy buttons — stacked */}
+        <div className="flex flex-col gap-2.5 mb-3 animate-fade-up" style={{ animationDelay: '0.25s' }}>
           <button
             type="button"
             onClick={onBuyNext}
-            className="flex-1 h-[52px] rounded-2xl bg-white text-black font-semibold text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex flex-col items-center justify-center"
+            className="w-full h-[52px] rounded-2xl backdrop-blur-md bg-white/[0.10] text-white font-semibold text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
           >
             <span>Next Chapter</span>
-            <span className="text-[12px] font-medium text-black/50">$1.99</span>
+            <span className="text-[13px] font-medium text-white/40">$1.99</span>
           </button>
           <button
             type="button"
             onClick={onBuySeries}
-            className="flex-1 h-[52px] rounded-2xl cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex flex-col items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.35), rgba(168,85,247,0.35))', color: 'white' }}
+            className="w-full h-[52px] rounded-2xl bg-white text-black font-semibold text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
           >
-            <span className="font-semibold text-[15px]">Full Series</span>
-            <span className="text-[12px] font-medium text-white/60">$4.99</span>
+            <span>Full Series</span>
+            <span className="text-[13px] font-medium text-black/50">$4.99</span>
           </button>
         </div>
 
