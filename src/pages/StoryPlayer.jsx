@@ -94,7 +94,30 @@ function ConnectionBurst({ connection, onDevToggle }) {
             }}
           />
         </div>
-        {/* Pill */}
+        {/* Pill blur layer — no transforms, just opacity */}
+        <div
+          className="absolute left-0 right-0 flex items-center justify-center"
+          style={{
+            top: 'calc(env(safe-area-inset-top, 20px) + 70px)',
+            animation: frozen ? 'none' : `conn-bg-${key} ${p.animDuration}s ease-out both`,
+          }}
+        >
+          <div
+            className="px-3.5 py-1.5 rounded-full"
+            style={{
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              background: 'rgba(255,255,255,0.1)',
+            }}
+          >
+            {/* Invisible spacer matching pill size */}
+            <div className="flex items-center gap-1.5 opacity-0">
+              <HeartIcon size={22} />
+              <span className="text-[18px] font-semibold">+{connection * 5}</span>
+            </div>
+          </div>
+        </div>
+        {/* Pill content — scales independently */}
         <div
           className="absolute left-0 right-0 flex items-center justify-center"
           style={{
@@ -102,14 +125,7 @@ function ConnectionBurst({ connection, onDevToggle }) {
             animation: frozen ? 'none' : `conn-pill-${key} ${p.animDuration}s cubic-bezier(0.34, 1.56, 0.64, 1) both`,
           }}
         >
-          <div
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full"
-            style={{
-              background: 'rgba(255,255,255,0.15)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-            }}
-          >
+          <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full">
             <HeartIcon size={22} />
             <span className="text-white text-[18px] font-semibold">+{connection * 5}</span>
           </div>
