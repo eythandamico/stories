@@ -496,56 +496,46 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
-      {/* Connection burst — heart + number */}
+      {/* Connection burst — slides in from top */}
       {showConnectionBurst && (
-        <div className="absolute inset-0 z-[46] pointer-events-none">
-          {/* Pink radial glow behind badge */}
+        <div className="absolute top-0 left-0 right-0 z-[46] pointer-events-none" style={{ animation: 'connection-slide 1.8s ease-out both' }}>
+          {/* Progressive blur background */}
           <div
-            className="absolute animate-burst"
+            className="absolute top-0 left-0 right-0"
             style={{
-              top: '25%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: 280, height: 280,
-              background: 'radial-gradient(circle, rgba(236,72,153,0.25) 0%, rgba(249,115,22,0.12) 40%, transparent 70%)',
-              filter: 'blur(30px)',
+              height: 180,
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              maskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%)',
             }}
           />
-          {/* Heart confetti with gravity */}
-          {Array.from({ length: 12 }).map((_, j) => {
-            const angle = (j / 12) * 360
-            const dist = 70 + (j % 3) * 30
-            const x = Math.round(Math.cos(angle * Math.PI / 180) * dist)
-            const upY = Math.round(-Math.abs(Math.sin(angle * Math.PI / 180) * dist * 0.5) - 30)
-            const downY = 80 + (j % 3) * 20
-            const size = 14 + (j % 3) * 4
-            const rot = (j % 2 === 0 ? 1 : -1) * 20
-            const name = `cf-${j}`
-            return (
-              <div key={j}>
-                <style>{`
-                  @keyframes ${name} {
-                    0% { opacity:1; transform:translate(-50%,-50%) scale(0) rotate(0deg); }
-                    25% { opacity:1; transform:translate(calc(-50% + ${x}px),calc(-50% + ${upY}px)) scale(1.1) rotate(${rot}deg); }
-                    100% { opacity:0; transform:translate(calc(-50% + ${x}px),calc(-50% + ${downY}px)) scale(0.5) rotate(${rot * 2}deg); }
-                  }
-                `}</style>
-                <div
-                  className="absolute pointer-events-none"
-                  style={{
-                    top: '25%', left: '50%',
-                    transform: 'translate(-50%, -50%) scale(0)',
-                    animation: `${name} 1.3s ease-out ${j * 0.04}s forwards`,
-                  }}
-                >
-                  <HeartIcon size={size} />
-                </div>
-              </div>
-            )
-          })}
+          {/* Pink-orange gradient glow */}
+          <div
+            className="absolute top-0 left-0 right-0"
+            style={{
+              height: 180,
+              background: 'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(249,115,22,0.15) 50%, transparent 100%)',
+              maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
+            }}
+          />
           {/* Badge */}
-          <div style={{ position: 'absolute', top: '25%', left: 0, right: 0, transform: 'translateY(-50%)' }} className="flex items-center justify-center animate-burst">
-            <div className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.3), rgba(249,115,22,0.2))', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}>
-              <HeartIcon size={36} />
-              <span className="text-white text-[26px] font-semibold">+{connection * 5}</span>
+          <div
+            className="relative flex items-center justify-center"
+            style={{ paddingTop: 'calc(env(safe-area-inset-top, 20px) + 70px)' }}
+          >
+            <div
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, rgba(236,72,153,0.25), rgba(249,115,22,0.2))',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(236,72,153,0.15)',
+              }}
+            >
+              <HeartIcon size={22} />
+              <span className="text-white text-[18px] font-semibold">+{connection * 5}</span>
             </div>
           </div>
         </div>
