@@ -97,8 +97,8 @@ export default function StoryPlayer() {
   // Reset state on node change
   useEffect(() => {
     setProgress(0)
-    setIsPlaying(false)
-    setShowControls(true)
+    setIsPlaying(true) // Assume playing since autoPlay is set — onPause will correct
+    setShowControls(false)
     setChosenIndex(null)
     setShowPercentages(false)
     setTimerActive(false)
@@ -387,7 +387,8 @@ export default function StoryPlayer() {
 
   return (
     <main
-      className="fixed inset-0 bg-black flex items-center justify-center"
+      className="fixed inset-0 bg-black flex items-center justify-center select-none"
+      style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
       onClick={() => { if (!skipping) { setShowControls(true); togglePlay() } }}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
@@ -551,10 +552,10 @@ export default function StoryPlayer() {
         )}
       </div>
 
-      {/* Play button */}
-      {!isPlaying && !showChoices && (
+      {/* Play button — only show when user deliberately paused */}
+      {!isPlaying && !showChoices && !choicesExiting && !showComplete && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none animate-scale-in">
-          <div className="rounded-full bg-white/12 backdrop-blur-md  flex items-center justify-center" style={{ width: 72, height: 72 }}>
+          <div className="rounded-full bg-white/12 backdrop-blur-md flex items-center justify-center" style={{ width: 72, height: 72 }}>
             <Icon name="play" size={28} className="text-white ml-1" />
           </div>
         </div>
