@@ -10,20 +10,21 @@ export async function initPushNotifications() {
   initialized = true
 
   try {
-    const perm = await PushNotifications.requestPermissions()
-    if (perm.receive !== 'granted') return
-
-    await PushNotifications.register()
-
+    // Set up listeners BEFORE registering so we don't miss events
     PushNotifications.addListener('registration', async (token) => {
       console.log('Push token:', token.value)
       if (isFirebaseConfigured) {
         try {
           await api.updateMe({ push_token: token.value })
+          console.log('Push token saved to server')
         } catch (e) {
           console.warn('Failed to send push token:', e)
         }
       }
+    })
+
+    PushNotifications.addListener('registrationError', (err) => {
+      console.error('Push registration failed:', err)
     })
 
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
@@ -38,6 +39,11 @@ export async function initPushNotifications() {
         window.location.href = data.route
       }
     })
+
+    const perm = await PushNotifications.requestPermissions()
+    if (perm.receive !== 'granted') return
+
+    await PushNotifications.register()
 
     // Schedule streak reminder
     await scheduleStreakReminder()
