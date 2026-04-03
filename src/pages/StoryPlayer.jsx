@@ -34,7 +34,7 @@ const DEFAULT_PARAMS = {
   animDuration: 1.8,
 }
 
-function ConnectionBurst({ connection }) {
+function ConnectionBurst({ connection, onDevToggle }) {
   const [p, setP] = useState(DEFAULT_PARAMS)
   const [showDev, setShowDev] = useState(false)
   const [key, setKey] = useState(0)
@@ -42,7 +42,16 @@ function ConnectionBurst({ connection }) {
   const update = (k, v) => setP(prev => ({ ...prev, [k]: v }))
   const replay = () => setKey(k => k + 1)
 
-  const animStyle = `
+  // Keep burst visible while dev panel is open
+  useEffect(() => {
+    if (showDev) onDevToggle?.(true)
+    return () => onDevToggle?.(false)
+  }, [showDev])
+
+  // When dev panel is open, freeze the animation at the "visible" state
+  const frozen = DEV_MODE && showDev
+
+  const animStyle = frozen ? '' : `
     @keyframes conn-bg-${key} {
       0% { opacity: 0; transform: translateY(-100%); }
       15% { opacity: 1; transform: translateY(0); }
@@ -64,7 +73,7 @@ function ConnectionBurst({ connection }) {
       <style>{animStyle}</style>
       <div key={key} className="absolute top-0 left-0 right-0 z-[46] pointer-events-none">
         {/* Background blur + gradient */}
-        <div style={{ animation: `conn-bg-${key} ${p.animDuration}s ease-out both` }}>
+        <div style={frozen ? {} : { animation: `conn-bg-${key} ${p.animDuration}s ease-out both` }}>
           <div
             className="absolute top-0 left-0 right-0"
             style={{
@@ -90,7 +99,7 @@ function ConnectionBurst({ connection }) {
           className="absolute left-0 right-0 flex items-center justify-center"
           style={{
             top: 'calc(env(safe-area-inset-top, 20px) + 70px)',
-            animation: `conn-pill-${key} ${p.animDuration}s cubic-bezier(0.34, 1.56, 0.64, 1) both`,
+            animation: frozen ? 'none' : `conn-pill-${key} ${p.animDuration}s cubic-bezier(0.34, 1.56, 0.64, 1) both`,
           }}
         >
           <div
@@ -196,6 +205,7 @@ export default function StoryPlayer() {
   const [showConnectionBurst, setShowConnectionBurst] = useState(false)
   const [currentNodeId, setCurrentNodeId] = useState(null)
   const [videoError, setVideoError] = useState(false)
+  const [devBurstVisible, setDevBurstVisible] = useState(false)
 
   // Save progress to localStorage
   const saveProgress = useCallback((nodeId, hist, conn) => {
@@ -660,8 +670,20 @@ export default function StoryPlayer() {
       />
 
       {/* Connection burst */}
-      {showConnectionBurst && (
-        <ConnectionBurst connection={connection} />
+      {(showConnectionBurst || devBurstVisible) && (
+        <ConnectionBurst connection={connection} onDevToggle={setDevBurstVisible} />
+      )}
+
+      {/* Dev trigger button — always visible in dev mode */}
+      {DEV_MODE && !showConnectionBurst && !devBurstVisible && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setDevBurstVisible(true) }}
+          className="absolute z-[60] w-8 h-8 rounded-full bg-red-500 flex items-center justify-center cursor-pointer text-white text-[12px] font-bold pointer-events-auto"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 20px) + 80px)', right: 12 }}
+        >
+          D
+        </button>
       )}
 
 
