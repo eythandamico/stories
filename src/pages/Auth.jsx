@@ -194,6 +194,13 @@ export default function Auth() {
                 </button>
               )}
             </form>
+
+            <p className="text-white/25 text-[12px] text-center leading-relaxed mt-4">
+              By continuing, you agree to our{' '}
+              <span onClick={() => navigate('/terms')} className="text-white/40 underline cursor-pointer">Terms of Service</span>
+              {' '}and{' '}
+              <span onClick={() => navigate('/privacy')} className="text-white/40 underline cursor-pointer">Privacy Policy</span>
+            </p>
           </div>
         )}
       </div>
