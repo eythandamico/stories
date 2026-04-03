@@ -15,23 +15,23 @@ import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
 const MAX_CONNECTION = 5
 
 // ── Connection Burst with dev controls ──
-const DEV_MODE = true // Set to false to hide dev panel
+const DEV_MODE = false
 
 const DEFAULT_PARAMS = {
-  blurHeight: 220,
-  blurAmount: 20,
-  blurMaskEnd: 100,
+  blurHeight: 390,
+  blurAmount: 21,
+  blurMaskEnd: 90,
   blurMaskSolid: 40,
-  gradAngle: 160,
-  gradPink: 0.45,
-  gradOrange: 0.35,
-  gradPurple: 0.15,
-  gradMaskSolid: 30,
+  gradAngle: 190,
+  gradPink: 0.7,
+  gradOrange: 0.15,
+  gradPurple: 0.25,
+  gradMaskSolid: 35,
   pillPink: 0.3,
-  pillOrange: 0.25,
-  pillBorder: 0.2,
-  pillGlow: 0.2,
-  animDuration: 1.8,
+  pillOrange: 0.2,
+  pillBorder: 0,
+  pillGlow: 0,
+  animDuration: 2.3,
 }
 
 function ConnectionBurst({ connection, onDevToggle }) {
