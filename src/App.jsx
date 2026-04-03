@@ -73,7 +73,7 @@ function AppShell() {
 
   useEffect(() => { if (user) initPushNotifications() }, [user])
 
-  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup' || location.pathname === '/store' || location.pathname === '/streaks' || location.pathname === '/privacy' || location.pathname === '/terms'
+  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup' || location.pathname === '/store' || location.pathname === '/streaks' || location.pathname === '/settings' || location.pathname === '/privacy' || location.pathname === '/terms'
 
   const tabRoutes = { '/': 'home', '/explore': 'explore' }
   const activeTab = tabRoutes[location.pathname] || 'home'
