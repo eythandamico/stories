@@ -85,21 +85,19 @@ function AppShell() {
 
   return (
     <Suspense fallback={<LoadingScreen />}>
-      <div key={location.pathname} className="animate-page-in">
-        <Routes location={location}>
-          <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
-          <Route path="/setup" element={user ? <SetupUsername /> : <Navigate to="/auth" replace />} />
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-          <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
-          <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
-          <Route path="/play/:storyId?" element={<ProtectedRoute><StoryPlayer /></ProtectedRoute>} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
+      <Routes location={location}>
+        <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
+        <Route path="/setup" element={user ? <SetupUsername /> : <Navigate to="/auth" replace />} />
+        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
+        <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
+        <Route path="/play/:storyId?" element={<ProtectedRoute><StoryPlayer /></ProtectedRoute>} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       {!hideNav && user && (
         <BottomNav

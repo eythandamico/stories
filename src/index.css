@@ -10,12 +10,14 @@
   html { scroll-behavior: smooth; }
 }
 
-html, body {
+html, body, #root {
   overscroll-behavior: none;
   overflow: hidden;
   height: 100%;
   width: 100%;
   position: fixed;
+  top: 0;
+  left: 0;
 }
 
 body {
