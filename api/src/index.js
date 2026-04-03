@@ -381,31 +381,30 @@ export default {
             .bind(body.id, (maxOrder?.m ?? -1) + 1).run()
         }
 
-        // Send push notification when a story becomes available (new or toggled)
-        const wasAvailable = existing?.available
-        if (body.available && !wasAvailable) {
-          getFCMAccessToken(env).then(accessToken => {
-            if (!accessToken) return
-            env.DB.prepare("SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ''")
-              .all().then(({ results }) => {
-                const projectId = env.FIREBASE_PROJECT_ID
-                for (const u of results) {
-                  if (!u.push_token) continue
-                  fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
-                    body: JSON.stringify({
-                      message: {
-                        token: u.push_token,
-                        notification: { title: 'New Story Available', body: `${body.title || 'A new story'} is now available to play!` },
-                        data: { storyId: body.id },
-                        apns: { payload: { aps: { sound: 'default' } } },
-                      },
-                    }),
-                  }).catch(() => {})
-                }
+        // Send push notification when a story becomes available
+        const wasAvailable = Boolean(existing?.available)
+        const nowAvailable = Boolean(body.available)
+        if (nowAvailable && !wasAvailable) {
+          const accessToken = await getFCMAccessToken(env)
+          if (accessToken) {
+            const { results } = await env.DB.prepare("SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ''").all()
+            const projectId = env.FIREBASE_PROJECT_ID
+            for (const u of results) {
+              if (!u.push_token) continue
+              await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                body: JSON.stringify({
+                  message: {
+                    token: u.push_token,
+                    notification: { title: 'New Story Available', body: `${body.title || 'A new story'} is now available to play!` },
+                    data: { storyId: body.id },
+                    apns: { payload: { aps: { sound: 'default' } } },
+                  },
+                }),
               }).catch(() => {})
-          }).catch(() => {})
+            }
+          }
         }
 
         return json({ ok: true, isNew: !existing })
