@@ -98,36 +98,35 @@ function ConnectionBurst({ connection, onDevToggle }) {
         <div
           className="absolute left-0 right-0 flex items-center justify-center"
           style={{
-            top: 'calc(env(safe-area-inset-top, 20px) + 70px)',
+            top: 'calc(env(safe-area-inset-top, 20px) + 20px)',
             animation: frozen ? 'none' : `conn-bg-${key} ${p.animDuration}s ease-out both`,
           }}
         >
           <div
-            className="px-3.5 py-1.5 rounded-full"
+            className="h-10 px-3.5 rounded-full flex items-center"
             style={{
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               background: 'rgba(255,255,255,0.1)',
             }}
           >
-            {/* Invisible spacer matching pill size */}
             <div className="flex items-center gap-1.5 opacity-0">
-              <HeartIcon size={22} />
-              <span className="text-[18px] font-semibold">+{connection * 5}</span>
+              <HeartIcon size={20} />
+              <span className="text-[16px] font-semibold">+{connection * 5}</span>
             </div>
           </div>
         </div>
-        {/* Pill content — scales independently */}
+        {/* Pill content — whole pill scales */}
         <div
           className="absolute left-0 right-0 flex items-center justify-center"
           style={{
-            top: 'calc(env(safe-area-inset-top, 20px) + 70px)',
+            top: 'calc(env(safe-area-inset-top, 20px) + 20px)',
             animation: frozen ? 'none' : `conn-pill-${key} ${p.animDuration}s cubic-bezier(0.34, 1.56, 0.64, 1) both`,
           }}
         >
-          <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full">
-            <HeartIcon size={22} />
-            <span className="text-white text-[18px] font-semibold">+{connection * 5}</span>
+          <div className="h-10 flex items-center gap-1.5 px-3.5 rounded-full">
+            <HeartIcon size={20} />
+            <span className="text-white text-[16px] font-semibold">+{connection * 5}</span>
           </div>
         </div>
       </div>
