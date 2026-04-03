@@ -614,20 +614,17 @@ export default function StoryPlayer() {
         return (
       <div
         className={`fixed inset-0 z-10 flex flex-col justify-end ${hidden ? 'pointer-events-none' : ''}`}
-        style={{
-          opacity: visible ? 1 : 0,
-          transition: `opacity ${choicesExiting ? '0.5s cubic-bezier(0.55, 0, 1, 0.45)' : '0.6s ease-out'}`,
-          willChange: 'opacity',
-        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Progressive blur — static blur, fades via parent opacity */}
+        {/* Progressive blur — opacity-controlled so it fades smoothly */}
         <div className="absolute inset-0 pointer-events-none"
           style={{
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
             maskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
             WebkitMaskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
+            opacity: visible ? 1 : 0,
+            transition: `opacity ${choicesExiting ? '0.5s cubic-bezier(0.55, 0, 1, 0.45)' : '0.6s ease-out'}`,
           }}
           aria-hidden="true"
         />
@@ -635,11 +632,18 @@ export default function StoryPlayer() {
         <div className="absolute inset-0 pointer-events-none"
           style={{
             background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)',
+            opacity: visible ? 1 : 0,
+            transition: `opacity ${choicesExiting ? '0.5s cubic-bezier(0.55, 0, 1, 0.45)' : '0.6s ease-out'}`,
           }}
           aria-hidden="true"
         />
 
-        <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] text-center">
+        <div className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] text-center"
+          style={{
+            opacity: visible ? 1 : 0,
+            transition: `opacity ${choicesExiting ? '0.5s cubic-bezier(0.55, 0, 1, 0.45)' : '0.6s ease-out'}`,
+          }}
+        >
 
           {(showChoices) && (
             <>
