@@ -414,6 +414,18 @@ export default {
       }
     }
 
+    // DELETE /api/admin/stories/:id — delete a story and all related data
+    if (path.match(/^\/api\/admin\/stories\/[\w-]+$/) && method === 'DELETE') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      const storyId = path.split('/').pop()
+      await env.DB.prepare('DELETE FROM choices WHERE story_id = ?').bind(storyId).run()
+      await env.DB.prepare('DELETE FROM nodes WHERE story_id = ?').bind(storyId).run()
+      await env.DB.prepare('DELETE FROM choice_stats WHERE story_id = ?').bind(storyId).run()
+      await env.DB.prepare('DELETE FROM feed WHERE story_id = ?').bind(storyId).run()
+      await env.DB.prepare('DELETE FROM stories WHERE id = ?').bind(storyId).run()
+      return json({ ok: true })
+    }
+
     // POST /api/admin/nodes — create/update a node
     if (path === '/api/admin/nodes' && method === 'POST') {
       if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)

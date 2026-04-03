@@ -186,12 +186,26 @@ function StoryEditor({ story, onSaved }) {
         </label>
       </div>
 
-      {/* Save */}
+      {/* Save / Delete */}
       <div className="flex items-center gap-3">
         <button onClick={save} disabled={saving}
           className="px-5 h-10 rounded-lg bg-white text-black font-semibold text-[15px] cursor-pointer active:scale-[0.97] disabled:opacity-50">
           {saving ? 'Saving...' : 'Save Story'}
         </button>
+        {story && (
+          <button
+            onClick={async () => {
+              if (!confirm(`Delete "${data.title}"? This removes all nodes, choices, and stats. Cannot be undone.`)) return
+              try {
+                await admin.deleteStory(data.id)
+                onSaved?.()
+              } catch (e) { setMsg('Error: ' + e.message) }
+            }}
+            className="px-4 h-10 rounded-lg bg-red-500/15 text-red-400 font-medium text-[14px] cursor-pointer hover:bg-red-500/25"
+          >
+            Delete
+          </button>
+        )}
         {msg && <span className={`text-[14px] ${msg.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>{msg}</span>}
       </div>
     </div>
