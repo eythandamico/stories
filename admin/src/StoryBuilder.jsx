@@ -176,15 +176,24 @@ function NodeEditor({ node, storyId, onSaved, onClose }) {
     const file = (e.target.files || e.dataTransfer?.files)?.[0]
     if (!file) return
     setUploading(true)
+    setMsg('')
     try {
+      if (file.size > 100 * 1024 * 1024) { setMsg('File too large (max 100MB)'); setUploading(false); return }
       const formData = new FormData()
       formData.append('file', file)
       formData.append('filename', `${data.id || 'upload'}.mp4`)
+      formData.append('folder', storyId)
       const token = localStorage.getItem('admin-token')
       const res = await fetch(`${API_URL}/api/admin/upload`, { method: 'POST', body: formData, headers: { 'X-Admin-Token': token } })
       const result = await res.json()
-      if (result.url) setData(d => ({ ...d, video_url: result.url }))
-    } catch {}
+      if (result.url) {
+        setData(d => ({ ...d, video_url: result.url }))
+      } else {
+        setMsg(result.error || 'Upload failed')
+      }
+    } catch (err) {
+      setMsg(`Upload failed: ${err.message}`)
+    }
     setUploading(false)
   }
 

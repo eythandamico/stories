@@ -1,7 +1,8 @@
 import { verifyToken } from './auth.js'
 
 // ── FCM V1 Auth (Service Account → OAuth2 Access Token) ──
-let fcmTokenCache = { token: null, expiry: 0 }
+// Reset cache on each deploy
+let fcmTokenCache = { token: null, expiry: 0, sendErrors: [] }
 
 async function getFCMAccessToken(env) {
   if (fcmTokenCache.token && Date.now() < fcmTokenCache.expiry) return fcmTokenCache.token
@@ -12,21 +13,28 @@ async function getFCMAccessToken(env) {
     const now = Math.floor(Date.now() / 1000)
 
     // Build JWT header + claims
-    const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).replace(/=/g, '')
-    const claims = btoa(JSON.stringify({
+    // URL-safe base64 encoding
+    const b64url = (str) => btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+
+    const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
+    const claims = b64url(JSON.stringify({
       iss: sa.client_email,
-      scope: 'https://www.googleapis.com/auth/firebase.messaging',
+      scope: 'https://www.googleapis.com/auth/cloud-platform',
       aud: 'https://oauth2.googleapis.com/token',
       iat: now,
       exp: now + 3600,
-    })).replace(/=/g, '')
+    }))
 
     // Sign with service account private key
     const pem = sa.private_key.replace(/-----[^-]+-----/g, '').replace(/\s/g, '')
     const keyData = Uint8Array.from(atob(pem), c => c.charCodeAt(0))
     const key = await crypto.subtle.importKey('pkcs8', keyData, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign'])
     const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(`${header}.${claims}`))
-    const signature = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+    // Convert ArrayBuffer to base64url without spread (which can overflow for large arrays)
+    const sigBytes = new Uint8Array(sig)
+    let sigStr = ''
+    for (let i = 0; i < sigBytes.length; i++) sigStr += String.fromCharCode(sigBytes[i])
+    const signature = b64url(sigStr)
 
     const jwt = `${header}.${claims}.${signature}`
 
@@ -34,13 +42,14 @@ async function getFCMAccessToken(env) {
     const res = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+      body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
     })
     const data = await res.json()
     if (data.access_token) {
-      fcmTokenCache = { token: data.access_token, expiry: Date.now() + (data.expires_in - 60) * 1000 }
+      fcmTokenCache = { ...fcmTokenCache, token: data.access_token, expiry: Date.now() + (data.expires_in - 60) * 1000, tokenType: data.token_type }
       return data.access_token
     }
+    fcmTokenCache.lastError = JSON.stringify(data)
   } catch (e) {
     console.error('FCM auth error:', e.message, e.stack)
     // Store error for debugging
@@ -566,11 +575,7 @@ export default {
         if (tokens.length === 0) return json({ ok: true, sent: 0 })
 
         const accessToken = await getFCMAccessToken(env)
-        if (!accessToken) {
-          const hasSecret = Boolean(env.FCM_SERVICE_ACCOUNT)
-          const secretLen = env.FCM_SERVICE_ACCOUNT ? env.FCM_SERVICE_ACCOUNT.length : 0
-          return json({ error: 'FCM auth failed', hasSecret, secretLen, lastError: fcmTokenCache.lastError }, 500)
-        }
+        if (!accessToken) return error('FCM not configured', 500)
 
         let sent = 0
         const failed = []
@@ -586,6 +591,7 @@ export default {
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${accessToken}`,
+                  'User-Agent': 'narrative-api/1.0',
                 },
                 body: JSON.stringify({
                   message: {
