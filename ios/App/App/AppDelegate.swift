@@ -9,6 +9,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         FirebaseApp.configure()
+
+        // Extend WebView edge-to-edge behind safe areas
+        DispatchQueue.main.async {
+            if let vc = self.window?.rootViewController as? CAPBridgeViewController {
+                vc.webView?.scrollView.contentInsetAdjustmentBehavior = .never
+                vc.webView?.frame = vc.view.bounds
+                vc.webView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            }
+        }
+
         return true
     }
 
