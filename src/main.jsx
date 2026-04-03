@@ -9,11 +9,15 @@ import { ErrorBoundary } from './components/error-boundary.jsx'
 const savedTheme = localStorage.getItem('narrative-theme') || 'dark'
 document.documentElement.setAttribute('data-theme', savedTheme)
 
-// Force status bar to overlay content on iOS
+// iOS native setup
 if (Capacitor.isNativePlatform()) {
   import('@capacitor/status-bar').then(({ StatusBar, Style }) => {
     StatusBar.setOverlaysWebView({ overlay: true })
     StatusBar.setStyle({ style: Style.Dark })
+  }).catch(() => {})
+
+  import('@capacitor/keyboard').then(({ Keyboard }) => {
+    Keyboard.setAccessoryBarVisible({ isVisible: false })
   }).catch(() => {})
 }
 

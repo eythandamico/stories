@@ -12,6 +12,9 @@
     "scrollEnabled": true
   },
   "plugins": {
+    "Keyboard": {
+      "resize": "none"
+    },
     "StatusBar": {
       "overlaysWebView": true,
       "style": "DARK",
