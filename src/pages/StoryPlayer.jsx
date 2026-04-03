@@ -188,6 +188,31 @@ export default function StoryPlayer() {
     videoRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * videoRef.current.duration
   }
 
+  // Preload next videos when choices appear
+  const preloadLinks = useRef([])
+  const preloadNextVideos = useCallback((choices) => {
+    // Clean up old preloads
+    preloadLinks.current.forEach(link => link.remove())
+    preloadLinks.current = []
+    // Preload each choice's destination video
+    choices?.forEach(choice => {
+      const nextNode = story?.nodes?.[choice.nextNodeId]
+      if (nextNode?.video) {
+        const link = document.createElement('link')
+        link.rel = 'preload'
+        link.as = 'video'
+        link.href = nextNode.video
+        document.head.appendChild(link)
+        preloadLinks.current.push(link)
+      }
+    })
+  }, [story])
+
+  // Cleanup preloads on unmount
+  useEffect(() => () => {
+    preloadLinks.current.forEach(link => link.remove())
+  }, [])
+
   const handleVideoEnd = useCallback(() => {
     setShowChoices(true)
     setShowControls(true)
@@ -198,6 +223,11 @@ export default function StoryPlayer() {
     }
 
     const currentNode = story.nodes[currentNodeId]
+
+    // Preload destination videos
+    if (currentNode?.choices?.length) {
+      preloadNextVideos(currentNode.choices)
+    }
 
     // Fetch live choice stats
     if (currentNode?.choices?.length && !currentNode?.ending) {
@@ -265,10 +295,10 @@ export default function StoryPlayer() {
       api.recordChoice(sid, currentNodeId, index).catch(() => {})
     }
 
-    // Fade out, then transition
+    // Fade out, then transition — tighter timing for snappier feel
     setTimeout(() => {
       setChoicesExiting(true)
-    }, 2500)
+    }, 2000)
     setTimeout(() => {
       const newHistory = [...history, currentNodeId]
       const newConnection = choice.positive ? Math.min(connection + 1, MAX_CONNECTION) : connection
@@ -277,7 +307,7 @@ export default function StoryPlayer() {
       setChoicesExiting(false)
       setCurrentNodeId(choice.nextNodeId)
       saveProgress(choice.nextNodeId, newHistory, newConnection)
-    }, 3100)
+    }, 2500)
   }
 
   const handleChoice = (choice, index) => {
@@ -566,7 +596,11 @@ export default function StoryPlayer() {
         className={`fixed inset-0 z-10 flex flex-col justify-end ${
           showComplete ? 'opacity-0 pointer-events-none' : (showChoices && !choicesExiting) ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
-        style={{ transition: 'opacity 0.5s ease-out' }}
+        style={{
+          transition: choicesExiting
+            ? 'opacity 0.5s cubic-bezier(0.55, 0, 1, 0.45)' // ease-in for exit
+            : 'opacity 0.5s ease-out', // ease-out for enter
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute inset-0 pointer-events-none"
