@@ -93,7 +93,7 @@ export function Onboarding({ onComplete }) {
       )}
 
       {/* Bottom content */}
-      <div className="relative flex-1 flex flex-col justify-end items-center px-8 pb-[max(calc(env(safe-area-inset-bottom)+60px),80px)]">
+      <div className="relative flex-1 flex flex-col justify-end items-center px-8 pb-[max(calc(env(safe-area-inset-bottom)+120px),160px)]">
         <div key={step} className="animate-fade-up text-center mb-16">
           <h2 className="text-white font-semibold text-[34px] tracking-tight mb-3">{current.title}</h2>
           <p className="text-white/50 text-[17px] leading-relaxed max-w-[300px] mx-auto">{current.description}</p>
