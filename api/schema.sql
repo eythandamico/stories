@@ -104,3 +104,10 @@ CREATE TABLE IF NOT EXISTS feed (
   sort_order INTEGER DEFAULT 0,
   FOREIGN KEY (story_id) REFERENCES stories(id)
 );
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_nodes_story ON nodes(story_id);
+CREATE INDEX IF NOT EXISTS idx_choices_story_node ON choices(story_id, node_id);
+CREATE INDEX IF NOT EXISTS idx_stats_story_node ON choice_stats(story_id, node_id);
+CREATE INDEX IF NOT EXISTS idx_endings_user ON user_endings(user_id);
+CREATE INDEX IF NOT EXISTS idx_feed_story ON feed(story_id);
