@@ -103,7 +103,7 @@ function ConnectionBurst({ connection, onDevToggle }) {
           }}
         >
           <div
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full"
             style={{
               background: 'rgba(255,255,255,0.15)',
               backdropFilter: 'blur(20px)',
