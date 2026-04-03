@@ -107,7 +107,7 @@ export default function Auth() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 px-6 pb-[max(calc(env(safe-area-inset-bottom)+24px),48px)]">
+      <div className="relative z-10 px-6 pb-[max(calc(env(safe-area-inset-bottom)+60px),80px)]">
         {error && <p className="text-red-400 text-[14px] text-center mb-4">{error}</p>}
 
         {view === 'check-email' ? (
