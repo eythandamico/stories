@@ -7,6 +7,7 @@ import {
 } from './game-state';
 import { api } from './api.js';
 import { isFirebaseConfigured } from './firebase.js';
+import { cancelInactivityReminder } from './notifications.js';
 
 const MAX_HEARTS = 5;
 
@@ -106,6 +107,7 @@ export function useGameState() {
     _recordPlay();
     refresh();
     syncToServer();
+    cancelInactivityReminder();
   }, [refresh]);
 
   const usePerk = useCallback((type) => {

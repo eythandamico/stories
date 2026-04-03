@@ -464,6 +464,67 @@ export default {
       }
     }
 
+    // POST /api/admin/push — send push notification to all users with tokens
+    if (path === '/api/admin/push' && method === 'POST') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      try {
+        const { title, body, data } = await request.json()
+        if (!title || !body) return error('Title and body required')
+
+        // Get all users with push tokens
+        const users = await env.DB.prepare(
+          'SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ?'
+        ).bind('').all()
+
+        const tokens = users.results.map(u => u.push_token).filter(Boolean)
+        if (tokens.length === 0) return json({ ok: true, sent: 0 })
+
+        // Send via Firebase Cloud Messaging (FCM v1 API)
+        // Requires FIREBASE_SERVER_KEY env var
+        if (!env.FIREBASE_SERVER_KEY) return error('FIREBASE_SERVER_KEY not configured', 500)
+
+        let sent = 0
+        const failed = []
+
+        // Send in batches of 500
+        for (let i = 0; i < tokens.length; i += 500) {
+          const batch = tokens.slice(i, i + 500)
+          const res = await fetch('https://fcm.googleapis.com/fcm/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `key=${env.FIREBASE_SERVER_KEY}`,
+            },
+            body: JSON.stringify({
+              registration_ids: batch,
+              notification: { title, body, sound: 'default' },
+              data: data || {},
+            }),
+          })
+          const result = await res.json()
+          sent += result.success || 0
+          if (result.results) {
+            result.results.forEach((r, idx) => {
+              if (r.error === 'NotRegistered' || r.error === 'InvalidRegistration') {
+                failed.push(batch[idx])
+              }
+            })
+          }
+        }
+
+        // Clean up invalid tokens
+        if (failed.length > 0) {
+          for (const token of failed) {
+            await env.DB.prepare('UPDATE users SET push_token = NULL WHERE push_token = ?').bind(token).run()
+          }
+        }
+
+        return json({ ok: true, sent, total: tokens.length, cleaned: failed.length })
+      } catch (e) {
+        return error(e.message, 500)
+      }
+    }
+
     return error('Not found', 404)
   }
 }

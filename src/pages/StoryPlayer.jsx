@@ -75,6 +75,7 @@ export default function StoryPlayer() {
   const [showChoices, setShowChoices] = useState(false)
   const [chosenIndex, setChosenIndex] = useState(null)
   const [showPercentages, setShowPercentages] = useState(false)
+  const [liveStats, setLiveStats] = useState(null) // { 0: 78, 1: 22 }
   const [history, setHistory] = useState([])
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -105,6 +106,7 @@ export default function StoryPlayer() {
     setShowControls(false)
     setChosenIndex(null)
     setShowPercentages(false)
+    setLiveStats(null)
     setTimerActive(false)
     setTimerExtended(false)
     setHintActive(false)
@@ -234,15 +236,12 @@ export default function StoryPlayer() {
       preloadNextVideos(currentNode.choices)
     }
 
-    // Fetch live choice stats
+    // Fetch live choice stats from API
     if (currentNode?.choices?.length && !currentNode?.ending) {
       const sid = storyId || 'romantic-adventure'
+      setLiveStats(null)
       fetchChoiceStats(sid, currentNodeId, currentNode.choices.length).then(pcts => {
-        if (pcts) {
-          currentNode.choices.forEach((c, idx) => {
-            if (pcts[idx] !== undefined) c.communityPct = pcts[idx]
-          })
-        }
+        if (pcts) setLiveStats(pcts)
       })
     }
 
@@ -680,6 +679,7 @@ export default function StoryPlayer() {
                 {node.choices.map((choice, i) => {
                   const isChosen = chosenIndex === i
                   const isOther = chosenIndex !== null && chosenIndex !== i
+                  const pct = liveStats?.[i] ?? choice.communityPct ?? 50
 
                   return (
                     <button
@@ -698,11 +698,11 @@ export default function StoryPlayer() {
                       }`}
                       style={{ animationDelay: `${200 + i * 100}ms` }}
                     >
-                      {/* Percentage fill bar (always rendered, animates from 0) */}
+                      {/* Percentage fill bar */}
                       <div
                         className="absolute top-0 left-0 bottom-0 rounded-2xl"
                         style={{
-                          width: showPercentages ? `${choice.communityPct}%` : '0%',
+                          width: showPercentages ? `${pct}%` : '0%',
                           background: isChosen ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
                           transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, background-color 0.3s ease-out',
                         }}
@@ -724,7 +724,7 @@ export default function StoryPlayer() {
                           transition: 'opacity 0.4s ease-out 0.3s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s',
                         }}
                       >
-                        {showPercentages ? `${choice.communityPct}%` : ''}
+                        {showPercentages ? `${pct}%` : ''}
                       </span>
                     </button>
                   )
