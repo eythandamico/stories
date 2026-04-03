@@ -17,7 +17,7 @@ function ToggleItem({ icon, label, value, onChange }) {
     <button
       type="button"
       onClick={() => onChange(!value)}
-      className="w-full text-left px-4 py-3.5 flex items-center gap-3 cursor-pointer transition-colors duration-150 hover:bg-[var(--inv-nav-hover-bg)] active:scale-[0.96]"
+      className="w-full text-left px-4 py-3.5 flex items-center gap-3 cursor-pointer transition-colors duration-150 hover:bg-[var(--inv-nav-hover-bg)]"
     >
       <Icon name={icon} size={18} className="text-[var(--inv-muted)]" />
       <span className="flex-1 text-[16px] font-medium text-[var(--inv-heading)]">{label}</span>
@@ -41,7 +41,7 @@ function SettingsItem({ icon, label, value, onClick, danger = false }) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left px-4 py-3.5 flex items-center gap-3 cursor-pointer transition-colors duration-150 hover:bg-[var(--inv-nav-hover-bg)] active:scale-[0.96] ${
+      className={`w-full text-left px-4 py-3.5 flex items-center gap-3 cursor-pointer transition-colors duration-150 hover:bg-[var(--inv-nav-hover-bg)] ${
         danger ? 'text-red-400' : ''
       }`}
     >
