@@ -61,13 +61,7 @@ export default function Settings() {
   const [sound, setSound] = useState(() => localStorage.getItem('narrative-sound') !== 'off')
   const [autoplay, setAutoplay] = useState(() => localStorage.getItem('narrative-autoplay') !== 'off')
   const [notifications, setNotifications] = useState(() => localStorage.getItem('narrative-notifs') !== 'off')
-  const [theme, setTheme] = useState(() => localStorage.getItem('narrative-theme') || 'dark')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('narrative-theme', theme)
-  }, [theme])
 
   useEffect(() => { localStorage.setItem('narrative-sound', sound ? 'on' : 'off') }, [sound])
   useEffect(() => { localStorage.setItem('narrative-autoplay', autoplay ? 'on' : 'off') }, [autoplay])
@@ -152,22 +146,6 @@ export default function Settings() {
               <ToggleItem icon="volume" label="Sound Effects" value={sound} onChange={setSound} />
               <ToggleItem icon="play" label="Autoplay Videos" value={autoplay} onChange={setAutoplay} />
               <ToggleItem icon="bell" label="Notifications" value={notifications} onChange={setNotifications} />
-              <button
-                type="button"
-                onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-                className="w-full text-left px-4 py-3.5 flex items-center gap-3 cursor-pointer transition-colors duration-150 hover:bg-[var(--inv-nav-hover-bg)] active:scale-[0.96]"
-              >
-                <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={18} className="text-[var(--inv-muted)]" />
-                <span className="flex-1 text-[16px] font-medium text-[var(--inv-heading)]">Theme</span>
-                <span className="text-[16px] text-[var(--inv-muted)]">{theme === 'dark' ? 'Dark' : 'Light'}</span>
-                <span
-                  className={`relative w-10 h-[22px] rounded-full transition-colors duration-200 ${
-                    theme === 'dark' ? 'bg-[var(--inv-accent)]' : 'bg-[var(--inv-bg-alt)]'
-                  }`}
-                >
-                  <span className={`absolute top-[3px] left-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${theme === 'dark' ? 'translate-x-[18px]' : ''}`} />
-                </span>
-              </button>
             </Surface>
           </div>
 
