@@ -14,9 +14,6 @@ import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
 
 const MAX_CONNECTION = 5
 
-// ── Connection Burst with dev controls ──
-const DEV_MODE = false
-
 const DEFAULT_PARAMS = {
   blurHeight: 390,
   blurAmount: 21,
@@ -35,71 +32,59 @@ const DEFAULT_PARAMS = {
 }
 
 function ConnectionBurst({ connection, onDevToggle }) {
-  const [p, setP] = useState(DEFAULT_PARAMS)
-  const [showDev, setShowDev] = useState(false)
-  const [key, setKey] = useState(0)
+  const [p] = useState(DEFAULT_PARAMS)
+  const [phase, setPhase] = useState('in') // 'in' | 'hold' | 'out' | 'done'
 
-  const update = (k, v) => setP(prev => ({ ...prev, [k]: v }))
-  const replay = () => setKey(k => k + 1)
-
-  // Keep burst visible while dev panel is open
+  // Lifecycle: fade in → hold → fade out
   useEffect(() => {
-    if (showDev) onDevToggle?.(true)
-    return () => onDevToggle?.(false)
-  }, [showDev])
+    const fadeInMs = p.animDuration * 0.15 * 1000
+    const holdMs = p.animDuration * 0.55 * 1000
+    const t1 = setTimeout(() => setPhase('hold'), fadeInMs)
+    const t2 = setTimeout(() => setPhase('out'), fadeInMs + holdMs)
+    const t3 = setTimeout(() => setPhase('done'), p.animDuration * 1000)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+  }, [])
 
-  // When dev panel is open, freeze the animation at the "visible" state
-  const frozen = DEV_MODE && showDev
+  const visible = phase !== 'done'
+  const showing = phase === 'in' || phase === 'hold'
 
-  const animStyle = frozen ? '' : `
-    @keyframes conn-bg-${key} {
-      0% { opacity: 0; }
-      15% { opacity: 1; }
-      70% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-    @keyframes conn-pill-${key} {
-      0% { opacity: 0; transform: scale(0); }
-      15% { opacity: 1; transform: scale(1.15); }
-      22% { transform: scale(0.95); }
-      28% { transform: scale(1); }
-      70% { opacity: 1; transform: scale(1); }
-      100% { opacity: 0; transform: scale(0.8); }
-    }
-  `
+  if (!visible) return null
 
   return (
     <>
-      <style>{animStyle}</style>
-      <div key={key} className="absolute top-0 left-0 right-0 z-[46] pointer-events-none">
-        {/* Background blur + gradient */}
-        <div style={frozen ? {} : { animation: `conn-bg-${key} ${p.animDuration}s ease-out both` }}>
-          <div
-            className="absolute top-0 left-0 right-0"
-            style={{
-              height: p.blurHeight,
-              backdropFilter: `blur(${p.blurAmount}px)`,
-              WebkitBackdropFilter: `blur(${p.blurAmount}px)`,
-              maskImage: `linear-gradient(to bottom, black 0%, black ${p.blurMaskSolid}%, transparent ${p.blurMaskEnd}%)`,
-              WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${p.blurMaskSolid}%, transparent ${p.blurMaskEnd}%)`,
-            }}
-          />
-          <div
-            className="absolute top-0 left-0 right-0"
-            style={{
-              height: p.blurHeight,
-              background: `linear-gradient(${p.gradAngle}deg, rgba(236,72,153,${p.gradPink}) 0%, rgba(249,115,22,${p.gradOrange}) 40%, rgba(168,85,247,${p.gradPurple}) 70%, transparent 100%)`,
-              maskImage: `linear-gradient(to bottom, black 0%, black ${p.gradMaskSolid}%, transparent 100%)`,
-              WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${p.gradMaskSolid}%, transparent 100%)`,
-            }}
-          />
-        </div>
-        {/* Pill blur layer — no transforms, just opacity */}
+      <div className="absolute top-0 left-0 right-0 z-[46] pointer-events-none">
+        {/* Background blur — static blur, opacity controlled */}
+        <div
+          className="absolute top-0 left-0 right-0"
+          style={{
+            height: p.blurHeight,
+            backdropFilter: `blur(${p.blurAmount}px)`,
+            WebkitBackdropFilter: `blur(${p.blurAmount}px)`,
+            maskImage: `linear-gradient(to bottom, black 0%, black ${p.blurMaskSolid}%, transparent ${p.blurMaskEnd}%)`,
+            WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${p.blurMaskSolid}%, transparent ${p.blurMaskEnd}%)`,
+            opacity: showing ? 1 : 0,
+            transition: `opacity ${showing ? '0.4s ease-out' : '0.6s ease-in'}`,
+          }}
+        />
+        {/* Gradient overlay — same opacity pattern */}
+        <div
+          className="absolute top-0 left-0 right-0"
+          style={{
+            height: p.blurHeight,
+            background: `linear-gradient(${p.gradAngle}deg, rgba(236,72,153,${p.gradPink}) 0%, rgba(249,115,22,${p.gradOrange}) 40%, rgba(168,85,247,${p.gradPurple}) 70%, transparent 100%)`,
+            maskImage: `linear-gradient(to bottom, black 0%, black ${p.gradMaskSolid}%, transparent 100%)`,
+            WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${p.gradMaskSolid}%, transparent 100%)`,
+            opacity: showing ? 1 : 0,
+            transition: `opacity ${showing ? '0.4s ease-out' : '0.6s ease-in'}`,
+          }}
+        />
+        {/* Pill blur — static blur, opacity controlled */}
         <div
           className="absolute left-0 right-0 flex items-center justify-center"
           style={{
             top: 'calc(env(safe-area-inset-top, 20px) + 20px)',
-            animation: frozen ? 'none' : `conn-bg-${key} ${p.animDuration}s ease-out both`,
+            opacity: showing ? 1 : 0,
+            transition: `opacity ${showing ? '0.4s ease-out' : '0.6s ease-in'}`,
           }}
         >
           <div
@@ -116,12 +101,16 @@ function ConnectionBurst({ connection, onDevToggle }) {
             </div>
           </div>
         </div>
-        {/* Pill content — whole pill scales */}
+        {/* Pill content — scales with transform (no backdrop-filter needed) */}
         <div
           className="absolute left-0 right-0 flex items-center justify-center"
           style={{
             top: 'calc(env(safe-area-inset-top, 20px) + 20px)',
-            animation: frozen ? 'none' : `conn-pill-${key} ${p.animDuration}s cubic-bezier(0.34, 1.56, 0.64, 1) both`,
+            opacity: showing ? 1 : 0,
+            transform: showing ? 'scale(1)' : phase === 'in' ? 'scale(0)' : 'scale(0.8)',
+            transition: showing
+              ? 'opacity 0.3s ease-out, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
+              : 'opacity 0.6s ease-in, transform 0.6s ease-in',
           }}
         >
           <div className="h-10 flex items-center gap-1.5 px-3.5 rounded-full">
@@ -131,70 +120,6 @@ function ConnectionBurst({ connection, onDevToggle }) {
         </div>
       </div>
 
-      {/* Dev controls */}
-      {DEV_MODE && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); setShowDev(d => !d) }}
-          className="absolute z-[60] w-8 h-8 rounded-full bg-red-500 flex items-center justify-center cursor-pointer text-white text-[12px] font-bold pointer-events-auto"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom, 20px) + 80px)', right: 12 }}
-        >
-          D
-        </button>
-      )}
-      {DEV_MODE && showDev && (
-        <div
-          className="absolute z-[60] overflow-y-auto pointer-events-auto"
-          style={{
-            top: 'calc(env(safe-area-inset-top, 20px) + 10px)',
-            right: 8, width: 220, maxHeight: '70vh',
-            background: 'rgba(0,0,0,0.9)', borderRadius: 12, padding: 12,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-white text-[13px] font-semibold">Connection Tuner</span>
-            <button type="button" onClick={replay} className="px-2 py-1 rounded-lg bg-pink-500 text-white text-[11px] font-semibold cursor-pointer">Replay</button>
-          </div>
-          {[
-            ['blurHeight', 'Blur Height', 100, 400, 10],
-            ['blurAmount', 'Blur Amount', 0, 40, 1],
-            ['blurMaskSolid', 'Blur Solid %', 0, 80, 5],
-            ['blurMaskEnd', 'Blur Fade %', 50, 100, 5],
-            ['gradAngle', 'Grad Angle', 0, 360, 10],
-            ['gradPink', 'Pink', 0, 1, 0.05],
-            ['gradOrange', 'Orange', 0, 1, 0.05],
-            ['gradPurple', 'Purple', 0, 1, 0.05],
-            ['gradMaskSolid', 'Grad Solid %', 0, 60, 5],
-            ['pillPink', 'Pill Pink', 0, 1, 0.05],
-            ['pillOrange', 'Pill Orange', 0, 1, 0.05],
-            ['pillBorder', 'Pill Border', 0, 0.5, 0.05],
-            ['pillGlow', 'Pill Glow', 0, 0.5, 0.05],
-            ['animDuration', 'Duration', 0.5, 4, 0.1],
-          ].map(([k, label, min, max, step]) => (
-            <div key={k} className="mb-2">
-              <div className="flex justify-between text-[11px] text-white/60 mb-0.5">
-                <span>{label}</span>
-                <span className="text-white/80 tabular-nums">{p[k]}</span>
-              </div>
-              <input
-                type="range" min={min} max={max} step={step}
-                value={p[k]}
-                onChange={(e) => update(k, parseFloat(e.target.value))}
-                className="w-full h-1 appearance-none bg-white/20 rounded-full cursor-pointer"
-                style={{ accentColor: '#ec4899' }}
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => { console.log('Connection params:', JSON.stringify(p, null, 2)); navigator.clipboard?.writeText(JSON.stringify(p, null, 2)) }}
-            className="w-full mt-2 py-1.5 rounded-lg bg-white/10 text-white/70 text-[11px] font-medium cursor-pointer"
-          >
-            Copy Params
-          </button>
-        </div>
-      )}
     </>
   )
 }
@@ -218,7 +143,6 @@ export default function StoryPlayer() {
   const [showConnectionBurst, setShowConnectionBurst] = useState(false)
   const [currentNodeId, setCurrentNodeId] = useState(null)
   const [videoError, setVideoError] = useState(false)
-  const [devBurstVisible, setDevBurstVisible] = useState(false)
 
   // Save progress to localStorage
   const saveProgress = useCallback((nodeId, hist, conn) => {
@@ -683,20 +607,8 @@ export default function StoryPlayer() {
       />
 
       {/* Connection burst */}
-      {(showConnectionBurst || devBurstVisible) && (
-        <ConnectionBurst connection={connection} onDevToggle={setDevBurstVisible} />
-      )}
-
-      {/* Dev trigger button — always visible in dev mode */}
-      {DEV_MODE && !showConnectionBurst && !devBurstVisible && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); setDevBurstVisible(true) }}
-          className="absolute z-[60] w-8 h-8 rounded-full bg-red-500 flex items-center justify-center cursor-pointer text-white text-[12px] font-bold pointer-events-auto"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom, 20px) + 80px)', right: 12 }}
-        >
-          D
-        </button>
+      {showConnectionBurst && (
+        <ConnectionBurst connection={connection} />
       )}
 
 
