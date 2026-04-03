@@ -42,7 +42,9 @@ async function getFCMAccessToken(env) {
       return data.access_token
     }
   } catch (e) {
-    console.error('FCM auth error:', e)
+    console.error('FCM auth error:', e.message, e.stack)
+    // Store error for debugging
+    fcmTokenCache.lastError = e.message
   }
   return null
 }
@@ -143,7 +145,7 @@ function json(data, status = 200) {
 }
 
 function error(msg, status = 400) {
-  return json({ error: 'Request failed' }, status)
+  return json({ error: msg || 'Request failed' }, status)
 }
 
 async function authenticate(request, env) {
@@ -362,8 +364,9 @@ export default {
           body.total_endings || 0, body.start_node_id || null, body.sort_order || 0
         ).run()
 
-        // Auto-add new stories to feed
-        if (!existing) {
+        // Auto-add to feed if not already there
+        const inFeed = await env.DB.prepare('SELECT story_id FROM feed WHERE story_id = ?').bind(body.id).first()
+        if (!inFeed) {
           const maxOrder = await env.DB.prepare('SELECT MAX(sort_order) as m FROM feed').first()
           await env.DB.prepare('INSERT INTO feed (story_id, sort_order) VALUES (?, ?)')
             .bind(body.id, (maxOrder?.m ?? -1) + 1).run()
@@ -563,7 +566,11 @@ export default {
         if (tokens.length === 0) return json({ ok: true, sent: 0 })
 
         const accessToken = await getFCMAccessToken(env)
-        if (!accessToken) return error('FCM not configured — set FCM_SERVICE_ACCOUNT secret', 500)
+        if (!accessToken) {
+          const hasSecret = Boolean(env.FCM_SERVICE_ACCOUNT)
+          const secretLen = env.FCM_SERVICE_ACCOUNT ? env.FCM_SERVICE_ACCOUNT.length : 0
+          return json({ error: 'FCM auth failed', hasSecret, secretLen, lastError: fcmTokenCache.lastError }, 500)
+        }
 
         let sent = 0
         const failed = []
@@ -608,7 +615,7 @@ export default {
 
         return json({ ok: true, sent, total: tokens.length, cleaned: failed.length })
       } catch (e) {
-        return error(e.message, 500)
+        return json({ error: e.message, stack: e.stack }, 500)
       }
     }
 
