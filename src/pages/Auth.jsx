@@ -100,14 +100,16 @@ export default function Auth() {
         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 80%, transparent 100%)' }}
       />
 
-      {/* Branding */}
-      <div className="relative flex-1 flex flex-col items-center justify-center px-8 z-10">
-        <h1 className="text-white text-[38px] font-semibold tracking-tight mb-2">Narrative</h1>
-        <p className="text-white/50 text-[16px] text-center">Interactive stories that respond to you</p>
-      </div>
+      {/* Centered content */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
+        {/* Branding */}
+        {view !== 'check-email' && (
+          <div className="text-center mb-10">
+            <h1 className="text-white text-[38px] font-semibold tracking-tight mb-2">Narrative</h1>
+            <p className="text-white/50 text-[16px]">Interactive stories that respond to you</p>
+          </div>
+        )}
 
-      {/* Content */}
-      <div className="relative z-10 px-6 pb-[max(calc(env(safe-area-inset-bottom)+120px),160px)]">
         {error && <p className="text-red-400 text-[14px] text-center mb-4">{error}</p>}
 
         {view === 'check-email' ? (
@@ -131,7 +133,7 @@ export default function Auth() {
           </div>
         ) : (
           /* Main view — social + email input */
-          <div className="flex flex-col gap-2.5 mb-2">
+          <div className="flex flex-col gap-2.5 w-full">
             <button
               type="button"
               onClick={handleApple}
