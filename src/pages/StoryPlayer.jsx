@@ -562,17 +562,27 @@ export default function StoryPlayer() {
 
       {/* Bottom content */}
       <div
-        className={`fixed inset-0 z-10 flex flex-col justify-end transition-opacity duration-500 ease-out ${
+        className={`fixed inset-0 z-10 flex flex-col justify-end ${
           showComplete ? 'opacity-0 pointer-events-none' : (showChoices && !choicesExiting) ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
+        style={{ transition: 'opacity 0.5s ease-out' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute inset-0 pointer-events-none"
-          style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', maskImage: 'linear-gradient(to top, black 40%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to top, black 40%, transparent 80%)' }}
+          style={{
+            backdropFilter: (showChoices && !choicesExiting && !showComplete) ? 'blur(24px)' : 'blur(0px)',
+            WebkitBackdropFilter: (showChoices && !choicesExiting && !showComplete) ? 'blur(24px)' : 'blur(0px)',
+            transition: 'backdrop-filter 0.6s ease-out, -webkit-backdrop-filter 0.6s ease-out',
+            maskImage: 'linear-gradient(to top, black 40%, transparent 80%)',
+            WebkitMaskImage: 'linear-gradient(to top, black 40%, transparent 80%)',
+          }}
           aria-hidden="true"
         />
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(transparent 20%, rgba(0,0,0,0.8))' }}
+          style={{
+            background: (showChoices && !choicesExiting && !showComplete) ? 'linear-gradient(transparent 20%, rgba(0,0,0,0.8))' : 'linear-gradient(transparent 20%, rgba(0,0,0,0))',
+            transition: 'background 0.6s ease-out',
+          }}
           aria-hidden="true"
         />
 
