@@ -496,42 +496,48 @@ export default function StoryPlayer() {
         aria-hidden="true"
       />
 
-      {/* Connection burst — slides in from top */}
+      {/* Connection burst */}
       {showConnectionBurst && (
-        <div className="absolute top-0 left-0 right-0 z-[46] pointer-events-none" style={{ animation: 'connection-slide 1.8s ease-out both' }}>
-          {/* Progressive blur background */}
+        <div className="absolute top-0 left-0 right-0 z-[46] pointer-events-none">
+          {/* Progressive blur — slides in from top */}
+          <div style={{ animation: 'connection-bg-slide 1.8s ease-out both' }}>
+            <div
+              className="absolute top-0 left-0 right-0"
+              style={{
+                height: 220,
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                maskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%)',
+              }}
+            />
+            {/* Intense pink-orange gradient */}
+            <div
+              className="absolute top-0 left-0 right-0"
+              style={{
+                height: 220,
+                background: 'linear-gradient(160deg, rgba(236,72,153,0.45) 0%, rgba(249,115,22,0.35) 40%, rgba(168,85,247,0.15) 70%, transparent 100%)',
+                maskImage: 'linear-gradient(to bottom, black 0%, black 30%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 30%, transparent 100%)',
+              }}
+            />
+          </div>
+          {/* Badge — scales in from center */}
           <div
-            className="absolute top-0 left-0 right-0"
+            className="absolute left-0 right-0 flex items-center justify-center"
             style={{
-              height: 180,
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              maskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 40%, transparent 100%)',
+              top: 'calc(env(safe-area-inset-top, 20px) + 70px)',
+              animation: 'connection-pill-scale 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) both',
             }}
-          />
-          {/* Pink-orange gradient glow */}
-          <div
-            className="absolute top-0 left-0 right-0"
-            style={{
-              height: 180,
-              background: 'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(249,115,22,0.15) 50%, transparent 100%)',
-              maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
-            }}
-          />
-          {/* Badge */}
-          <div
-            className="relative flex items-center justify-center"
-            style={{ paddingTop: 'calc(env(safe-area-inset-top, 20px) + 70px)' }}
           >
             <div
               className="flex items-center gap-2 px-5 py-2.5 rounded-full"
               style={{
-                background: 'linear-gradient(135deg, rgba(236,72,153,0.25), rgba(249,115,22,0.2))',
+                background: 'linear-gradient(135deg, rgba(236,72,153,0.3), rgba(249,115,22,0.25))',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
-                border: '1px solid rgba(236,72,153,0.15)',
+                border: '1px solid rgba(236,72,153,0.2)',
+                boxShadow: '0 4px 24px rgba(236,72,153,0.2)',
               }}
             >
               <HeartIcon size={22} />
