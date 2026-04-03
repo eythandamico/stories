@@ -50,7 +50,7 @@ export default function Explore() {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[var(--inv-bg)] pb-28 animate-page-enter">
+    <main className="fixed inset-0 bg-[var(--inv-bg)] overflow-y-auto animate-page-enter">
       {/* Search bar */}
       <div className="px-6 pt-14 mb-6 animate-fade-down">
         <div className="relative">

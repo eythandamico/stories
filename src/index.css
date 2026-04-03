@@ -10,8 +10,12 @@
   html { scroll-behavior: smooth; }
 }
 
-html {
+html, body {
   overscroll-behavior: none;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  position: fixed;
 }
 
 body {

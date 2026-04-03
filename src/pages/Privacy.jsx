@@ -5,7 +5,7 @@ export default function Privacy() {
   const navigate = useNavigate()
 
   return (
-    <main className="min-h-[100dvh] bg-[var(--inv-bg)] pb-28 animate-page-enter">
+    <main className="fixed inset-0 bg-[var(--inv-bg)] overflow-y-auto animate-page-enter">
       <div className="px-5 pt-[calc(env(safe-area-inset-top,20px)+20px)] pb-2">
         <div className="flex items-center gap-3 mb-6">
           <button

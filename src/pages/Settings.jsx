@@ -95,7 +95,7 @@ export default function Settings() {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[var(--inv-bg)] pb-28 animate-page-enter">
+    <main className="fixed inset-0 bg-[var(--inv-bg)] overflow-y-auto animate-page-enter">
       {/* Header */}
       <div className="px-5 pt-14 pb-2">
         <Row gap="md" className="mb-6">
