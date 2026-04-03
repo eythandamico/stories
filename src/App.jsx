@@ -1,9 +1,10 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, Component } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import './tokens/theme.css'
 import { AuthProvider, useAuth } from './lib/use-auth.jsx'
 import { initPushNotifications } from './lib/notifications.js'
 import { BottomNav } from './components/bottom-nav.jsx'
+import Icon from './lib/icon.jsx'
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home.jsx'))
@@ -17,6 +18,31 @@ const tabs = [
   { id: 'home', label: 'Home', icon: 'home' },
   { id: 'explore', label: 'Explore', icon: 'search' },
 ]
+
+class ErrorBoundary extends Component {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  componentDidCatch(error, info) { console.error('App crash:', error, info) }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="fixed inset-0 bg-black flex flex-col items-center justify-center px-8 text-center">
+          <Icon name="alert-triangle" size={40} className="text-white/40 mb-4" />
+          <h1 className="text-white text-[22px] font-semibold mb-2">Something went wrong</h1>
+          <p className="text-white/50 text-[16px] mb-6">The app ran into an error.</p>
+          <button
+            type="button"
+            onClick={() => { this.setState({ hasError: false }); window.location.href = '/' }}
+            className="h-[48px] px-8 rounded-2xl bg-white text-black font-semibold text-[16px] cursor-pointer active:scale-[0.96]"
+          >
+            Restart
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 function LoadingScreen() {
   return (
@@ -78,10 +104,12 @@ function AppShell() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppShell />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppShell />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

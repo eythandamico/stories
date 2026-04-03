@@ -67,10 +67,18 @@ export function useGameState() {
     }
   }, [refresh]);
 
-  // Periodic heart regen
+  // Periodic heart regen — only when tab is visible
   useEffect(() => {
-    const interval = setInterval(() => { regenerateHearts(); refresh(); }, 30_000);
-    return () => clearInterval(interval);
+    let interval = null;
+    const start = () => {
+      if (!interval) interval = setInterval(() => { regenerateHearts(); refresh(); }, 30_000);
+    };
+    const stop = () => { clearInterval(interval); interval = null; };
+    const onVisibility = () => document.hidden ? stop() : start();
+
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
   }, [refresh]);
 
   const spendHeart = useCallback(() => {

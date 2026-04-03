@@ -1,7 +1,8 @@
-import { useRef, useState, useEffect, useMemo } from 'react'
+import { useRef, useState, useEffect, useMemo, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchFeed } from '../lib/data.js'
 import { useAuth } from '../lib/use-auth.jsx'
+import { logout } from '../lib/firebase.js'
 import { ProfileMenu } from '../components/profile-menu.jsx'
 import { NoHeartsModal } from '../components/no-hearts-modal.jsx'
 import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
@@ -19,7 +20,7 @@ import { FlameIcon } from '../components/flame-icon.jsx'
 // Only mount video elements for cards within this range of the active card
 const RENDER_WINDOW = 2
 
-function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onPlay }) {
+const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onPlay }) {
   const videoRef = useRef(null)
 
   // Play/pause based on active state
@@ -202,25 +203,38 @@ function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onP
           </div>
         </div>
 
-        {/* Start button */}
-        {item.route && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onPlay(item) }}
-            className="mt-4 w-full h-[52px] rounded-2xl bg-white/15 backdrop-blur-md text-white cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
-            style={{
-              opacity: isActive ? 1 : 0,
-              transitionDelay: isActive ? '0.6s' : '0s',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
-            <span className="font-semibold text-[16px]">Start</span>
-          </button>
-        )}
+        {/* Start / Resume button */}
+        {item.route && (() => {
+          const saved = localStorage.getItem(`narrative-progress-${item.storyId || item.id}`)
+          const hasProgress = saved && (() => { try { const p = JSON.parse(saved); return Date.now() - p.savedAt < 86400000 } catch { return false } })()
+          return (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onPlay(item) }}
+              className="mt-4 w-full h-[52px] rounded-2xl bg-white/15 backdrop-blur-md text-white cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
+              style={{
+                opacity: isActive ? 1 : 0,
+                transitionDelay: isActive ? '0.6s' : '0s',
+              }}
+            >
+              {hasProgress ? (
+                <>
+                  <Icon name="play" size={18} />
+                  <span className="font-semibold text-[16px]">Resume</span>
+                </>
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+                  <span className="font-semibold text-[16px]">Start</span>
+                </>
+              )}
+            </button>
+          )
+        })()}
       </div>
     </div>
   )
-}
+})
 
 export default function Home() {
   const navigate = useNavigate()
@@ -299,8 +313,7 @@ export default function Home() {
           profile={{ name: user?.displayName || 'User', email: user?.email || '' }}
           profileItems={[
             { icon: 'settings', label: 'Settings', onAction: () => navigate('/settings') },
-            { icon: 'user', label: 'Edit Profile', onAction: () => {} },
-            { icon: 'logout', label: 'Sign Out', danger: true, onAction: () => {} },
+            { icon: 'logout', label: 'Sign Out', danger: true, onAction: async () => { await logout(); navigate('/auth') } },
           ]}
           placement="bottom-left"
           size={40}

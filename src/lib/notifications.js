@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { PushNotifications } from '@capacitor/push-notifications'
+import { api } from './api.js'
+import { isFirebaseConfigured } from './firebase.js'
 
 let initialized = false
 
@@ -13,9 +15,15 @@ export async function initPushNotifications() {
 
     await PushNotifications.register()
 
-    PushNotifications.addListener('registration', (token) => {
+    PushNotifications.addListener('registration', async (token) => {
       console.log('Push token:', token.value)
-      // TODO: send token to your server for targeting
+      if (isFirebaseConfigured) {
+        try {
+          await api.updateMe({ push_token: token.value })
+        } catch (e) {
+          console.warn('Failed to send push token:', e)
+        }
+      }
     })
 
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
@@ -31,10 +39,4 @@ export async function initPushNotifications() {
   } catch (e) {
     console.warn('Push notifications not available:', e)
   }
-}
-
-// Schedule local notifications for streaks
-export async function scheduleStreakReminder() {
-  if (!Capacitor.isNativePlatform()) return
-  // Local notifications would go here — requires @capacitor/local-notifications
 }

@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { fetchStory } from '../lib/data.js'
+import { fetchStory, fetchChoiceStats } from '../lib/data.js'
+import { api } from '../lib/api.js'
+import { isFirebaseConfigured } from '../lib/firebase.js'
 import { useGameState } from '../lib/use-game-state.js'
 import { StoryComplete } from '../components/story-complete.jsx'
 import { Stack } from '../components/stack.jsx'
@@ -29,12 +31,40 @@ export default function StoryPlayer() {
   const [choicesExiting, setChoicesExiting] = useState(false)
   const [showConnectionBurst, setShowConnectionBurst] = useState(false)
   const [currentNodeId, setCurrentNodeId] = useState(null)
+  const [videoError, setVideoError] = useState(false)
 
-  // Load story from API
+  // Save progress to localStorage
+  const saveProgress = useCallback((nodeId, hist, conn) => {
+    const id = storyId || 'romantic-adventure'
+    localStorage.setItem(`narrative-progress-${id}`, JSON.stringify({
+      nodeId, history: hist, connection: conn, savedAt: Date.now(),
+    }))
+  }, [storyId])
+
+  const clearProgress = useCallback(() => {
+    const id = storyId || 'romantic-adventure'
+    localStorage.removeItem(`narrative-progress-${id}`)
+  }, [storyId])
+
+  // Load story from API, resume if saved progress exists
   useEffect(() => {
     const id = storyId || 'romantic-adventure'
     fetchStory(id).then(s => {
       setStory(s)
+      const saved = localStorage.getItem(`narrative-progress-${id}`)
+      if (saved) {
+        try {
+          const p = JSON.parse(saved)
+          // Only resume if save is less than 24h old and node exists
+          if (p.nodeId && s.nodes[p.nodeId] && Date.now() - p.savedAt < 86400000) {
+            setCurrentNodeId(p.nodeId)
+            setHistory(p.history || [])
+            setConnection(p.connection || 0)
+            setLoading(false)
+            return
+          }
+        } catch {}
+      }
       setCurrentNodeId(s.startNodeId)
       setLoading(false)
     })
@@ -169,6 +199,18 @@ export default function StoryPlayer() {
 
     const currentNode = story.nodes[currentNodeId]
 
+    // Fetch live choice stats
+    if (currentNode?.choices?.length && !currentNode?.ending) {
+      const sid = storyId || 'romantic-adventure'
+      fetchChoiceStats(sid, currentNodeId, currentNode.choices.length).then(pcts => {
+        if (pcts) {
+          currentNode.choices.forEach((c, idx) => {
+            if (pcts[idx] !== undefined) c.communityPct = pcts[idx]
+          })
+        }
+      })
+    }
+
     // Start timer if timed
     if (currentNode?.timed && !currentNode?.ending) {
       setTimerTotal(currentNode.timerSeconds)
@@ -184,6 +226,7 @@ export default function StoryPlayer() {
         hapticSuccess()
         soundEndingDiscovered()
       }
+      clearProgress()
       setShowComplete(true)
     }
   }, [currentNodeId, addEnding])
@@ -216,15 +259,24 @@ export default function StoryPlayer() {
       }
     }, 200)
 
+    // Record choice to API
+    if (isFirebaseConfigured) {
+      const sid = storyId || 'romantic-adventure'
+      api.recordChoice(sid, currentNodeId, index).catch(() => {})
+    }
+
     // Fade out, then transition
     setTimeout(() => {
       setChoicesExiting(true)
     }, 2500)
     setTimeout(() => {
-      setHistory((prev) => [...prev, currentNodeId])
+      const newHistory = [...history, currentNodeId]
+      const newConnection = choice.positive ? Math.min(connection + 1, MAX_CONNECTION) : connection
+      setHistory(newHistory)
       setShowChoices(false)
       setChoicesExiting(false)
       setCurrentNodeId(choice.nextNodeId)
+      saveProgress(choice.nextNodeId, newHistory, newConnection)
     }, 3100)
   }
 
@@ -253,6 +305,7 @@ export default function StoryPlayer() {
     setShowComplete(false)
     setNewEnding(false)
     stopHeartbeat()
+    clearProgress()
     setCurrentNodeId(story.startNodeId)
   }
 
@@ -363,12 +416,28 @@ export default function StoryPlayer() {
         aria-label={node.title}
         className="w-full h-full object-cover animate-crossfade"
         onEnded={handleVideoEnd}
-        onPlay={() => setIsPlaying(true)}
+        onPlay={() => { setIsPlaying(true); setVideoError(false) }}
         onPause={() => setIsPlaying(false)}
+        onError={() => setVideoError(true)}
         autoPlay
         playsInline
         preload="auto"
       />
+
+      {/* Video error fallback */}
+      {videoError && (
+        <div className="absolute inset-0 z-[5] flex flex-col items-center justify-center bg-black/80">
+          <Icon name="alert-triangle" size={32} className="text-white/40 mb-3" />
+          <p className="text-white/60 text-[16px] mb-4">Video failed to load</p>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setVideoError(false); videoRef.current?.load() }}
+            className="px-6 h-[44px] rounded-2xl bg-white/15 text-white font-medium text-[15px] cursor-pointer active:scale-[0.96]"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Vignette */}
       <div

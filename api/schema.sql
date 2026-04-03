@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
   streak_best INTEGER DEFAULT 0,
   streak_last_play TEXT,
   last_heart_loss TEXT,
+  push_token TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

@@ -89,23 +89,12 @@ export function StoryComplete({
 
           <p className="text-white/30 text-[12px] font-medium tracking-widest uppercase text-center mb-3">Continue the story</p>
           <div className="flex gap-2.5">
-            <button
-              type="button"
-              onClick={onBuyNext}
-              className="flex-1 h-[52px] rounded-2xl bg-white text-black font-semibold text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex flex-col items-center justify-center"
+            <div
+              className="flex-1 h-[52px] rounded-2xl bg-white/10 flex flex-col items-center justify-center"
             >
-              <span>Next Chapter</span>
-              <span className="text-[12px] font-medium text-black/50">$1.99</span>
-            </button>
-            <button
-              type="button"
-              onClick={onBuySeries}
-              className="flex-1 h-[52px] rounded-2xl cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex flex-col items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.3), rgba(168,85,247,0.3))', color: 'white' }}
-            >
-              <span className="font-semibold text-[15px]">Full Series</span>
-              <span className="text-[12px] font-medium text-white/60">$4.99</span>
-            </button>
+              <span className="text-white/50 font-medium text-[15px]">More chapters</span>
+              <span className="text-[12px] font-medium text-white/30">Coming soon</span>
+            </div>
           </div>
         </div>
 

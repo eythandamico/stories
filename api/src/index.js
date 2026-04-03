@@ -6,6 +6,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:5174',
   'capacitor://localhost',
+  'https://localhost',
   'ionic://localhost',
   'https://stories-a02bd.firebaseapp.com',
 ]
@@ -233,7 +234,7 @@ export default {
       const body = await request.json()
       const fields = []
       const values = []
-      const allowed = ['streak_current', 'streak_best', 'streak_last_play', 'last_heart_loss', 'display_name']
+      const allowed = ['streak_current', 'streak_best', 'streak_last_play', 'last_heart_loss', 'display_name', 'push_token']
       for (const key of allowed) {
         if (body[key] !== undefined) {
           fields.push(`${key} = ?`)
