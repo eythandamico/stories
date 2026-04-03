@@ -13,6 +13,8 @@ const Settings = lazy(() => import('./pages/Settings.jsx'))
 const StoryPlayer = lazy(() => import('./pages/StoryPlayer.jsx'))
 const Auth = lazy(() => import('./pages/Auth.jsx'))
 const SetupUsername = lazy(() => import('./pages/SetupUsername.jsx'))
+const Store = lazy(() => import('./pages/Store.jsx'))
+const Streaks = lazy(() => import('./pages/Streaks.jsx'))
 
 const tabs = [
   { id: 'home', label: 'Home', icon: 'home' },
@@ -69,7 +71,7 @@ function AppShell() {
 
   useEffect(() => { if (user) initPushNotifications() }, [user])
 
-  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup'
+  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup' || location.pathname === '/store' || location.pathname === '/streaks'
 
   const tabRoutes = { '/': 'home', '/explore': 'explore' }
   const activeTab = tabRoutes[location.pathname] || 'home'
@@ -87,6 +89,8 @@ function AppShell() {
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
+        <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
         <Route path="/play/:storyId?" element={<ProtectedRoute><StoryPlayer /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

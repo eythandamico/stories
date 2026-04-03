@@ -2,11 +2,7 @@ import { useRef, useState, useEffect, useMemo, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchFeed } from '../lib/data.js'
 import { useAuth } from '../lib/use-auth.jsx'
-import { logout } from '../lib/firebase.js'
-import { ProfileMenu } from '../components/profile-menu.jsx'
 import { NoHeartsModal } from '../components/no-hearts-modal.jsx'
-import { BuyHeartsModal } from '../components/buy-hearts-modal.jsx'
-import { StreakModal } from '../components/streak-modal.jsx'
 import { Onboarding, shouldShowOnboarding } from '../components/onboarding.jsx'
 import { useGameState } from '../lib/use-game-state.js'
 import { hapticLight, hapticError } from '../lib/haptics.js'
@@ -244,12 +240,10 @@ export default function Home() {
   const [feed, setFeed] = useState([])
   const [feedLoaded, setFeedLoaded] = useState(false)
   const [showNoHearts, setShowNoHearts] = useState(false)
-  const [showBuyHearts, setShowBuyHearts] = useState(false)
-  const [showStreak, setShowStreak] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding())
   const [shaderReady, setShaderReady] = useState(false)
   const [shaderVisible, setShaderVisible] = useState(false)
-  const { hearts, maxHearts, nextHeartTime, spendHeart, purchaseHearts, purchasePerks, recordPlay, streak } = useGameState()
+  const { hearts, nextHeartTime, spendHeart, recordPlay, streak } = useGameState()
 
   // Load feed from API
   useEffect(() => {
@@ -306,26 +300,26 @@ export default function Home() {
         aria-hidden="true"
       />
 
-      {/* Profile avatar */}
-      <div className="fixed top-[env(safe-area-inset-top,20px)] left-5 mt-5 z-30">
-        <ProfileMenu
-          avatarUrl={user?.photoURL || '/profile.jpg'}
-          profile={{ name: user?.displayName || 'User', email: user?.email || '' }}
-          profileItems={[
-            { icon: 'settings', label: 'Settings', onAction: () => navigate('/settings') },
-            { icon: 'logout', label: 'Sign Out', danger: true, onAction: async () => { await logout(); navigate('/auth') } },
-          ]}
-          placement="bottom-left"
-          size={40}
-          rounded="full"
+      {/* Profile avatar → settings */}
+      <button
+        type="button"
+        onClick={() => navigate('/settings')}
+        className="fixed top-[env(safe-area-inset-top,20px)] left-5 mt-5 z-30 w-10 h-10 rounded-full cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] hover:opacity-90"
+        aria-label="Settings"
+      >
+        <img
+          src={user?.photoURL || '/profile.jpg'}
+          alt={`${user?.displayName || 'User'}'s profile`}
+          className="w-full h-full rounded-full object-cover"
         />
-      </div>
+        <span className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)' }} />
+      </button>
 
       {/* Tokens */}
       <div className="fixed top-[env(safe-area-inset-top,20px)] right-5 mt-5 z-30 flex items-center gap-2">
         <button
           type="button"
-          onClick={() => setShowStreak(true)}
+          onClick={() => navigate('/streaks')}
           className="flex items-center gap-2 px-3 h-10 rounded-full bg-white/10 backdrop-blur-xl cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] hover:bg-white/15"
         >
           <FlameIcon size={28} />
@@ -333,7 +327,7 @@ export default function Home() {
         </button>
         <button
           type="button"
-          onClick={() => setShowBuyHearts(true)}
+          onClick={() => navigate('/store')}
           className="flex items-center gap-2 px-3 h-10 rounded-full bg-white/10 backdrop-blur-xl cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] hover:bg-white/15"
         >
           <HeartIcon size={28} />
@@ -365,23 +359,11 @@ export default function Home() {
       </div>
 
       {/* Modals */}
-      <StreakModal
-        isOpen={showStreak}
-        onClose={() => setShowStreak(false)}
-        streak={streak}
-        onClaimReward={(count) => purchaseHearts(count)}
-      />
       <NoHeartsModal
         isOpen={showNoHearts}
         onClose={() => setShowNoHearts(false)}
         nextHeartTime={nextHeartTime}
-        onBuy={() => { setShowNoHearts(false); setShowBuyHearts(true) }}
-      />
-      <BuyHeartsModal
-        isOpen={showBuyHearts}
-        onClose={() => setShowBuyHearts(false)}
-        onPurchase={(count) => purchaseHearts(count)}
-        onPurchasePerks={(type, count) => purchasePerks(type, count)}
+        onBuy={() => { setShowNoHearts(false); navigate('/store') }}
       />
       {showOnboarding && (
         <Onboarding onComplete={() => setShowOnboarding(false)} />
