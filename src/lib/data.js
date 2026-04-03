@@ -66,7 +66,9 @@ export async function fetchStory(storyId) {
             label: c.label,
             nextNodeId: c.nextNodeId,
             positive: c.positive,
-            communityPct: 50, // Will be replaced by live stats
+            communityPct: 50,
+            choiceType: c.choiceType || 'button',
+            prompt: c.prompt || null,
           })),
         }
       }

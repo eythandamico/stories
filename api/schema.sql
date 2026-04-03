@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS choices (
   next_node_id TEXT NOT NULL,
   positive INTEGER DEFAULT 0,
   sort_order INTEGER DEFAULT 0,
+  choice_type TEXT DEFAULT 'button',
+  prompt TEXT,
   FOREIGN KEY (story_id) REFERENCES stories(id)
 );
 

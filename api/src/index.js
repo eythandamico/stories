@@ -220,6 +220,8 @@ export default {
               label: c.label,
               nextNodeId: c.next_node_id,
               positive: Boolean(c.positive),
+              choiceType: c.choice_type || 'button',
+              prompt: c.prompt || null,
             })),
         }
       }
@@ -353,6 +355,38 @@ export default {
       return json({ ok: true })
     }
 
+    // POST /api/generate — process text input choice via AI
+    if (path === '/api/generate' && method === 'POST') {
+      const { storyId, nodeId, userText, prompt } = await request.json()
+      if (!storyId || !nodeId || !userText) return error('Missing required fields')
+
+      // Get the node and story context
+      const story = await env.DB.prepare('SELECT title, description FROM stories WHERE id = ?').bind(storyId).first()
+      const node = await env.DB.prepare('SELECT title, description FROM nodes WHERE story_id = ? AND id = ?').bind(storyId, nodeId).first()
+
+      if (!story || !node) return error('Story or node not found', 404)
+
+      // Store the user's response
+      await env.DB.prepare(`
+        INSERT INTO text_responses (user_id, story_id, node_id, user_text, created_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+      `).bind(user.uid, storyId, nodeId, userText).run().catch(() => {})
+
+      // For now, return the next node from the text-input choice
+      // AI generation will be plugged in here later
+      const textChoice = await env.DB.prepare(
+        "SELECT next_node_id FROM choices WHERE story_id = ? AND node_id = ? AND choice_type = 'text-input' LIMIT 1"
+      ).bind(storyId, nodeId).first()
+
+      return json({
+        ok: true,
+        nextNodeId: textChoice?.next_node_id || null,
+        // Placeholder for AI-generated content
+        generatedText: null,
+        generatedImageUrl: null,
+      })
+    }
+
     // ── Admin routes ──
     // POST /api/admin/stories — create/update a story
     if (path === '/api/admin/stories' && method === 'POST') {
@@ -456,9 +490,9 @@ export default {
         for (let i = 0; i < body.choices.length; i++) {
           const c = body.choices[i]
           await env.DB.prepare(`
-            INSERT INTO choices (story_id, node_id, label, next_node_id, positive, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?)
-          `).bind(body.story_id, body.node_id, c.label, c.nextNodeId, c.positive ? 1 : 0, i).run()
+            INSERT INTO choices (story_id, node_id, label, next_node_id, positive, sort_order, choice_type, prompt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(body.story_id, body.node_id, c.label, c.nextNodeId, c.positive ? 1 : 0, i, c.choiceType || 'button', c.prompt || null).run()
         }
         return json({ ok: true })
       } catch (e) {

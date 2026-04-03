@@ -115,19 +115,23 @@ function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, 
           <div className="px-3 py-2 space-y-1.5">
             {(node.choices || []).map((c, i) => (
               <div key={i} className="flex items-center gap-1.5 group relative">
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: c.positive ? '#22c55e' : '#64748b' }}
-                  onClick={(e) => { e.stopPropagation(); onUpdateChoice(node.id, i, { ...c, positive: !c.positive }) }}
-                  title="Toggle positive"
-                />
+                {c.choiceType === 'text-input' ? (
+                  <div className="w-2 h-2 rounded-full shrink-0 bg-purple-400" title="Text input" />
+                ) : (
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: c.positive ? '#22c55e' : '#64748b' }}
+                    onClick={(e) => { e.stopPropagation(); onUpdateChoice(node.id, i, { ...c, positive: !c.positive }) }}
+                    title="Toggle positive"
+                  />
+                )}
                 <input
                   data-input="true"
-                  value={c.label}
-                  maxLength={40}
-                  onChange={(e) => onUpdateChoice(node.id, i, { ...c, label: e.target.value })}
+                  value={c.choiceType === 'text-input' ? (c.prompt || '') : c.label}
+                  maxLength={60}
+                  onChange={(e) => onUpdateChoice(node.id, i, c.choiceType === 'text-input' ? { ...c, prompt: e.target.value } : { ...c, label: e.target.value })}
                   onBlur={() => onUpdateChoice(node.id, i, c, true)}
                   className="flex-1 bg-transparent text-[11px] outline-none min-w-0 truncate"
-                  style={{ color: `${colors.text}99` }}
-                  placeholder="Choice label..."
+                  style={{ color: c.choiceType === 'text-input' ? '#c084fc' : `${colors.text}99` }}
+                  placeholder={c.choiceType === 'text-input' ? 'AI prompt...' : 'Choice label...'}
                 />
                 <button
                   onClick={(e) => { e.stopPropagation(); onDeleteChoice(node.id, i) }}
@@ -143,13 +147,23 @@ function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, 
               </div>
             ))}
             {(node.choices || []).length < 3 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onAddChoice(node.id) }}
-                className="text-[11px] cursor-pointer hover:text-blue-300 transition-colors w-full text-left py-0.5"
-                style={{ color: `${colors.text}40` }}
-              >
-                + Add choice ({3 - (node.choices?.length || 0)} left)
-              </button>
+              <div className="flex gap-2 py-0.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAddChoice(node.id, 'button') }}
+                  className="text-[11px] cursor-pointer hover:text-blue-300 transition-colors"
+                  style={{ color: `${colors.text}40` }}
+                >
+                  + Choice
+                </button>
+                {!(node.choices || []).some(c => c.choiceType === 'text-input') && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onAddChoice(node.id, 'text-input') }}
+                    className="text-[11px] cursor-pointer hover:text-purple-300 transition-colors text-purple-400/40"
+                  >
+                    + Text Input
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -303,11 +317,13 @@ export default function StoryBuilder({ storyId, onBack }) {
     setConnectingFrom(null); setConnectMousePos(null); load()
   }
 
-  const handleAddChoice = async (nodeId) => {
+  const handleAddChoice = async (nodeId, choiceType = 'button') => {
     const node = nodes[nodeId]
     if (!node) return
+    // Only allow one text-input per node
+    if (choiceType === 'text-input' && node.choices?.some(c => c.choiceType === 'text-input')) return
     const num = (node.choices?.length || 0) + 1
-    const updatedChoices = [...(node.choices || []), { label: `Choice ${num}`, nextNodeId: '', positive: false }]
+    const updatedChoices = [...(node.choices || []), { label: choiceType === 'text-input' ? 'Type your response' : `Choice ${num}`, nextNodeId: '', positive: false, choiceType, prompt: choiceType === 'text-input' ? 'What do you say?' : null }]
     await admin.saveChoices(storyId, nodeId, updatedChoices)
     load()
   }

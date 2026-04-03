@@ -141,6 +141,10 @@ export default function StoryPlayer() {
   const [showConnectionBurst, setShowConnectionBurst] = useState(false)
   const [currentNodeId, setCurrentNodeId] = useState(null)
   const [videoError, setVideoError] = useState(false)
+  const [showTextInput, setShowTextInput] = useState(false)
+  const [textInputValue, setTextInputValue] = useState('')
+  const [textInputPrompt, setTextInputPrompt] = useState('')
+  const [generating, setGenerating] = useState(false)
 
   // Save progress to localStorage
   const saveProgress = useCallback((nodeId, hist, conn) => {
@@ -435,6 +439,35 @@ export default function StoryPlayer() {
   const handleChoice = (choice, index) => {
     hapticLight()
     handleChoiceInternal(choice, index)
+  }
+
+  const handleTextSubmit = async () => {
+    const text = textInputValue.trim()
+    if (!text) return
+
+    setShowTextInput(false)
+    setGenerating(true)
+    hapticMedium()
+    soundClick()
+
+    try {
+      const sid = storyId || 'romantic-adventure'
+      const result = await api.generateResponse(sid, currentNodeId, text, textInputPrompt)
+
+      if (result.nextNodeId) {
+        // Transition to the next node
+        const newHistory = [...history, currentNodeId]
+        setHistory(newHistory)
+        setShowChoices(false)
+        setChoicesExiting(false)
+        setCurrentNodeId(result.nextNodeId)
+        saveProgress(result.nextNodeId, newHistory, connection)
+      }
+    } catch (err) {
+      console.error('Generate failed:', err)
+    }
+
+    setGenerating(false)
   }
 
   const handleExtendTimer = () => {
@@ -764,6 +797,29 @@ export default function StoryPlayer() {
                   const isOther = chosenIndex !== null && chosenIndex !== i
                   const pct = liveStats?.[i] ?? choice.communityPct ?? 50
 
+                  // Text input choice — shows a different button
+                  if (choice.choiceType === 'text-input') {
+                    return (
+                      <button
+                        key={choice.nextNodeId || 'text-input'}
+                        type="button"
+                        onClick={() => {
+                          if (chosenIndex !== null || generating) return
+                          setTextInputPrompt(choice.prompt || 'What do you say?')
+                          setTextInputValue('')
+                          setShowTextInput(true)
+                          hapticLight()
+                        }}
+                        disabled={chosenIndex !== null || generating}
+                        className="animate-fade-up w-full px-4 py-5 rounded-2xl backdrop-blur-md cursor-pointer transition-[opacity,transform,background-color] duration-300 flex items-center justify-center gap-2 bg-white/[0.10] hover:bg-white/[0.15] active:scale-[0.97] disabled:opacity-30"
+                        style={{ animationDelay: `${200 + i * 100}ms` }}
+                      >
+                        <Icon name="message" size={16} className="text-white/70" />
+                        <span className="relative text-white font-medium text-[16px]">{choice.label || 'Type your response'}</span>
+                      </button>
+                    )
+                  }
+
                   return (
                     <button
                       key={choice.nextNodeId}
@@ -887,6 +943,60 @@ export default function StoryPlayer() {
         onPurchase={() => {}}
         onPurchasePerks={(type, count) => purchasePerks(type, count)}
       />
+
+      {/* Text input modal */}
+      {showTextInput && (
+        <div className="fixed inset-0 z-[60] flex flex-col justify-end" onClick={() => setShowTextInput(false)}>
+          <div className="absolute inset-0" style={{
+            backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+            background: 'rgba(0,0,0,0.6)',
+          }} />
+          <div
+            className="relative px-5 pb-[max(env(safe-area-inset-bottom),16px)] animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-white/60 text-[14px] font-medium text-center mb-3">{textInputPrompt}</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={textInputValue}
+                onChange={(e) => setTextInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && textInputValue.trim()) {
+                    handleTextSubmit()
+                  }
+                }}
+                placeholder="Type your response..."
+                autoFocus
+                maxLength={200}
+                className="flex-1 h-[48px] px-4 rounded-2xl bg-white/10 text-white text-[16px] placeholder-white/30 outline-none focus:bg-white/15 transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => textInputValue.trim() && handleTextSubmit()}
+                disabled={!textInputValue.trim()}
+                className="h-[48px] px-5 rounded-2xl bg-white text-black font-semibold text-[15px] cursor-pointer active:scale-[0.96] disabled:opacity-30"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generating state */}
+      {generating && (
+        <div className="fixed inset-0 z-[65] flex items-center justify-center">
+          <div className="absolute inset-0" style={{
+            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+            background: 'rgba(0,0,0,0.7)',
+          }} />
+          <div className="relative flex flex-col items-center gap-4 animate-fade-up">
+            <div className="w-12 h-12 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+            <p className="text-white/70 text-[16px] font-medium">Generating response...</p>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
