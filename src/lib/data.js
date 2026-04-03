@@ -2,18 +2,21 @@ import { api } from './api.js'
 import { feed as localFeed } from '../data/feed.js'
 import { story as localStory } from '../data/story.js'
 
-// Cache to avoid refetching
+// Cache with expiry
 let feedCache = null
+let feedCacheTime = 0
 let storyCache = {}
+const FEED_CACHE_MS = 5 * 60 * 1000 // 5 minutes
 
 // ── Feed ──
 
 export async function fetchFeed() {
-  if (feedCache) return feedCache
+  if (feedCache && Date.now() - feedCacheTime < FEED_CACHE_MS) return feedCache
 
   try {
     const rows = await api.getFeed()
     if (rows && rows.length > 0) {
+      feedCacheTime = Date.now()
       feedCache = rows.map(r => ({
         id: r.id,
         title: r.title,
@@ -32,6 +35,7 @@ export async function fetchFeed() {
   }
 
   // Fallback to local
+  feedCacheTime = Date.now()
   feedCache = localFeed
   return feedCache
 }

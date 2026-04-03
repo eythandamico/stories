@@ -300,6 +300,10 @@ export default {
       if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
       try {
         const body = await request.json()
+
+        // Check if story already exists (update vs create)
+        const existing = await env.DB.prepare('SELECT id FROM stories WHERE id = ?').bind(body.id).first()
+
         await env.DB.prepare(`
           INSERT OR REPLACE INTO stories (id, title, description, genre, cover_url, preview_url, poster_url, trending, available, price, series_price, total_endings, start_node_id, sort_order)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -310,7 +314,41 @@ export default {
           body.price || 0, body.series_price || 0,
           body.total_endings || 0, body.start_node_id || null, body.sort_order || 0
         ).run()
-        return json({ ok: true })
+
+        // Auto-add new stories to feed
+        if (!existing) {
+          const maxOrder = await env.DB.prepare('SELECT MAX(sort_order) as m FROM feed').first()
+          await env.DB.prepare('INSERT INTO feed (story_id, sort_order) VALUES (?, ?)')
+            .bind(body.id, (maxOrder?.m ?? -1) + 1).run()
+        }
+
+        // Send push notification for new available stories
+        if (!existing && body.available && env.FIREBASE_SERVER_KEY) {
+          const users = await env.DB.prepare(
+            "SELECT push_token FROM users WHERE push_token IS NOT NULL AND push_token != ''"
+          ).all()
+          const tokens = users.results.map(u => u.push_token).filter(Boolean)
+          if (tokens.length > 0) {
+            fetch('https://fcm.googleapis.com/fcm/send', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `key=${env.FIREBASE_SERVER_KEY}`,
+              },
+              body: JSON.stringify({
+                registration_ids: tokens.slice(0, 500),
+                notification: {
+                  title: 'New Story Available',
+                  body: `${body.title || 'A new story'} is now available to play!`,
+                  sound: 'default',
+                },
+                data: { storyId: body.id },
+              }),
+            }).catch(() => {}) // Fire and forget
+          }
+        }
+
+        return json({ ok: true, isNew: !existing })
       } catch (e) {
         return error(e.message, 500)
       }
