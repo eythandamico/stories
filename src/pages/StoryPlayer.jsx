@@ -599,8 +599,17 @@ export default function StoryPlayer() {
       {/* Play button — only show when user deliberately paused */}
       {!isPlaying && !showChoices && !choicesExiting && !showComplete && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none animate-scale-in">
-          <div className="rounded-full bg-white/12 backdrop-blur-md flex items-center justify-center" style={{ width: 72, height: 72 }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 3 }}>
+          <div
+            className="rounded-full flex items-center justify-center"
+            style={{
+              width: 56, height: 56,
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              background: 'rgba(255,255,255,0.15)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 2 }}>
               <path d="M8 5.14v14l11-7-11-7z"/>
             </svg>
           </div>
@@ -621,8 +630,8 @@ export default function StoryPlayer() {
           style={{
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            maskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
-            WebkitMaskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
+            maskImage: 'linear-gradient(to top, black 0%, black 45%, transparent 85%)',
+            WebkitMaskImage: 'linear-gradient(to top, black 0%, black 45%, transparent 85%)',
             opacity: visible ? 1 : 0,
             transition: `opacity ${choicesExiting ? '0.5s cubic-bezier(0.55, 0, 1, 0.45)' : '0.6s ease-out'}`,
           }}
@@ -761,14 +770,6 @@ export default function StoryPlayer() {
                   ))}
                 </div>
 
-                {/* Progress bar below perks */}
-                <div className="mt-8">
-                  <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full rounded-full"
-                      style={{ width: `${progress}%`, background: 'linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.85))' }}
-                    />
-                  </div>
-                </div>
             </div>
           ) : null}
         </div>

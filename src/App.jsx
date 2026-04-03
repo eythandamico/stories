@@ -15,6 +15,8 @@ const Auth = lazy(() => import('./pages/Auth.jsx'))
 const SetupUsername = lazy(() => import('./pages/SetupUsername.jsx'))
 const Store = lazy(() => import('./pages/Store.jsx'))
 const Streaks = lazy(() => import('./pages/Streaks.jsx'))
+const Privacy = lazy(() => import('./pages/Privacy.jsx'))
+const Terms = lazy(() => import('./pages/Terms.jsx'))
 
 const tabs = [
   { id: 'home', label: 'Home', icon: 'home' },
@@ -71,7 +73,7 @@ function AppShell() {
 
   useEffect(() => { if (user) initPushNotifications() }, [user])
 
-  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup' || location.pathname === '/store' || location.pathname === '/streaks'
+  const hideNav = location.pathname.startsWith('/play') || location.pathname === '/auth' || location.pathname === '/setup' || location.pathname === '/store' || location.pathname === '/streaks' || location.pathname === '/privacy' || location.pathname === '/terms'
 
   const tabRoutes = { '/': 'home', '/explore': 'explore' }
   const activeTab = tabRoutes[location.pathname] || 'home'
@@ -83,17 +85,21 @@ function AppShell() {
 
   return (
     <Suspense fallback={<LoadingScreen />}>
-      <Routes>
-        <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
-        <Route path="/setup" element={user ? <SetupUsername /> : <Navigate to="/auth" replace />} />
-        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
-        <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
-        <Route path="/play/:storyId?" element={<ProtectedRoute><StoryPlayer /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <div key={location.pathname} className="animate-page-in">
+        <Routes location={location}>
+          <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
+          <Route path="/setup" element={user ? <SetupUsername /> : <Navigate to="/auth" replace />} />
+          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
+          <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
+          <Route path="/play/:storyId?" element={<ProtectedRoute><StoryPlayer /></ProtectedRoute>} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
 
       {!hideNav && user && (
         <BottomNav

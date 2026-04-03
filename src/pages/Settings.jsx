@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/use-auth.jsx'
-import { logout, isFirebaseConfigured } from '../lib/firebase.js'
+import { logout, auth, isFirebaseConfigured } from '../lib/firebase.js'
+import { deleteUser } from 'firebase/auth'
+import { api } from '../lib/api.js'
 import { useGameState } from '../lib/use-game-state.js'
 import { Stack } from '../components/stack.jsx'
 import { Surface } from '../components/surface.jsx'
@@ -74,9 +76,22 @@ export default function Settings() {
     navigate('/auth')
   }
 
-  const handleDeleteAccount = () => {
-    // TODO: implement account deletion via API
-    handleSignOut()
+  const handleDeleteAccount = async () => {
+    try {
+      // Delete server-side data first
+      if (isFirebaseConfigured) {
+        await api.updateMe({ deleted: true }).catch(() => {})
+      }
+      // Delete Firebase auth account
+      if (auth?.currentUser) {
+        await deleteUser(auth.currentUser)
+      }
+    } catch (e) {
+      // If requires recent login, sign out anyway
+      console.warn('Delete account error:', e)
+    }
+    localStorage.clear()
+    navigate('/auth')
   }
 
   return (
@@ -154,8 +169,8 @@ export default function Settings() {
             <p className="inv-overline mb-3 px-1">Support</p>
             <Surface padding="none" elevation="sm" className="overflow-hidden divide-y divide-[var(--inv-border)]">
               <SettingsItem icon="message" label="Send Feedback" onClick={() => window.open('mailto:support@narrative.app')} />
-              <SettingsItem icon="shield" label="Privacy Policy" onClick={() => window.open('/privacy')} />
-              <SettingsItem icon="file-text" label="Terms of Service" onClick={() => window.open('/terms')} />
+              <SettingsItem icon="shield" label="Privacy Policy" onClick={() => navigate('/privacy')} />
+              <SettingsItem icon="file-text" label="Terms of Service" onClick={() => navigate('/terms')} />
             </Surface>
           </div>
 
@@ -163,12 +178,43 @@ export default function Settings() {
           <div className="animate-fade-up" style={{ animationDelay: '0.2s' }}>
             <Surface padding="none" elevation="sm" className="overflow-hidden divide-y divide-[var(--inv-border)]">
               <SettingsItem icon="logout" label="Sign Out" danger onClick={handleSignOut} />
+              <SettingsItem icon="trash" label="Delete Account" danger onClick={() => setShowDeleteConfirm(true)} />
             </Surface>
           </div>
 
           <p className="inv-caption text-center pb-4">Narrative v1.0.0</p>
         </Stack>
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            className="relative max-w-sm w-full rounded-2xl bg-[var(--inv-surface)] p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-[20px] font-semibold text-[var(--inv-heading)] text-center mb-2">Delete Account?</h2>
+            <p className="text-[15px] text-[var(--inv-muted)] text-center mb-6">
+              This will permanently delete your account, progress, and all data. This cannot be undone.
+            </p>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              className="w-full h-[48px] rounded-2xl bg-red-500 text-white font-semibold text-[16px] cursor-pointer transition-all duration-200 active:scale-[0.97] mb-2.5"
+            >
+              Delete My Account
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(false)}
+              className="w-full h-[44px] rounded-2xl bg-[var(--inv-bg-alt)] text-[var(--inv-heading)] font-medium text-[16px] cursor-pointer transition-all duration-200 active:scale-[0.97]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

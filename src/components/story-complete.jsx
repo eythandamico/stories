@@ -9,23 +9,41 @@ export function StoryComplete({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[55] flex flex-col justify-end" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[55] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      {/* Progressive blur */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          maskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
-          WebkitMaskImage: 'linear-gradient(to top, black 0%, black 35%, transparent 75%)',
+          maskImage: 'linear-gradient(to top, black 0%, black 50%, transparent 85%)',
+          WebkitMaskImage: 'linear-gradient(to top, black 0%, black 50%, transparent 85%)',
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)' }}
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 45%, transparent 75%)' }}
       />
 
-      {/* Content */}
-      <div className="relative px-6 pb-[max(env(safe-area-inset-bottom),32px)]">
+      {/* Share button — top right */}
+      <button
+        type="button"
+        onClick={() => shareEnding(endingTitle, Math.round(connectionPct), storyTitle || 'Narrative')}
+        className="absolute z-10 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer active:scale-[0.96]"
+        style={{
+          top: 'calc(env(safe-area-inset-top, 20px) + 20px)',
+          right: 20,
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          background: 'rgba(255,255,255,0.12)',
+        }}
+        aria-label="Share"
+      >
+        <Icon name="share" size={18} className="text-white/80" />
+      </button>
+
+      {/* Content — bottom aligned */}
+      <div className="relative flex-1 flex flex-col justify-end px-6 pb-[max(env(safe-area-inset-bottom),32px)]">
         {/* New ending badge */}
         {isNewEnding && (
           <div className="flex items-center justify-center gap-2 mb-4 animate-fade-up">
@@ -44,7 +62,7 @@ export function StoryComplete({
         </p>
 
         {/* Stats row */}
-        <div className="flex items-center justify-center gap-6 mb-5 animate-fade-up" style={{ animationDelay: '0.15s' }}>
+        <div className="flex items-center justify-center gap-6 mb-6 animate-fade-up" style={{ animationDelay: '0.15s' }}>
           <div className="flex items-center gap-2">
             <HeartIcon size={22} />
             <span className="text-white text-[20px] font-semibold tabular-nums">{Math.round(connectionPct)}%</span>
@@ -56,49 +74,37 @@ export function StoryComplete({
           </div>
         </div>
 
-        {/* Endings progress */}
-        <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mb-6 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          <div
-            className="h-full rounded-full transition-[width] duration-1000 ease-out"
-            style={{
-              width: `${(endingsFound / totalEndings) * 100}%`,
-              background: 'linear-gradient(90deg, #ec4899, #f472b6)',
-            }}
-          />
-        </div>
-
         {/* Heart earned */}
         {isNewEnding && (
-          <div className="flex items-center justify-center gap-2 mb-5 animate-fade-up" style={{ animationDelay: '0.25s' }}>
+          <div className="flex items-center justify-center gap-2 mb-6 animate-fade-up" style={{ animationDelay: '0.2s' }}>
             <HeartIcon size={18} />
             <span className="text-pink-400 text-[15px] font-medium">+1 Heart earned</span>
           </div>
         )}
 
-        {/* Buy options */}
-        <div className="animate-fade-up mb-4" style={{ animationDelay: '0.3s' }}>
-          {/* Share */}
+        {/* Buy buttons */}
+        <div className="flex gap-2.5 mb-3 animate-fade-up" style={{ animationDelay: '0.25s' }}>
           <button
             type="button"
-            onClick={() => shareEnding(endingTitle, Math.round(connectionPct), storyTitle || 'Narrative')}
-            className="w-full h-[44px] rounded-2xl bg-white/10 text-white/70 font-medium text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2 mb-4"
+            onClick={onBuyNext}
+            className="flex-1 h-[52px] rounded-2xl bg-white text-black font-semibold text-[15px] cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex flex-col items-center justify-center"
           >
-            <Icon name="share" size={16} /> Share Result
+            <span>Next Chapter</span>
+            <span className="text-[12px] font-medium text-black/50">$1.99</span>
           </button>
-
-          <p className="text-white/30 text-[12px] font-medium tracking-widest uppercase text-center mb-3">Continue the story</p>
-          <div className="flex gap-2.5">
-            <div
-              className="flex-1 h-[52px] rounded-2xl bg-white/10 flex flex-col items-center justify-center"
-            >
-              <span className="text-white/50 font-medium text-[15px]">More chapters</span>
-              <span className="text-[12px] font-medium text-white/30">Coming soon</span>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={onBuySeries}
+            className="flex-1 h-[52px] rounded-2xl cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex flex-col items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.35), rgba(168,85,247,0.35))', color: 'white' }}
+          >
+            <span className="font-semibold text-[15px]">Full Series</span>
+            <span className="text-[12px] font-medium text-white/60">$4.99</span>
+          </button>
         </div>
 
-        {/* Other buttons */}
-        <div className="animate-fade-up" style={{ animationDelay: '0.35s' }}>
+        {/* Replay / Home */}
+        <div className="animate-fade-up" style={{ animationDelay: '0.3s' }}>
           <button
             type="button"
             onClick={onReplay}

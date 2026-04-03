@@ -234,7 +234,7 @@ export default {
       const body = await request.json()
       const fields = []
       const values = []
-      const allowed = ['streak_current', 'streak_best', 'streak_last_play', 'last_heart_loss', 'display_name', 'push_token']
+      const allowed = ['streak_current', 'streak_best', 'streak_last_play', 'last_heart_loss', 'display_name', 'push_token', 'deleted']
       for (const key of allowed) {
         if (body[key] !== undefined) {
           fields.push(`${key} = ?`)
