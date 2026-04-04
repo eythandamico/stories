@@ -18,9 +18,9 @@ const RENDER_WINDOW = 3
 
 const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onPlay }) {
   const videoRef = useRef(null)
-  const [mounted, setMounted] = useState(false)
+  // Mount first 4 cards immediately, rest when nearby
+  const [mounted, setMounted] = useState(i < 4)
 
-  // Once a card has been nearby, keep it mounted
   useEffect(() => {
     if (isNearby && !mounted) setMounted(true)
   }, [isNearby])
@@ -64,7 +64,7 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
           loop
           muted
           playsInline
-          preload={isActive ? 'auto' : 'metadata'}
+          preload={(isActive || i < 4) ? 'auto' : 'metadata'}
         />
       ) : (
         <div className="absolute inset-0 bg-black" />
