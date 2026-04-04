@@ -12,6 +12,11 @@
     "scrollEnabled": true
   },
   "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "backgroundColor": "#F2F2F2",
+      "showSpinner": false
+    },
     "Keyboard": {
       "resize": "native"
     },

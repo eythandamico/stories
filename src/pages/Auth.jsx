@@ -19,6 +19,11 @@ export default function Auth() {
 
   // Splash → auth transition
   useEffect(() => {
+    // Dismiss native splash now that web splash overlay is showing
+    import('@capacitor/splash-screen').then(({ SplashScreen }) => {
+      SplashScreen.hide({ fadeOutDuration: 0 })
+    }).catch(() => {})
+
     const t1 = setTimeout(() => setSplashAnimating(true), 600)
     const t2 = setTimeout(() => setSplashVisible(false), 1600)
     return () => { clearTimeout(t1); clearTimeout(t2) }
