@@ -24,8 +24,8 @@ export default function Auth() {
       SplashScreen.hide({ fadeOutDuration: 0 })
     }).catch(() => {})
 
-    const t1 = setTimeout(() => setSplashAnimating(true), 600)
-    const t2 = setTimeout(() => setSplashVisible(false), 1600)
+    const t1 = setTimeout(() => setSplashAnimating(true), 500)
+    const t2 = setTimeout(() => setSplashVisible(false), 1200)
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [])
 
@@ -225,25 +225,24 @@ export default function Auth() {
         )}
       </div>
 
-      {/* Splash overlay — scales down into auth logo */}
+      {/* Splash overlay */}
       {splashVisible && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
           style={{
             backgroundColor: '#F2F2F2',
             opacity: splashAnimating ? 0 : 1,
-            transition: 'opacity 0.8s ease-in',
+            transition: 'opacity 0.6s ease-out',
           }}
         >
           <img
             src="/logo.png"
             alt=""
             style={{
-              width: splashAnimating ? 112 : 200,
-              height: splashAnimating ? 112 : 200,
-              borderRadius: splashAnimating ? '33.6px' : '50px',
-              transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-              transform: splashAnimating ? 'translateY(-30vh)' : 'translateY(0)',
+              width: 180,
+              height: 180,
+              transform: splashAnimating ? 'scale(1.3)' : 'scale(1)',
+              transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           />
         </div>
