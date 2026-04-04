@@ -241,6 +241,7 @@ export default function Home() {
   const [feedLoaded, setFeedLoaded] = useState(false)
   const [showNoHearts, setShowNoHearts] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding())
+  const [showScrollHint, setShowScrollHint] = useState(false)
   const [shaderReady, setShaderReady] = useState(false)
   const [shaderVisible, setShaderVisible] = useState(false)
   const { hearts, nextHeartTime, spendHeart, recordPlay, streak } = useGameState()
@@ -380,7 +381,45 @@ export default function Home() {
         onBuy={() => { setShowNoHearts(false); navigate('/store') }}
       />
       {showOnboarding && (
-        <Onboarding onComplete={() => setShowOnboarding(false)} />
+        <Onboarding onComplete={() => {
+          setShowOnboarding(false)
+          // Show scroll hint with bounce after a brief delay
+          if (!localStorage.getItem('narrative-scroll-hint-seen')) {
+            setTimeout(() => {
+              setShowScrollHint(true)
+              // Bounce the feed to peek at next story
+              const container = containerRef.current
+              if (container) {
+                container.style.scrollBehavior = 'smooth'
+                container.scrollTo({ top: 120, behavior: 'smooth' })
+                setTimeout(() => {
+                  container.scrollTo({ top: 0, behavior: 'smooth' })
+                }, 600)
+              }
+            }, 800)
+          }
+        }} />
+      )}
+
+      {/* Scroll hint overlay */}
+      {showScrollHint && (
+        <div
+          className="fixed inset-0 z-[55] flex flex-col items-center justify-end pb-40 pointer-events-auto"
+          onClick={() => {
+            setShowScrollHint(false)
+            localStorage.setItem('narrative-scroll-hint-seen', 'true')
+          }}
+          style={{ animation: 'scroll-hint-in 0.6s ease-out both' }}
+        >
+          <div className="flex flex-col items-center gap-3 animate-fade-up">
+            <p className="text-white/60 text-[16px] font-medium">Swipe up to explore</p>
+            <div className="scroll-hint-arrow">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
+                <path d="M12 5v14M5 12l7 7 7-7" />
+              </svg>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )
