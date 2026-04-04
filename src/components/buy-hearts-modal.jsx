@@ -31,7 +31,7 @@ async function requestPayment(bundle) {
         environment: 'PRODUCTION',
         apiVersion: 2,
         apiVersionMinor: 0,
-        merchantInfo: { merchantId: 'narrative-app', merchantName: 'Narrative' },
+        merchantInfo: { merchantId: 'narrative-app', merchantName: 'Loop' },
         allowedPaymentMethods: [{
           type: 'CARD',
           parameters: {
@@ -56,7 +56,7 @@ async function requestPayment(bundle) {
     },
     displayItems: [
       {
-        label: `${bundle.label} — Narrative`,
+        label: `${bundle.label} — Loop`,
         amount: { currency: 'USD', value: bundle.price.toFixed(2) },
       },
     ],

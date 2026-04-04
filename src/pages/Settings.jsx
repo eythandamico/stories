@@ -212,7 +212,7 @@ export default function Settings() {
           <div className="animate-fade-up" style={{ animationDelay: '0.15s' }}>
             <p className="inv-overline mb-3 px-1">Support</p>
             <Surface padding="none" elevation="sm" className="overflow-hidden divide-y divide-[var(--inv-border)]">
-              <SettingsItem icon="message" label="Send Feedback" onClick={() => window.open('mailto:support@narrative.app')} />
+              <SettingsItem icon="message" label="Send Feedback" onClick={() => window.open('mailto:me@eythandami.co')} />
               <SettingsItem icon="shield" label="Privacy Policy" onClick={() => navigate('/privacy')} />
               <SettingsItem icon="file-text" label="Terms of Service" onClick={() => navigate('/terms')} />
             </Surface>
@@ -226,7 +226,7 @@ export default function Settings() {
             </Surface>
           </div>
 
-          <p className="inv-caption text-center pb-4">Narrative v1.0.0</p>
+          <p className="inv-caption text-center pb-4">Loop v1.0.0</p>
         </Stack>
       </div>
 

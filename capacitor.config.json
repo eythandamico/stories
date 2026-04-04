@@ -1,6 +1,6 @@
 {
   "appId": "com.narrative.stories",
-  "appName": "Narrative",
+  "appName": "Loop",
   "webDir": "dist",
   "server": {
     "androidScheme": "https",

@@ -28,7 +28,7 @@ export function StoryComplete({
       {/* Share button — top right */}
       <button
         type="button"
-        onClick={() => shareEnding(endingTitle, Math.round(connectionPct), storyTitle || 'Narrative')}
+        onClick={() => shareEnding(endingTitle, Math.round(connectionPct), storyTitle || 'Loop')}
         className="absolute z-10 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer active:scale-[0.96]"
         style={{
           top: 'calc(env(safe-area-inset-top, 20px) + 20px)',

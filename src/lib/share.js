@@ -5,7 +5,7 @@ const APP_URL = 'https://stories-bph.pages.dev'
 
 export async function shareStory(story) {
   const url = `${APP_URL}/play/${story.storyId || story.id}`
-  const title = story.title || 'Narrative Story'
+  const title = story.title || 'Loop Story'
   const text = story.description || 'Check out this interactive story!'
 
   if (Capacitor.isNativePlatform()) {
@@ -20,7 +20,7 @@ export async function shareStory(story) {
 }
 
 export async function shareEnding(endingTitle, connectionPct, storyTitle) {
-  const text = `I just reached "${endingTitle}" with ${connectionPct}% connection in ${storyTitle} on Narrative!`
+  const text = `I just reached "${endingTitle}" with ${connectionPct}% connection in ${storyTitle} on Loop!`
   const url = APP_URL
 
   if (Capacitor.isNativePlatform()) {

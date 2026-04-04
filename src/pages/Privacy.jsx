@@ -41,7 +41,7 @@ export default function Privacy() {
         <p className="mb-6">You can delete your account at any time from Settings. This permanently removes all your data from our servers.</p>
 
         <h2 className="text-[18px] font-semibold text-[var(--inv-heading)] mb-3">Contact</h2>
-        <p className="mb-6">If you have questions about this privacy policy, contact us at <span className="text-[var(--inv-accent)]">support@narrative.app</span></p>
+        <p className="mb-6">If you have questions about this privacy policy, contact us at <span className="text-[var(--inv-accent)]">me@eythandami.co</span></p>
       </div>
     </main>
   )
