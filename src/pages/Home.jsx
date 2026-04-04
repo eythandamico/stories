@@ -34,6 +34,23 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
     } catch { return false }
   }, [item.storyId, item.id])
 
+  // Force load video when mounted (iOS ignores preload)
+  useEffect(() => {
+    if (!mounted || !videoRef.current) return
+    const video = videoRef.current
+    video.load()
+    // For non-active cards, play briefly then pause to force decode first frame
+    if (!isActive) {
+      video.muted = true
+      const onLoaded = () => {
+        video.removeEventListener('loadeddata', onLoaded)
+        video.pause()
+      }
+      video.addEventListener('loadeddata', onLoaded)
+      video.play().catch(() => {})
+    }
+  }, [mounted])
+
   // Play/pause based on active state
   useEffect(() => {
     if (!videoRef.current) return
