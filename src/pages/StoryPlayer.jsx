@@ -409,7 +409,7 @@ export default function StoryPlayer() {
         soundConnection()
         clearTimeout(connectionTimer.current)
         connectionTimer.current = setTimeout(() => setShowConnectionBar(false), 2000)
-        setTimeout(() => setShowConnectionBurst(false), 1500)
+        setTimeout(() => setShowConnectionBurst(false), 2500)
       } else {
         soundNeutral()
       }
