@@ -85,10 +85,10 @@ export default function Auth() {
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col">
-      {/* Video background */}
+      {/* Video background — fades in */}
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover animate-auth-bg"
         autoPlay loop muted playsInline preload="auto"
       >
         <source src="https://pub-2c7d56fe4c98425381098ff8d4dfabe4.r2.dev/previews/auth-bg.mp4" type="video/mp4" />
@@ -109,8 +109,8 @@ export default function Auth() {
         {/* Branding */}
         {view !== 'check-email' && (
           <div className="text-center mb-14">
-            <img src="/logo.png" alt="" className="w-28 h-28 mx-auto mb-5" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: '33.6px' }} />
-            <p className="text-white/50 text-[18px]">Interactive stories<br />that respond to you</p>
+            <img src="/logo.png" alt="" className="w-28 h-28 mx-auto mb-5 animate-fade-up" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: '33.6px', animationDelay: '0.3s' }} />
+            <p className="text-white/50 text-[18px] leading-relaxed animate-fade-up" style={{ animationDelay: '0.5s' }}>Interactive stories<br />that respond to you</p>
           </div>
         )}
 
@@ -137,7 +137,7 @@ export default function Auth() {
           </div>
         ) : (
           /* Main view — social + email input */
-          <div className="flex flex-col gap-2.5 w-full">
+          <div className="flex flex-col gap-2.5 w-full animate-fade-up" style={{ animationDelay: '0.7s' }}>
             <button
               type="button"
               onClick={handleApple}
