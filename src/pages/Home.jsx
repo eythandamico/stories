@@ -34,6 +34,8 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
     } catch { return false }
   }, [item.storyId, item.id])
 
+  const [posterSrc, setPosterSrc] = useState(item.poster || null)
+
   // Force load video when mounted (iOS ignores preload)
   useEffect(() => {
     if (!mounted || !videoRef.current) return
@@ -45,6 +47,16 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
       const onLoaded = () => {
         video.removeEventListener('loadeddata', onLoaded)
         video.pause()
+        // Capture first frame as poster if none exists
+        if (!item.poster) {
+          try {
+            const canvas = document.createElement('canvas')
+            canvas.width = video.videoWidth
+            canvas.height = video.videoHeight
+            canvas.getContext('2d').drawImage(video, 0, 0)
+            setPosterSrc(canvas.toDataURL('image/jpeg', 0.7))
+          } catch {}
+        }
       }
       video.addEventListener('loadeddata', onLoaded)
       video.play().catch(() => {})
@@ -71,9 +83,10 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
       onClick={() => item.route && onPlay(item)}
       onKeyDown={(e) => { if (item.route && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onPlay(item) } }}
     >
-      {/* Poster as background — always visible, no black flash */}
-      {item.poster && (
-        <img src={item.poster} className="absolute inset-0 w-full h-full object-cover" alt="" aria-hidden="true" />
+      {/* Poster — uploaded image or auto-captured first frame */}
+      <div className="absolute inset-0 bg-black" />
+      {posterSrc && (
+        <img src={posterSrc} className="absolute inset-0 w-full h-full object-cover" alt="" aria-hidden="true" />
       )}
 
       {/* Video — mount when nearby, keep mounted once loaded */}
