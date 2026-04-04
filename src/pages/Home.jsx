@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo, memo, useCallback } from 'react'
+import { useRef, useState, useEffect, useMemo, memo, useCallback, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchFeed, clearCache } from '../lib/data.js'
 import { useAuth } from '../lib/use-auth.jsx'
@@ -7,7 +7,7 @@ import { Onboarding, shouldShowOnboarding } from '../components/onboarding.jsx'
 import { useGameState } from '../lib/use-game-state.js'
 import { hapticLight, hapticError } from '../lib/haptics.js'
 import { shareStory } from '../lib/share.js'
-import PrismaticBurst from '../components/prismatic-burst.jsx'
+const PrismaticBurst = lazy(() => import('../components/prismatic-burst.jsx'))
 import { FeedSkeleton } from '../components/skeleton.jsx'
 import Icon from '../lib/icon.jsx'
 import { HeartIcon } from '../components/heart-icon.jsx'
@@ -18,6 +18,14 @@ const RENDER_WINDOW = 2
 
 const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onPlay }) {
   const videoRef = useRef(null)
+  const hasProgress = useMemo(() => {
+    try {
+      const saved = localStorage.getItem(`narrative-progress-${item.storyId || item.id}`)
+      if (!saved) return false
+      const p = JSON.parse(saved)
+      return Date.now() - p.savedAt < 86400000
+    } catch { return false }
+  }, [item.storyId, item.id])
 
   // Play/pause based on active state
   useEffect(() => {
@@ -65,18 +73,20 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
 
       {/* Prismatic burst on trending */}
       {item.trending && isActive && shaderReady && (
-        <div
-          className="absolute inset-0 z-[7] pointer-events-none transition-opacity duration-1000"
-          style={{ opacity: shaderVisible ? 0.8 : 0, mixBlendMode: 'lighten' }}
-        >
-          <PrismaticBurst
-            intensity={2}
-            speed={0.4}
-            animationType="rotate3d"
-            mixBlendMode="normal"
-            offset={{ x: 0, y: -(window.innerHeight * 0.55) }}
-          />
-        </div>
+        <Suspense fallback={null}>
+          <div
+            className="absolute inset-0 z-[7] pointer-events-none transition-opacity duration-1000"
+            style={{ opacity: shaderVisible ? 0.8 : 0, mixBlendMode: 'lighten' }}
+          >
+            <PrismaticBurst
+              intensity={2}
+              speed={0.4}
+              animationType="rotate3d"
+              mixBlendMode="normal"
+              offset={{ x: 0, y: -(window.innerHeight * 0.55) }}
+            />
+          </div>
+        </Suspense>
       )}
 
       {/* Bottom blur + gradient — only render when active */}
@@ -200,33 +210,29 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
         </div>
 
         {/* Start / Resume button */}
-        {item.route && (() => {
-          const saved = localStorage.getItem(`narrative-progress-${item.storyId || item.id}`)
-          const hasProgress = saved && (() => { try { const p = JSON.parse(saved); return Date.now() - p.savedAt < 86400000 } catch { return false } })()
-          return (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onPlay(item) }}
-              className="mt-4 w-full h-[52px] rounded-2xl bg-white/15 backdrop-blur-md text-white cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
-              style={{
-                opacity: isActive ? 1 : 0,
-                transitionDelay: isActive ? '0.6s' : '0s',
-              }}
-            >
-              {hasProgress ? (
-                <>
-                  <Icon name="play" size={18} />
-                  <span className="font-semibold text-[16px]">Resume</span>
-                </>
-              ) : (
-                <>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
-                  <span className="font-semibold text-[16px]">Start</span>
-                </>
-              )}
-            </button>
-          )
-        })()}
+        {item.route && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onPlay(item) }}
+            className="mt-4 w-full h-[52px] rounded-2xl bg-white/15 backdrop-blur-md text-white cursor-pointer transition-[opacity,transform] duration-200 active:scale-[0.96] flex items-center justify-center gap-2"
+            style={{
+              opacity: isActive ? 1 : 0,
+              transitionDelay: isActive ? '0.6s' : '0s',
+            }}
+          >
+            {hasProgress ? (
+              <>
+                <Icon name="play" size={18} />
+                <span className="font-semibold text-[16px]">Resume</span>
+              </>
+            ) : (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+                <span className="font-semibold text-[16px]">Start</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   )
