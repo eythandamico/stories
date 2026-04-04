@@ -225,7 +225,7 @@ export default function Auth() {
         )}
       </div>
 
-      {/* Splash overlay */}
+      {/* Splash overlay — matches native splash exactly */}
       {splashVisible && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center"
@@ -238,10 +238,10 @@ export default function Auth() {
           <img
             src="/logo.png"
             alt=""
+            className="w-full h-full object-contain"
             style={{
-              width: 180,
-              height: 180,
-              transform: splashAnimating ? 'scale(1.3)' : 'scale(1)',
+              maxWidth: '100vw',
+              transform: splashAnimating ? 'scale(1.1)' : 'scale(1)',
               transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           />
