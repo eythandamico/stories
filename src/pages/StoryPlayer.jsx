@@ -230,17 +230,25 @@ export default function StoryPlayer() {
       return // First node uses the src set in JSX
     }
 
-    // Fade out, swap src, fade back in only when video is ready
+    // Fade out first, then swap src after fade completes
     const video = videoRef.current
     setTransitioning(true)
+
+    // Wait for fade-out CSS transition to complete (0.25s) before changing src
     setTimeout(() => {
+      // Video is now at opacity 0 — safe to swap
       video.muted = false
       video.loop = false
 
       // Listen for the video to be ready before fading in
       const onReady = () => {
         video.removeEventListener('canplay', onReady)
-        setTransitioning(false)
+        // Small delay to ensure frame is painted before fading in
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTransitioning(false)
+          })
+        })
       }
       video.addEventListener('canplay', onReady)
 
