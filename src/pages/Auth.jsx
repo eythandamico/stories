@@ -108,7 +108,7 @@ export default function Auth() {
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
         {/* Branding */}
         {view !== 'check-email' && (
-          <div className="text-center mb-10">
+          <div className="text-center mb-14">
             <img src="/logo.png" alt="" className="w-28 h-28 mx-auto mb-5" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: '33.6px' }} />
             <p className="text-white/50 text-[18px]">Interactive stories<br />that respond to you</p>
           </div>
