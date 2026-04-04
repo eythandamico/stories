@@ -56,14 +56,12 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
             ref={videoRef}
             src={item.preview}
             poster={item.poster || ''}
-            className="w-full h-full object-cover transition-opacity duration-500"
+            className="w-full h-full object-cover"
             aria-label={`${item.title} preview`}
             loop
             muted
             playsInline
             preload={isActive ? 'auto' : 'metadata'}
-            onLoadedData={(e) => { e.target.style.opacity = 1 }}
-            style={{ opacity: 0 }}
           />
         </>
       ) : (
