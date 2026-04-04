@@ -67,7 +67,7 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
       role={item.route ? 'button' : undefined}
       tabIndex={item.route ? 0 : undefined}
       aria-label={item.route ? `Play ${item.title}` : `${item.title} — coming soon`}
-      className="relative w-full h-[100dvh] snap-start snap-always flex items-center justify-center focus-visible:outline-none"
+      className="relative w-full h-[100dvh] snap-start snap-always overflow-hidden focus-visible:outline-none"
       onClick={() => item.route && onPlay(item)}
       onKeyDown={(e) => { if (item.route && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onPlay(item) } }}
     >
@@ -76,7 +76,7 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
         <video
           ref={videoRef}
           src={item.preview}
-          className="w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover"
           aria-label={`${item.title} preview`}
           loop
           muted
