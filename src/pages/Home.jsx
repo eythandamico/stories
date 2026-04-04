@@ -413,21 +413,14 @@ export default function Home() {
       {/* Scroll hint overlay */}
       {showScrollHint && (
         <div
-          className="fixed inset-x-0 bottom-24 z-[55] flex justify-center pointer-events-auto"
+          className="fixed inset-0 z-[55] flex items-center justify-center pointer-events-auto"
+          style={{ background: 'rgba(0,0,0,0.5)' }}
           onClick={() => {
             setShowScrollHint(false)
             localStorage.setItem('narrative-scroll-hint-seen', 'true')
           }}
         >
-          <div className="flex items-center gap-2 px-5 py-2.5 rounded-full animate-fade-up"
-            style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', background: 'rgba(0,0,0,0.5)' }}>
-            <span className="text-white/70 text-[15px] font-medium">Swipe up to explore</span>
-            <div className="scroll-hint-arrow">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
-                <path d="M12 5v14M5 12l7 7 7-7" />
-              </svg>
-            </div>
-          </div>
+          <p className="text-white/70 text-[18px] font-medium animate-fade-up">Swipe up to explore</p>
         </div>
       )}
     </>
