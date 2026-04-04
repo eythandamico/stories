@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import ReactDOM from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/use-auth.jsx'
 import { logout, auth, isFirebaseConfigured } from '../lib/firebase.js'
@@ -229,9 +230,9 @@ export default function Settings() {
         </Stack>
       </div>
 
-      {/* Delete confirmation modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setShowDeleteConfirm(false)}>
+      {/* Delete confirmation modal — rendered via portal to escape scroll container */}
+      {showDeleteConfirm && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[999] flex items-center justify-center px-6" onClick={() => setShowDeleteConfirm(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
             className="relative max-w-sm w-full rounded-2xl bg-[var(--inv-surface)] p-6 animate-scale-in"
@@ -256,7 +257,8 @@ export default function Settings() {
               Cancel
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </main>
   )
