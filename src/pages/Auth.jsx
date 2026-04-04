@@ -105,12 +105,12 @@ export default function Auth() {
       />
 
       {/* Centered content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
         {/* Branding */}
         {view !== 'check-email' && (
           <div className="text-center mb-14">
             <img src="/logo.png" alt="" className="w-28 h-28 mx-auto mb-5 animate-fade-up" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: '33.6px', animationDelay: '0.3s' }} />
-            <p className="text-white/50 text-[16px] leading-relaxed animate-fade-up" style={{ animationDelay: '0.5s' }}>Interactive stories that respond to you</p>
+            <p className="text-white/50 text-[18px] animate-fade-up" style={{ animationDelay: '0.5s' }}>Interactive stories that respond to you</p>
           </div>
         )}
 
