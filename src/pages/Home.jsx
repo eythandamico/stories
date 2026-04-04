@@ -41,9 +41,8 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
       videoRef.current.play().catch(() => {})
     } else {
       videoRef.current.pause()
-      if (!isNearby) videoRef.current.currentTime = 0
     }
-  }, [isActive, isNearby])
+  }, [isActive])
 
   return (
     <div
@@ -60,7 +59,6 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
         <video
           ref={videoRef}
           src={item.preview}
-          poster={item.poster || ''}
           className="w-full h-full object-cover"
           aria-label={`${item.title} preview`}
           loop
