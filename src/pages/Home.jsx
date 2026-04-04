@@ -14,7 +14,7 @@ import { HeartIcon } from '../components/heart-icon.jsx'
 import { FlameIcon } from '../components/flame-icon.jsx'
 
 // Only mount video elements for cards within this range of the active card
-const RENDER_WINDOW = 2
+const RENDER_WINDOW = 3
 
 const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onPlay }) {
   const videoRef = useRef(null)
@@ -61,7 +61,7 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
             loop
             muted
             playsInline
-            preload={isActive ? 'auto' : 'none'}
+            preload={isActive ? 'auto' : 'metadata'}
             onLoadedData={(e) => { e.target.style.opacity = 1 }}
             style={{ opacity: 0 }}
           />
@@ -252,9 +252,16 @@ export default function Home() {
   const [shaderVisible, setShaderVisible] = useState(false)
   const { hearts, nextHeartTime, spendHeart, recordPlay, streak } = useGameState()
 
-  // Load feed from API
+  // Load feed from API and preload first few videos
   useEffect(() => {
-    fetchFeed().then(data => { setFeed(data); setFeedLoaded(true) }).catch(() => setFeedLoaded(true))
+    fetchFeed().then(data => {
+      setFeed(data)
+      setFeedLoaded(true)
+      // Warm the browser cache for the first 3 videos
+      data.slice(0, 3).forEach(item => {
+        if (item.preview) fetch(item.preview, { mode: 'no-cors' }).catch(() => {})
+      })
+    }).catch(() => setFeedLoaded(true))
   }, [])
 
   // Delay shader mount
