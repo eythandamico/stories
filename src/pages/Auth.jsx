@@ -13,7 +13,16 @@ export default function Auth() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState(null)
+  const [splashVisible, setSplashVisible] = useState(true)
+  const [splashAnimating, setSplashAnimating] = useState(false)
   const videoRef = useRef(null)
+
+  // Splash → auth transition
+  useEffect(() => {
+    const t1 = setTimeout(() => setSplashAnimating(true), 600)
+    const t2 = setTimeout(() => setSplashVisible(false), 1600)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
 
   // Handle magic link callback
   useEffect(() => {
@@ -210,6 +219,30 @@ export default function Auth() {
           </div>
         )}
       </div>
+
+      {/* Splash overlay — scales down into auth logo */}
+      {splashVisible && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center"
+          style={{
+            backgroundColor: '#F2F2F2',
+            opacity: splashAnimating ? 0 : 1,
+            transition: 'opacity 0.8s ease-in',
+          }}
+        >
+          <img
+            src="/logo.png"
+            alt=""
+            style={{
+              width: splashAnimating ? 112 : 200,
+              height: splashAnimating ? 112 : 200,
+              borderRadius: splashAnimating ? '33.6px' : '50px',
+              transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+              transform: splashAnimating ? 'translateY(-30vh)' : 'translateY(0)',
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }
