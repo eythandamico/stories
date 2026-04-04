@@ -109,8 +109,9 @@ export default function Auth() {
         {/* Branding */}
         {view !== 'check-email' && (
           <div className="text-center mb-10">
-            <h1 className="text-white text-[38px] font-semibold tracking-tight mb-2">Narrative</h1>
-            <p className="text-white/50 text-[16px]">Interactive stories that respond to you</p>
+            <img src="/logo.png" alt="Loop" className="w-20 h-20 mx-auto mb-4" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }} />
+            <h1 className="text-white text-[34px] font-semibold tracking-tight mb-1">Loop</h1>
+            <p className="text-white/30 text-[15px]">Interactive stories that respond to you</p>
           </div>
         )}
 
