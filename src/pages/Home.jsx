@@ -390,12 +390,21 @@ export default function Home() {
               // Bounce the feed to peek at next story
               const container = containerRef.current
               if (container) {
-                container.style.scrollBehavior = 'smooth'
-                container.scrollTo({ top: 120, behavior: 'smooth' })
+                // Temporarily disable snap so bounce isn't fought
+                container.style.scrollSnapType = 'none'
+                container.scrollTo({ top: 140, behavior: 'smooth' })
                 setTimeout(() => {
                   container.scrollTo({ top: 0, behavior: 'smooth' })
-                }, 600)
+                  setTimeout(() => {
+                    container.style.scrollSnapType = 'y mandatory'
+                  }, 500)
+                }, 800)
               }
+              // Auto-dismiss after 4 seconds
+              setTimeout(() => {
+                setShowScrollHint(false)
+                localStorage.setItem('narrative-scroll-hint-seen', 'true')
+              }, 4000)
             }, 800)
           }
         }} />
@@ -404,17 +413,17 @@ export default function Home() {
       {/* Scroll hint overlay */}
       {showScrollHint && (
         <div
-          className="fixed inset-0 z-[55] flex flex-col items-center justify-end pb-40 pointer-events-auto"
+          className="fixed inset-x-0 bottom-24 z-[55] flex justify-center pointer-events-auto"
           onClick={() => {
             setShowScrollHint(false)
             localStorage.setItem('narrative-scroll-hint-seen', 'true')
           }}
-          style={{ animation: 'scroll-hint-in 0.6s ease-out both' }}
         >
-          <div className="flex flex-col items-center gap-3 animate-fade-up">
-            <p className="text-white/60 text-[16px] font-medium">Swipe up to explore</p>
+          <div className="flex items-center gap-2 px-5 py-2.5 rounded-full animate-fade-up"
+            style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', background: 'rgba(0,0,0,0.5)' }}>
+            <span className="text-white/70 text-[15px] font-medium">Swipe up to explore</span>
             <div className="scroll-hint-arrow">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
                 <path d="M12 5v14M5 12l7 7 7-7" />
               </svg>
             </div>
