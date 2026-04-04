@@ -64,7 +64,7 @@ function ConnectionLines({ nodes, positions, canvasW, canvasH }) {
   return <svg className="absolute pointer-events-none" style={{ width: canvasW, height: canvasH, zIndex: 0 }}>{lines}</svg>
 }
 
-function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, onEndConnect, connectingFrom, onAddChoice, onUpdateChoice, onDeleteChoice }) {
+function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, onEndConnect, connectingFrom, onAddChoice, onUpdateChoice, onDeleteChoice, onDeleteNode }) {
   const colors = getNodeColor(node)
   const dragRef = useRef(null)
   const [dragging, setDragging] = useState(false)
@@ -101,12 +101,21 @@ function NodeCard({ node, position, selected, onSelect, onDrag, onStartConnect, 
         <div className="absolute left-[-7px] top-[28px] w-3.5 h-3.5 rounded-full border-2" style={{ background: colors.bg, borderColor: colors.border }} />
 
         {/* Header */}
-        <div className="px-3 py-2.5 border-b" style={{ borderColor: `${colors.border}40` }}>
-          <div className="text-[13px] font-semibold truncate" style={{ color: colors.text }}>{node.title || node.id}</div>
-          <div className="text-[11px] mt-0.5 flex items-center gap-2" style={{ color: colors.accent }}>
-            <span>{node.id}</span>
-            {node.timed && <span className="px-1 py-px rounded text-[9px] bg-orange-500/15">⏱ {node.timer_seconds || 10}s</span>}
-            {node.is_ending && <span className="px-1 py-px rounded text-[9px] bg-pink-500/15">★ End</span>}
+        <div className="px-3 py-2.5 border-b group/header" style={{ borderColor: `${colors.border}40` }}>
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold truncate" style={{ color: colors.text }}>{node.title || node.id}</div>
+              <div className="text-[11px] mt-0.5 flex items-center gap-2" style={{ color: colors.accent }}>
+                <span>{node.id}</span>
+                {node.timed && <span className="px-1 py-px rounded text-[9px] bg-orange-500/15">⏱ {node.timer_seconds || 10}s</span>}
+                {node.is_ending && <span className="px-1 py-px rounded text-[9px] bg-pink-500/15">★ End</span>}
+              </div>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); onDeleteNode?.(node.id) }}
+              className="opacity-0 group-hover/header:opacity-100 text-red-400/50 hover:text-red-400 text-[13px] cursor-pointer transition-opacity shrink-0 ml-1"
+              title="Delete scene"
+            >✕</button>
           </div>
         </div>
 
@@ -361,6 +370,47 @@ export default function StoryBuilder({ storyId, onBack }) {
     load()
   }
 
+  const handleDeleteNode = async (nodeId) => {
+    const node = nodes[nodeId]
+    if (!confirm(`Delete "${node?.title || nodeId}"? This removes the scene and all its choices.`)) return
+    await admin.deleteNode(storyId, nodeId)
+    setPositions(p => { const next = { ...p }; delete next[nodeId]; return next })
+    if (selectedNode?.id === nodeId) setSelectedNode(null)
+    load()
+  }
+
+  // Persist positions to localStorage
+  useEffect(() => {
+    if (Object.keys(positions).length > 0) {
+      localStorage.setItem(`narrative-positions-${storyId}`, JSON.stringify(positions))
+    }
+  }, [positions, storyId])
+
+  // Load saved positions
+  useEffect(() => {
+    const saved = localStorage.getItem(`narrative-positions-${storyId}`)
+    if (saved) {
+      try { setPositions(JSON.parse(saved)) } catch {}
+    }
+  }, [storyId])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedNode && !e.target.closest('input, textarea')) {
+          e.preventDefault()
+          handleDeleteNode(selectedNode.id)
+        }
+      }
+      if (e.key === 'Escape') {
+        setSelectedNode(null)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [selectedNode])
+
   const handleCanvasMouseDown = (e) => {
     if (e.target !== canvasRef.current) return
     panRef.current = { startX: e.clientX - pan.x, startY: e.clientY - pan.y }
@@ -389,9 +439,12 @@ export default function StoryBuilder({ storyId, onBack }) {
 
       {/* Legend */}
       <div className="absolute bottom-4 left-4 z-20 flex items-center gap-4 text-[12px] text-white/30">
-        <span>Drag blue port → scene to connect</span>
+        <span>Drag port → scene</span>
         <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#22c55e]" /> Positive</div>
         <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#64748b]" /> Neutral</div>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#c084fc]" /> Text Input</div>
+        <span className="text-white/15">|</span>
+        <span>Del: remove · Esc: deselect</span>
       </div>
 
       {/* Canvas */}
@@ -422,7 +475,7 @@ export default function StoryBuilder({ storyId, onBack }) {
             <NodeCard key={node.id} node={node} position={positions[node.id]}
               selected={selectedNode?.id === node.id} onSelect={setSelectedNode} onDrag={handleDrag}
               onStartConnect={handleStartConnect} onEndConnect={handleEndConnect} connectingFrom={connectingFrom}
-              onAddChoice={handleAddChoice} onUpdateChoice={handleUpdateChoice} onDeleteChoice={handleDeleteChoice}
+              onAddChoice={handleAddChoice} onUpdateChoice={handleUpdateChoice} onDeleteChoice={handleDeleteChoice} onDeleteNode={handleDeleteNode}
             />
           ))}
         </div>

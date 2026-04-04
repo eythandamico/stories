@@ -397,9 +397,19 @@ export default function App() {
                       <span className="text-[13px] text-white/30">{s.id}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     {s.available ? <span className="text-[11px] px-1.5 py-0.5 rounded bg-green-500/15 text-green-400">Live</span> : <span className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/20">Draft</span>}
                     {s.trending ? <span className="text-[11px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400">Trending</span> : null}
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        const newId = s.id + '-copy-' + Date.now().toString(36)
+                        await admin.cloneStory(s.id, newId)
+                        loadStories()
+                      }}
+                      className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 hover:text-white/60 cursor-pointer"
+                      title="Clone story"
+                    >Clone</button>
                     <span className="text-white/20 text-[14px]">→</span>
                   </div>
                 </button>

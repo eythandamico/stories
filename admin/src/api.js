@@ -58,6 +58,8 @@ export const admin = {
   getFeed: () => adminRequest('/api/feed'),
   saveStory: (data) => adminRequest('/api/admin/stories', { method: 'POST', body: JSON.stringify(data) }),
   deleteStory: (id) => adminRequest(`/api/admin/stories/${id}`, { method: 'DELETE' }),
+  cloneStory: (id, newId) => adminRequest(`/api/admin/stories/${id}/clone`, { method: 'POST', body: JSON.stringify({ newId }) }),
+  deleteNode: (storyId, nodeId) => adminRequest(`/api/admin/nodes/${storyId}/${nodeId}`, { method: 'DELETE' }),
   saveNode: (data) => adminRequest('/api/admin/nodes', { method: 'POST', body: JSON.stringify(data) }),
   saveChoices: (storyId, nodeId, choices) => adminRequest('/api/admin/choices', {
     method: 'POST', body: JSON.stringify({ story_id: storyId, node_id: nodeId, choices }),

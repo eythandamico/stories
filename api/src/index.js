@@ -500,6 +500,56 @@ export default {
       }
     }
 
+    // DELETE /api/admin/nodes/:storyId/:nodeId — delete a node and its choices
+    if (path.match(/^\/api\/admin\/nodes\/[\w-]+\/[\w-]+$/) && method === 'DELETE') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      const parts = path.split('/')
+      const [sid, nid] = [parts[4], parts[5]]
+      await env.DB.prepare('DELETE FROM choices WHERE story_id = ? AND node_id = ?').bind(sid, nid).run()
+      await env.DB.prepare('DELETE FROM choice_stats WHERE story_id = ? AND node_id = ?').bind(sid, nid).run()
+      await env.DB.prepare('DELETE FROM nodes WHERE story_id = ? AND id = ?').bind(sid, nid).run()
+      // Clean up choices pointing to this node
+      await env.DB.prepare("UPDATE choices SET next_node_id = '' WHERE story_id = ? AND next_node_id = ?").bind(sid, nid).run()
+      return json({ ok: true })
+    }
+
+    // POST /api/admin/stories/:id/clone — duplicate a story
+    if (path.match(/^\/api\/admin\/stories\/[\w-]+\/clone$/) && method === 'POST') {
+      if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
+      const srcId = path.split('/')[4]
+      const { newId } = await request.json()
+      if (!newId) return error('newId required')
+
+      const story = await env.DB.prepare('SELECT * FROM stories WHERE id = ?').bind(srcId).first()
+      if (!story) return error('Story not found', 404)
+
+      // Clone story
+      await env.DB.prepare(`
+        INSERT INTO stories (id, title, description, genre, cover_url, preview_url, poster_url, trending, available, price, series_price, total_endings, start_node_id, sort_order)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?)
+      `).bind(newId, story.title + ' (Copy)', story.description, story.genre, story.cover_url, story.preview_url, story.poster_url, story.price, story.series_price, story.total_endings, story.start_node_id, story.sort_order + 1).run()
+
+      // Clone nodes
+      const nodes = await env.DB.prepare('SELECT * FROM nodes WHERE story_id = ?').bind(srcId).all()
+      for (const n of nodes.results) {
+        await env.DB.prepare(`
+          INSERT INTO nodes (id, story_id, title, description, video_url, poster_url, is_ending, ending_title, ending_description, timed, timer_seconds)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(n.id, newId, n.title, n.description, n.video_url, n.poster_url, n.is_ending, n.ending_title, n.ending_description, n.timed, n.timer_seconds).run()
+      }
+
+      // Clone choices
+      const choices = await env.DB.prepare('SELECT * FROM choices WHERE story_id = ?').bind(srcId).all()
+      for (const c of choices.results) {
+        await env.DB.prepare(`
+          INSERT INTO choices (story_id, node_id, label, next_node_id, positive, sort_order, choice_type, prompt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(newId, c.node_id, c.label, c.next_node_id, c.positive, c.sort_order, c.choice_type, c.prompt).run()
+      }
+
+      return json({ ok: true, id: newId })
+    }
+
     // POST /api/admin/feed — set feed order
     if (path === '/api/admin/feed' && method === 'POST') {
       if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
