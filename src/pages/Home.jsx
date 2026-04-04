@@ -18,6 +18,13 @@ const RENDER_WINDOW = 3
 
 const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderReady, shaderVisible, onPlay }) {
   const videoRef = useRef(null)
+  const [mounted, setMounted] = useState(false)
+
+  // Once a card has been nearby, keep it mounted
+  useEffect(() => {
+    if (isNearby && !mounted) setMounted(true)
+  }, [isNearby])
+
   const hasProgress = useMemo(() => {
     try {
       const saved = localStorage.getItem(`narrative-progress-${item.storyId || item.id}`)
@@ -48,22 +55,19 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
       onClick={() => item.route && onPlay(item)}
       onKeyDown={(e) => { if (item.route && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onPlay(item) } }}
     >
-      {/* Video — only mount when nearby */}
-      {isNearby ? (
-        <>
-          <div className="absolute inset-0 video-shimmer" aria-hidden="true" />
-          <video
-            ref={videoRef}
-            src={item.preview}
-            poster={item.poster || ''}
-            className="w-full h-full object-cover"
-            aria-label={`${item.title} preview`}
-            loop
-            muted
-            playsInline
-            preload={isActive ? 'auto' : 'metadata'}
-          />
-        </>
+      {/* Video — mount when nearby, keep mounted once loaded */}
+      {mounted ? (
+        <video
+          ref={videoRef}
+          src={item.preview}
+          poster={item.poster || ''}
+          className="w-full h-full object-cover"
+          aria-label={`${item.title} preview`}
+          loop
+          muted
+          playsInline
+          preload={isActive ? 'auto' : 'metadata'}
+        />
       ) : (
         <div className="absolute inset-0 bg-black" />
       )}
