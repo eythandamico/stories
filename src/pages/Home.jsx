@@ -71,8 +71,13 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
       onClick={() => item.route && onPlay(item)}
       onKeyDown={(e) => { if (item.route && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onPlay(item) } }}
     >
+      {/* Poster as background — always visible, no black flash */}
+      {item.poster && (
+        <img src={item.poster} className="absolute inset-0 w-full h-full object-cover" alt="" aria-hidden="true" />
+      )}
+
       {/* Video — mount when nearby, keep mounted once loaded */}
-      {mounted ? (
+      {mounted && (
         <video
           ref={videoRef}
           src={item.preview}
@@ -83,8 +88,6 @@ const FeedCard = memo(function FeedCard({ item, i, isActive, isNearby, shaderRea
           playsInline
           preload={(isActive || i < 4) ? 'auto' : 'metadata'}
         />
-      ) : (
-        <div className="absolute inset-0 bg-black" />
       )}
 
 
