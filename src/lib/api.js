@@ -42,6 +42,8 @@ export const api = {
     request('/api/me/hearts/spend', { method: 'POST', body: JSON.stringify({}) }),
   recordChoice: (storyId, nodeId, choiceIndex) =>
     request('/api/stats', { method: 'POST', body: JSON.stringify({ storyId, nodeId, choiceIndex }) }),
+  recordStreak: () =>
+    request('/api/me/streak', { method: 'POST', body: '{}' }),
   generateResponse: (storyId, nodeId, userText, prompt) =>
     request('/api/generate', { method: 'POST', body: JSON.stringify({ storyId, nodeId, userText, prompt }) }),
 

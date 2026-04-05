@@ -177,6 +177,22 @@ export default {
 
     // ── Public routes ──
 
+    // GET /api/health — system health check
+    if (path === '/api/health' && method === 'GET') {
+      try {
+        const userCount = await env.DB.prepare('SELECT COUNT(*) as c FROM users').first()
+        const storyCount = await env.DB.prepare('SELECT COUNT(*) as c FROM stories').first()
+        return json({
+          status: 'ok',
+          users: userCount?.c || 0,
+          stories: storyCount?.c || 0,
+          fcmCached: Boolean(fcmTokenCache.token),
+        })
+      } catch (e) {
+        return json({ status: 'error', message: e.message }, 500)
+      }
+    }
+
     // Rate limit public endpoints
     const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown'
 
@@ -227,6 +243,27 @@ export default {
       }
 
       return json({ ...story, nodes: nodeMap })
+    }
+
+    // GET /api/stories/:id/node/:nodeId — get a single node (for gated access later)
+    if (path.match(/^\/api\/stories\/[\w-]+\/node\/[\w-]+$/) && method === 'GET') {
+      const parts = path.split('/')
+      const [storyId, nodeId] = [parts[3], parts[5]]
+      const node = await env.DB.prepare('SELECT * FROM nodes WHERE story_id = ? AND id = ?').bind(storyId, nodeId).first()
+      if (!node) return error('Node not found', 404)
+      const choices = await env.DB.prepare('SELECT * FROM choices WHERE story_id = ? AND node_id = ? ORDER BY sort_order ASC').bind(storyId, nodeId).all()
+      return json({
+        ...node,
+        is_ending: Boolean(node.is_ending),
+        timed: Boolean(node.timed),
+        choices: choices.results.map(c => ({
+          label: c.label,
+          nextNodeId: c.next_node_id,
+          positive: Boolean(c.positive),
+          choiceType: c.choice_type || 'button',
+          prompt: c.prompt || null,
+        })),
+      })
     }
 
     // GET /api/stats/:storyId/:nodeId — get choice stats
@@ -294,7 +331,7 @@ export default {
       const body = await request.json()
       const fields = []
       const values = []
-      const allowed = ['streak_current', 'streak_best', 'streak_last_play', 'last_heart_loss', 'display_name', 'push_token', 'deleted']
+      const allowed = ['last_heart_loss', 'display_name', 'push_token', 'deleted']
       for (const key of allowed) {
         if (body[key] !== undefined) {
           fields.push(`${key} = ?`)
@@ -344,6 +381,36 @@ export default {
       return json({ ok: result.meta.changes > 0 })
     }
 
+    // POST /api/me/streak — update streak server-side
+    if (path === '/api/me/streak' && method === 'POST') {
+      const userData = await env.DB.prepare('SELECT streak_current, streak_best, streak_last_play FROM users WHERE id = ?').bind(user.uid).first()
+      if (!userData) return error('User not found', 404)
+
+      const today = new Date().toISOString().slice(0, 10)
+      const lastPlay = userData.streak_last_play?.slice(0, 10)
+      let current = userData.streak_current || 0
+      let best = userData.streak_best || 0
+
+      if (lastPlay === today) {
+        // Already played today
+        return json({ ok: true, current, best, changed: false })
+      }
+
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+      if (lastPlay === yesterday) {
+        current += 1
+      } else {
+        current = 1
+      }
+      if (current > best) best = current
+
+      await env.DB.prepare(
+        "UPDATE users SET streak_current = ?, streak_best = ?, streak_last_play = datetime('now') WHERE id = ?"
+      ).bind(current, best, user.uid).run()
+
+      return json({ ok: true, current, best, changed: true })
+    }
+
     // POST /api/stats — record a choice
     if (path === '/api/stats' && method === 'POST') {
       const { storyId, nodeId, choiceIndex } = await request.json()
@@ -357,8 +424,16 @@ export default {
 
     // POST /api/generate — process text input choice via AI
     if (path === '/api/generate' && method === 'POST') {
+      // Rate limit: 10 per minute per user
+      const genAllowed = await checkRateLimit(env.DB, `generate:${user.uid}`, 10, 60)
+      if (!genAllowed) return json({ error: 'Too many requests. Slow down.' }, 429)
+
       const { storyId, nodeId, userText, prompt } = await request.json()
       if (!storyId || !nodeId || !userText) return error('Missing required fields')
+
+      // Validate input
+      const cleanText = String(userText).slice(0, 500).replace(/<[^>]*>/g, '').replace(/[\x00-\x1f]/g, '')
+      if (!cleanText.trim()) return error('Text cannot be empty')
 
       // Get the node and story context
       const story = await env.DB.prepare('SELECT title, description FROM stories WHERE id = ?').bind(storyId).first()
@@ -370,7 +445,7 @@ export default {
       await env.DB.prepare(`
         INSERT INTO text_responses (user_id, story_id, node_id, user_text, created_at)
         VALUES (?, ?, ?, ?, datetime('now'))
-      `).bind(user.uid, storyId, nodeId, userText).run().catch(() => {})
+      `).bind(user.uid, storyId, nodeId, cleanText).run().catch(() => {})
 
       // For now, return the next node from the text-input choice
       // AI generation will be plugged in here later
@@ -452,11 +527,13 @@ export default {
     if (path.match(/^\/api\/admin\/stories\/[\w-]+$/) && method === 'DELETE') {
       if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
       const storyId = path.split('/').pop()
-      await env.DB.prepare('DELETE FROM choices WHERE story_id = ?').bind(storyId).run()
-      await env.DB.prepare('DELETE FROM nodes WHERE story_id = ?').bind(storyId).run()
-      await env.DB.prepare('DELETE FROM choice_stats WHERE story_id = ?').bind(storyId).run()
-      await env.DB.prepare('DELETE FROM feed WHERE story_id = ?').bind(storyId).run()
-      await env.DB.prepare('DELETE FROM stories WHERE id = ?').bind(storyId).run()
+      await env.DB.batch([
+        env.DB.prepare('DELETE FROM choices WHERE story_id = ?').bind(storyId),
+        env.DB.prepare('DELETE FROM nodes WHERE story_id = ?').bind(storyId),
+        env.DB.prepare('DELETE FROM choice_stats WHERE story_id = ?').bind(storyId),
+        env.DB.prepare('DELETE FROM feed WHERE story_id = ?').bind(storyId),
+        env.DB.prepare('DELETE FROM stories WHERE id = ?').bind(storyId),
+      ])
       return json({ ok: true })
     }
 
@@ -505,11 +582,12 @@ export default {
       if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
       const parts = path.split('/')
       const [sid, nid] = [parts[4], parts[5]]
-      await env.DB.prepare('DELETE FROM choices WHERE story_id = ? AND node_id = ?').bind(sid, nid).run()
-      await env.DB.prepare('DELETE FROM choice_stats WHERE story_id = ? AND node_id = ?').bind(sid, nid).run()
-      await env.DB.prepare('DELETE FROM nodes WHERE story_id = ? AND id = ?').bind(sid, nid).run()
-      // Clean up choices pointing to this node
-      await env.DB.prepare("UPDATE choices SET next_node_id = '' WHERE story_id = ? AND next_node_id = ?").bind(sid, nid).run()
+      await env.DB.batch([
+        env.DB.prepare('DELETE FROM choices WHERE story_id = ? AND node_id = ?').bind(sid, nid),
+        env.DB.prepare('DELETE FROM choice_stats WHERE story_id = ? AND node_id = ?').bind(sid, nid),
+        env.DB.prepare('DELETE FROM nodes WHERE story_id = ? AND id = ?').bind(sid, nid),
+        env.DB.prepare("UPDATE choices SET next_node_id = '' WHERE story_id = ? AND next_node_id = ?").bind(sid, nid),
+      ])
       return json({ ok: true })
     }
 
@@ -555,11 +633,12 @@ export default {
       if (!isAdmin && !isSeedAdmin) return error('Admin only', 403)
       try {
         const body = await request.json()
-        await env.DB.prepare('DELETE FROM feed').run()
-        for (let i = 0; i < body.items.length; i++) {
-          await env.DB.prepare('INSERT INTO feed (story_id, sort_order) VALUES (?, ?)')
-            .bind(body.items[i], i).run()
-        }
+        await env.DB.batch([
+          env.DB.prepare('DELETE FROM feed'),
+          ...body.items.map((id, i) =>
+            env.DB.prepare('INSERT INTO feed (story_id, sort_order) VALUES (?, ?)').bind(id, i)
+          ),
+        ])
         return json({ ok: true })
       } catch (e) {
         return error(e.message, 500)

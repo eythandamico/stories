@@ -11,16 +11,11 @@ import { cancelInactivityReminder } from './notifications.js';
 
 const MAX_HEARTS = 5;
 
-// Sync local state to server (fire-and-forget, server is source of truth)
-async function syncToServer() {
+// Sync streak to server (server calculates, fire-and-forget)
+async function syncStreak() {
   if (!isFirebaseConfigured) return;
   try {
-    const streak = getStreak();
-    await api.updateMe({
-      streak_current: streak.current,
-      streak_best: streak.best,
-      streak_last_play: streak.lastPlayDate,
-    });
+    await api.recordStreak();
   } catch {}
 }
 
@@ -106,7 +101,7 @@ export function useGameState() {
   const recordPlay = useCallback(() => {
     _recordPlay();
     refresh();
-    syncToServer();
+    syncStreak();
     cancelInactivityReminder();
   }, [refresh]);
 

@@ -8,7 +8,7 @@ const API_URL = 'https://narrative-api.winter-lake-b4eb.workers.dev'
 async function post(path, data) {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Seed-Key': 'narrative-seed-2026' },
+    headers: { 'Content-Type': 'application/json', 'X-Seed-Key': process.env.SEED_KEY || '' },
     body: JSON.stringify(data),
   })
   const text = await res.text()
