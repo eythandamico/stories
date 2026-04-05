@@ -14,8 +14,9 @@ dist
 .env
 .env.local
 
-# Large video files
-public/videos/*.mp4
+# Large media files (served from R2)
+public/videos/
+public/posters/
 
 # Wrangler local state
 .wrangler/
