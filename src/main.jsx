@@ -19,6 +19,13 @@ if (Capacitor.isNativePlatform()) {
   import('@capacitor/keyboard').then(({ Keyboard }) => {
     Keyboard.setAccessoryBarVisible({ isVisible: false })
   }).catch(() => {})
+
+  // Dismiss splash screen after app loads (fallback for logged-in users who skip Auth)
+  setTimeout(() => {
+    import('@capacitor/splash-screen').then(({ SplashScreen }) => {
+      SplashScreen.hide({ fadeOutDuration: 300 })
+    }).catch(() => {})
+  }, 1500)
 }
 
 createRoot(document.getElementById('root')).render(
