@@ -26,6 +26,12 @@ ios/App/App/public/
 dist-ssr
 *.local
 
+# IDE/tool configs
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
